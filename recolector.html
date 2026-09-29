@@ -3,61 +3,496 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🌐 Recolector v2 — Artículos completos</title>
+<title>🌐 Recolector — Entrenamiento estructurado</title>
 <style>
-  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:900px; margin:auto; }
-  h1 { color:#38bdf8; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:1000px; margin:auto; }
+  h1 { color:#38bdf8; margin-bottom:4px; }
+  .sub { color:#94a3b8; margin-top:0; font-size:0.9rem; }
+  h2 { color:#7dd3fc; font-size:1rem; margin-top:24px; }
   button { background:#0ea5e9; color:white; border:none; padding:12px 24px; border-radius:8px;
     font-size:1rem; font-weight:600; cursor:pointer; margin:4px 4px 4px 0; }
   button:disabled { background:#475569; cursor:not-allowed; }
   button.secondary { background:#475569; }
   #log { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px;
-    margin-top:16px; max-height:500px; overflow-y:auto; font-family:monospace; font-size:0.8rem; }
+    margin-top:16px; max-height:400px; overflow-y:auto; font-family:monospace; font-size:0.8rem; }
   .ok { color:#4ade80; } .err { color:#f87171; } .info { color:#94a3b8; } .warn { color:#fbbf24; }
   .prog { color:#c084fc; }
-  .stats { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin:16px 0; }
+  .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin:16px 0; }
   .stat { background:#0f172a; border:1px solid #334155; border-radius:6px; padding:10px; text-align:center; }
   .stat-num { color:#38bdf8; font-size:1.3rem; font-weight:700; }
   .stat-lbl { color:#94a3b8; font-size:0.7rem; text-transform:uppercase; }
   .modo { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; margin:12px 0; }
   .modo label { display:flex; align-items:center; gap:8px; color:#cbd5e1; padding:6px 0; }
   input[type="checkbox"] { width:18px; height:18px; }
-  input[type="number"] { width:70px; background:#0f172a; border:1px solid #334155;
-    color:#e2e8f0; padding:4px 8px; border-radius:4px; }
+  input[type="number"] { width:80px; background:#0f172a; border:1px solid #334155;
+    color:#e2e8f0; padding:4px 8px; border-radius:4px; font-size:0.95rem; }
+  .categorias { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+  .cat-chip {
+    background:#334155; color:#cbd5e1; padding:4px 10px; border-radius:12px;
+    font-size:0.78rem; cursor:pointer; user-select:none; border:2px solid transparent;
+  }
+  .cat-chip.on { background:#0ea5e9; color:white; border-color:#38bdf8; }
 </style>
 </head>
 <body>
-<h1>🌐 Recolector v2</h1>
-<p style="color:#94a3b8">Descarga artículos COMPLETOS de Wikipedia (20-200 KB cada uno)</p>
+<h1>🌐 Recolector</h1>
+<p class="sub">Descarga Wikipedia + APIs y genera JSON con estructura de entrenamiento (compatible con cerebro.html)</p>
 
 <div class="modo">
-  <strong style="color:#7dd3fc">Configuración:</strong>
+  <strong style="color:#7dd3fc">1. Categorías a incluir:</strong>
+  <div class="categorias" id="catsBox"></div>
+  <button id="allCat" class="secondary">Todas</button>
+  <button id="noneCat" class="secondary">Ninguna</button>
+</div>
+
+<div class="modo">
+  <strong style="color:#7dd3fc">2. Configuración:</strong>
   <label>
-    Nº artículos completos ES:
-    <input type="number" id="numES" value="50" min="10" max="300" />
+    Límite de artículos ES:
+    <input type="number" id="numES" value="150" min="10" max="500" />
   </label>
   <label>
-    Nº artículos completos EN:
-    <input type="number" id="numEN" value="20" min="5" max="100" />
+    Límite de artículos EN:
+    <input type="number" id="numEN" value="30" min="5" max="200" />
   </label>
-  <label><input type="checkbox" id="cbApis" checked> APIs (clima, países, cripto, NASA, GitHub)</label>
+  <label><input type="checkbox" id="cbApis" checked> Incluir APIs adicionales (clima, sismos, NASA)</label>
+  <label><input type="checkbox" id="cbPatrones" checked> Generar patrones conversacionales (recomendado)</label>
 </div>
 
 <div class="stats">
-  <div class="stat"><div class="stat-num" id="statOk">0</div><div class="stat-lbl">OK</div></div>
+  <div class="stat"><div class="stat-num" id="statTags">0</div><div class="stat-lbl">Tags</div></div>
+  <div class="stat"><div class="stat-num" id="statPatrones">0</div><div class="stat-lbl">Patrones</div></div>
   <div class="stat"><div class="stat-num" id="statErr">0</div><div class="stat-lbl">Errores</div></div>
   <div class="stat"><div class="stat-num" id="statMB">0</div><div class="stat-lbl">MB</div></div>
 </div>
 
 <button id="go">🚀 Iniciar recolección</button>
-<button id="dl" class="secondary" disabled>💾 Descargar conocimiento.json</button>
+<button id="dl" class="secondary" disabled>💾 Descargar entrenamiento.json</button>
+<button id="clearLog" class="secondary">🗑 Limpiar log</button>
 
 <div id="log"></div>
 
 <script>
+// ============================================================
+// BASE DE CONOCIMIENTO — Temas con tag, nombre y categoría
+// ============================================================
+const TEMAS = [
+  // ==================== CIENCIA ====================
+  { tag:'ia', n:'Inteligencia artificial', c:'ciencia' },
+  { tag:'machine_learning', n:'Aprendizaje automático', c:'ciencia' },
+  { tag:'redes_neuronales', n:'Red neuronal artificial', c:'ciencia' },
+  { tag:'deep_learning', n:'Aprendizaje profundo', c:'ciencia' },
+  { tag:'nlp', n:'Procesamiento de lenguajes naturales', c:'ciencia' },
+  { tag:'vision_artificial', n:'Visión artificial', c:'ciencia' },
+  { tag:'algoritmo', n:'Algoritmo', c:'ciencia' },
+  { tag:'estructuras_datos', n:'Estructura de datos', c:'ciencia' },
+  { tag:'fisica', n:'Física', c:'ciencia' },
+  { tag:'quimica', n:'Química', c:'ciencia' },
+  { tag:'biologia', n:'Biología', c:'ciencia' },
+  { tag:'matematicas', n:'Matemáticas', c:'ciencia' },
+  { tag:'astronomia', n:'Astronomía', c:'ciencia' },
+  { tag:'genetica', n:'Genética', c:'ciencia' },
+  { tag:'ecologia', n:'Ecología', c:'ciencia' },
+  { tag:'mecanica_cuantica', n:'Mecánica cuántica', c:'ciencia' },
+  { tag:'relatividad', n:'Relatividad general', c:'ciencia' },
+  { tag:'teoria_cuerdas', n:'Teoría de cuerdas', c:'ciencia' },
+  { tag:'evolucion', n:'Evolución biológica', c:'ciencia' },
+  { tag:'adn', n:'ADN', c:'ciencia' },
+  { tag:'sistema_solar', n:'Sistema solar', c:'ciencia' },
+  { tag:'via_lactea', n:'Vía Láctea', c:'ciencia' },
+  { tag:'agujero_negro', n:'Agujero negro', c:'ciencia' },
+  { tag:'big_bang', n:'Big Bang', c:'ciencia' },
+  { tag:'materia_oscura', n:'Materia oscura', c:'ciencia' },
+  { tag:'tabla_periodica', n:'Tabla periódica de los elementos', c:'ciencia' },
+  { tag:'atomo', n:'Átomo', c:'ciencia' },
+  { tag:'molecula', n:'Molécula', c:'ciencia' },
+  { tag:'proton', n:'Protón', c:'ciencia' },
+  { tag:'neutron', n:'Neutrón', c:'ciencia' },
+  { tag:'electron', n:'Electrón', c:'ciencia' },
+  { tag:'foton', n:'Fotón', c:'ciencia' },
+  { tag:'termodinamica', n:'Termodinámica', c:'ciencia' },
+  { tag:'electromagnetismo', n:'Electromagnetismo', c:'ciencia' },
+  { tag:'gravedad', n:'Gravedad', c:'ciencia' },
+  { tag:'energia', n:'Energía', c:'ciencia' },
+  { tag:'entropia', n:'Entropía', c:'ciencia' },
+  { tag:'fision_nuclear', n:'Fisión nuclear', c:'ciencia' },
+  { tag:'fusion_nuclear', n:'Fusión nuclear', c:'ciencia' },
+  { tag:'numeros_primos', n:'Número primo', c:'ciencia' },
+  { tag:'nanotecnologia', n:'Nanotecnología', c:'ciencia' },
+  { tag:'neurociencia', n:'Neurociencia', c:'ciencia' },
+  { tag:'bioquimica', n:'Bioquímica', c:'ciencia' },
+  { tag:'microbiologia', n:'Microbiología', c:'ciencia' },
+  { tag:'optica', n:'Óptica', c:'ciencia' },
+  { tag:'acustica', n:'Acústica', c:'ciencia' },
+
+  // ==================== TECNOLOGÍA ====================
+  { tag:'internet', n:'Internet', c:'tecnologia' },
+  { tag:'www', n:'World Wide Web', c:'tecnologia' },
+  { tag:'computadora', n:'Computadora', c:'tecnologia' },
+  { tag:'programacion', n:'Programación', c:'tecnologia' },
+  { tag:'python', n:'Python (lenguaje de programación)', c:'tecnologia' },
+  { tag:'javascript', n:'JavaScript', c:'tecnologia' },
+  { tag:'typescript', n:'TypeScript', c:'tecnologia' },
+  { tag:'java', n:'Java (lenguaje de programación)', c:'tecnologia' },
+  { tag:'cpp', n:'C++', c:'tecnologia' },
+  { tag:'rust', n:'Rust (lenguaje de programación)', c:'tecnologia' },
+  { tag:'nodejs', n:'Node.js', c:'tecnologia' },
+  { tag:'react', n:'React (biblioteca JavaScript)', c:'tecnologia' },
+  { tag:'vue', n:'Vue.js', c:'tecnologia' },
+  { tag:'linux', n:'Linux', c:'tecnologia' },
+  { tag:'windows', n:'Microsoft Windows', c:'tecnologia' },
+  { tag:'android', n:'Android', c:'tecnologia' },
+  { tag:'ios', n:'iOS', c:'tecnologia' },
+  { tag:'blockchain', n:'Blockchain', c:'tecnologia' },
+  { tag:'bitcoin', n:'Bitcoin', c:'tecnologia' },
+  { tag:'ethereum', n:'Ethereum', c:'tecnologia' },
+  { tag:'ciberseguridad', n:'Seguridad informática', c:'tecnologia' },
+  { tag:'computacion_cuantica', n:'Computación cuántica', c:'tecnologia' },
+  { tag:'cloud', n:'Computación en la nube', c:'tecnologia' },
+  { tag:'big_data', n:'Macrodatos', c:'tecnologia' },
+  { tag:'html', n:'HTML', c:'tecnologia' },
+  { tag:'css', n:'CSS', c:'tecnologia' },
+  { tag:'api', n:'Interfaz de programación de aplicaciones', c:'tecnologia' },
+  { tag:'http', n:'HTTP', c:'tecnologia' },
+  { tag:'dns', n:'Sistema de nombres de dominio', c:'tecnologia' },
+  { tag:'git', n:'Git', c:'tecnologia' },
+  { tag:'github', n:'GitHub', c:'tecnologia' },
+  { tag:'docker', n:'Docker', c:'tecnologia' },
+  { tag:'kubernetes', n:'Kubernetes', c:'tecnologia' },
+  { tag:'sql', n:'SQL', c:'tecnologia' },
+  { tag:'mongodb', n:'MongoDB', c:'tecnologia' },
+  { tag:'tensorflow', n:'TensorFlow', c:'tecnologia' },
+  { tag:'pytorch', n:'PyTorch', c:'tecnologia' },
+  { tag:'openai', n:'OpenAI', c:'tecnologia' },
+  { tag:'deepmind', n:'DeepMind', c:'tecnologia' },
+  { tag:'alphago', n:'AlphaGo', c:'tecnologia' },
+  { tag:'robotica', n:'Robótica', c:'tecnologia' },
+  { tag:'realidad_virtual', n:'Realidad virtual', c:'tecnologia' },
+  { tag:'realidad_aumentada', n:'Realidad aumentada', c:'tecnologia' },
+  { tag:'internet_cosas', n:'Internet de las cosas', c:'tecnologia' },
+
+  // ==================== HISTORIA ====================
+  { tag:'historia_universal', n:'Historia universal', c:'historia' },
+  { tag:'prehistoria', n:'Prehistoria', c:'historia' },
+  { tag:'mesopotamia', n:'Mesopotamia', c:'historia' },
+  { tag:'roma_antigua', n:'Antigua Roma', c:'historia' },
+  { tag:'grecia_antigua', n:'Antigua Grecia', c:'historia' },
+  { tag:'egipto_antiguo', n:'Antiguo Egipto', c:'historia' },
+  { tag:'imperio_romano', n:'Imperio romano', c:'historia' },
+  { tag:'imperio_bizantino', n:'Imperio bizantino', c:'historia' },
+  { tag:'imperio_otomano', n:'Imperio otomano', c:'historia' },
+  { tag:'edad_media', n:'Edad Media', c:'historia' },
+  { tag:'renacimiento', n:'Renacimiento', c:'historia' },
+  { tag:'ilustracion', n:'Ilustración', c:'historia' },
+  { tag:'rev_francesa', n:'Revolución francesa', c:'historia' },
+  { tag:'rev_industrial', n:'Revolución Industrial', c:'historia' },
+  { tag:'rev_rusa', n:'Revolución rusa', c:'historia' },
+  { tag:'rev_cubana', n:'Revolución cubana', c:'historia' },
+  { tag:'primera_guerra', n:'Primera Guerra Mundial', c:'historia' },
+  { tag:'segunda_guerra', n:'Segunda Guerra Mundial', c:'historia' },
+  { tag:'guerra_fria', n:'Guerra Fría', c:'historia' },
+  { tag:'holocausto', n:'Holocausto', c:'historia' },
+  { tag:'colombia', n:'Cristóbal Colón', c:'historia' },
+  { tag:'napoleon', n:'Napoleón Bonaparte', c:'historia' },
+  { tag:'hitler', n:'Adolf Hitler', c:'historia' },
+  { tag:'independencia_america', n:'Independencia de América', c:'historia' },
+  { tag:'imperio_espanol', n:'Imperio español', c:'historia' },
+  { tag:'civilizacion_maya', n:'Civilización maya', c:'historia' },
+  { tag:'imperio_inca', n:'Imperio inca', c:'historia' },
+  { tag:'aztecas', n:'Mexicas', c:'historia' },
+  { tag:'guerra_civil_espanola', n:'Guerra civil española', c:'historia' },
+  { tag:'muro_berlin', n:'Muro de Berlín', c:'historia' },
+
+  // ==================== GEOGRAFÍA ====================
+  { tag:'espana', n:'España', c:'geografia' },
+  { tag:'cuba', n:'Cuba', c:'geografia' },
+  { tag:'mexico', n:'México', c:'geografia' },
+  { tag:'argentina', n:'Argentina', c:'geografia' },
+  { tag:'colombia_pais', n:'Colombia', c:'geografia' },
+  { tag:'peru', n:'Perú', c:'geografia' },
+  { tag:'chile', n:'Chile', c:'geografia' },
+  { tag:'venezuela', n:'Venezuela', c:'geografia' },
+  { tag:'uruguay', n:'Uruguay', c:'geografia' },
+  { tag:'ecuador', n:'Ecuador', c:'geografia' },
+  { tag:'bolivia', n:'Bolivia', c:'geografia' },
+  { tag:'eeuu', n:'Estados Unidos', c:'geografia' },
+  { tag:'canada', n:'Canadá', c:'geografia' },
+  { tag:'francia', n:'Francia', c:'geografia' },
+  { tag:'alemania', n:'Alemania', c:'geografia' },
+  { tag:'italia', n:'Italia', c:'geografia' },
+  { tag:'reino_unido', n:'Reino Unido', c:'geografia' },
+  { tag:'portugal', n:'Portugal', c:'geografia' },
+  { tag:'rusia', n:'Rusia', c:'geografia' },
+  { tag:'china', n:'China', c:'geografia' },
+  { tag:'japon', n:'Japón', c:'geografia' },
+  { tag:'india', n:'India', c:'geografia' },
+  { tag:'brasil', n:'Brasil', c:'geografia' },
+  { tag:'australia', n:'Australia', c:'geografia' },
+  { tag:'egipto', n:'Egipto', c:'geografia' },
+  { tag:'habana', n:'La Habana', c:'geografia' },
+  { tag:'madrid', n:'Madrid', c:'geografia' },
+  { tag:'barcelona', n:'Barcelona', c:'geografia' },
+  { tag:'cdmx', n:'Ciudad de México', c:'geografia' },
+  { tag:'buenos_aires', n:'Buenos Aires', c:'geografia' },
+  { tag:'nueva_york', n:'Nueva York', c:'geografia' },
+  { tag:'paris', n:'París', c:'geografia' },
+  { tag:'londres', n:'Londres', c:'geografia' },
+  { tag:'amazonas', n:'Río Amazonas', c:'geografia' },
+  { tag:'nilo', n:'Nilo', c:'geografia' },
+  { tag:'everest', n:'Everest', c:'geografia' },
+  { tag:'sahara', n:'Sahara', c:'geografia' },
+  { tag:'antartida', n:'Antártida', c:'geografia' },
+  { tag:'pacifico', n:'Océano Pacífico', c:'geografia' },
+  { tag:'atlantico', n:'Océano Atlántico', c:'geografia' },
+
+  // ==================== FILOSOFÍA ====================
+  { tag:'filosofia', n:'Filosofía', c:'filosofia' },
+  { tag:'socrates', n:'Sócrates', c:'filosofia' },
+  { tag:'platon', n:'Platón', c:'filosofia' },
+  { tag:'aristoteles', n:'Aristóteles', c:'filosofia' },
+  { tag:'descartes', n:'René Descartes', c:'filosofia' },
+  { tag:'kant', n:'Immanuel Kant', c:'filosofia' },
+  { tag:'hegel', n:'Georg Wilhelm Friedrich Hegel', c:'filosofia' },
+  { tag:'nietzsche', n:'Friedrich Nietzsche', c:'filosofia' },
+  { tag:'marx', n:'Karl Marx', c:'filosofia' },
+  { tag:'freud', n:'Sigmund Freud', c:'filosofia' },
+  { tag:'jung', n:'Carl Jung', c:'filosofia' },
+  { tag:'sartre', n:'Jean-Paul Sartre', c:'filosofia' },
+  { tag:'camus', n:'Albert Camus', c:'filosofia' },
+  { tag:'estoicismo', n:'Estoicismo', c:'filosofia' },
+  { tag:'existencialismo', n:'Existencialismo', c:'filosofia' },
+  { tag:'etica', n:'Ética', c:'filosofia' },
+  { tag:'epistemologia', n:'Epistemología', c:'filosofia' },
+  { tag:'metafisica', n:'Metafísica', c:'filosofia' },
+
+  // ==================== SALUD ====================
+  { tag:'medicina', n:'Medicina', c:'salud' },
+  { tag:'anatomia', n:'Anatomía humana', c:'salud' },
+  { tag:'corazon', n:'Corazón', c:'salud' },
+  { tag:'cerebro_humano', n:'Cerebro humano', c:'salud' },
+  { tag:'sistema_nervioso', n:'Sistema nervioso', c:'salud' },
+  { tag:'sistema_inmune', n:'Sistema inmunitario', c:'salud' },
+  { tag:'cancer', n:'Cáncer', c:'salud' },
+  { tag:'diabetes', n:'Diabetes mellitus', c:'salud' },
+  { tag:'covid', n:'COVID-19', c:'salud' },
+  { tag:'alzheimer', n:'Enfermedad de Alzheimer', c:'salud' },
+  { tag:'parkinson', n:'Enfermedad de Parkinson', c:'salud' },
+  { tag:'nutricion', n:'Nutrición', c:'salud' },
+  { tag:'vitaminas', n:'Vitamina', c:'salud' },
+  { tag:'salud_mental', n:'Salud mental', c:'salud' },
+  { tag:'depresion', n:'Depresión', c:'salud' },
+  { tag:'ansiedad', n:'Trastorno de ansiedad', c:'salud' },
+  { tag:'estres', n:'Estrés', c:'salud' },
+  { tag:'vacuna', n:'Vacuna', c:'salud' },
+  { tag:'sueno', n:'Sueño', c:'salud' },
+
+  // ==================== ARTE Y CULTURA ====================
+  { tag:'arte', n:'Arte', c:'cultura' },
+  { tag:'pintura', n:'Pintura', c:'cultura' },
+  { tag:'escultura', n:'Escultura', c:'cultura' },
+  { tag:'arquitectura', n:'Arquitectura', c:'cultura' },
+  { tag:'musica', n:'Música', c:'cultura' },
+  { tag:'literatura', n:'Literatura', c:'cultura' },
+  { tag:'poesia', n:'Poesía', c:'cultura' },
+  { tag:'cine', n:'Cine', c:'cultura' },
+  { tag:'teatro', n:'Teatro', c:'cultura' },
+  { tag:'fotografia', n:'Fotografía', c:'cultura' },
+  { tag:'impresionismo', n:'Impresionismo', c:'cultura' },
+  { tag:'cubismo', n:'Cubismo', c:'cultura' },
+  { tag:'surrealismo', n:'Surrealismo', c:'cultura' },
+  { tag:'barroco', n:'Barroco', c:'cultura' },
+  { tag:'picasso', n:'Pablo Picasso', c:'cultura' },
+  { tag:'davinci', n:'Leonardo da Vinci', c:'cultura' },
+  { tag:'vangogh', n:'Vincent van Gogh', c:'cultura' },
+  { tag:'michelangelo', n:'Miguel Ángel', c:'cultura' },
+  { tag:'dali', n:'Salvador Dalí', c:'cultura' },
+  { tag:'frida', n:'Frida Kahlo', c:'cultura' },
+  { tag:'goya', n:'Francisco de Goya', c:'cultura' },
+  { tag:'cervantes', n:'Miguel de Cervantes', c:'cultura' },
+  { tag:'shakespeare', n:'William Shakespeare', c:'cultura' },
+  { tag:'gabo', n:'Gabriel García Márquez', c:'cultura' },
+  { tag:'borges', n:'Jorge Luis Borges', c:'cultura' },
+  { tag:'neruda', n:'Pablo Neruda', c:'cultura' },
+  { tag:'lorca', n:'Federico García Lorca', c:'cultura' },
+  { tag:'kafka', n:'Franz Kafka', c:'cultura' },
+  { tag:'orwell', n:'George Orwell', c:'cultura' },
+  { tag:'anime', n:'Anime', c:'cultura' },
+  { tag:'manga', n:'Manga', c:'cultura' },
+  { tag:'ghibli', n:'Studio Ghibli', c:'cultura' },
+  { tag:'miyazaki', n:'Hayao Miyazaki', c:'cultura' },
+  { tag:'overlord', n:'Overlord (novela ligera)', c:'cultura' },
+  { tag:'rezero', n:'Re:Zero', c:'cultura' },
+  { tag:'one_piece', n:'One Piece', c:'cultura' },
+  { tag:'naruto', n:'Naruto', c:'cultura' },
+  { tag:'dragon_ball', n:'Dragon Ball', c:'cultura' },
+  { tag:'attack_on_titan', n:'Shingeki no Kyojin', c:'cultura' },
+  { tag:'kimetsu', n:'Kimetsu no Yaiba', c:'cultura' },
+  { tag:'videojuegos', n:'Videojuego', c:'cultura' },
+
+  // ==================== ECONOMÍA ====================
+  { tag:'economia', n:'Economía', c:'economia' },
+  { tag:'capitalismo', n:'Capitalismo', c:'economia' },
+  { tag:'socialismo', n:'Socialismo', c:'economia' },
+  { tag:'comunismo', n:'Comunismo', c:'economia' },
+  { tag:'anarquismo', n:'Anarquismo', c:'economia' },
+  { tag:'liberalismo', n:'Liberalismo', c:'economia' },
+  { tag:'democracia', n:'Democracia', c:'economia' },
+  { tag:'monarquia', n:'Monarquía', c:'economia' },
+  { tag:'republica', n:'República', c:'economia' },
+  { tag:'inflacion', n:'Inflación', c:'economia' },
+  { tag:'pib', n:'Producto interno bruto', c:'economia' },
+  { tag:'bolsa', n:'Bolsa de valores', c:'economia' },
+  { tag:'banco_central', n:'Banco central', c:'economia' },
+  { tag:'dinero', n:'Dinero', c:'economia' },
+  { tag:'globalizacion', n:'Globalización', c:'economia' },
+  { tag:'microeconomia', n:'Microeconomía', c:'economia' },
+  { tag:'macroeconomia', n:'Macroeconomía', c:'economia' },
+  { tag:'criptomonedas', n:'Criptomoneda', c:'economia' },
+  { tag:'nft', n:'Token no fungible', c:'economia' },
+
+  // ==================== DEPORTES ====================
+  { tag:'futbol', n:'Fútbol', c:'deportes' },
+  { tag:'baloncesto', n:'Baloncesto', c:'deportes' },
+  { tag:'beisbol', n:'Béisbol', c:'deportes' },
+  { tag:'tenis', n:'Tenis', c:'deportes' },
+  { tag:'voleibol', n:'Voleibol', c:'deportes' },
+  { tag:'atletismo', n:'Atletismo', c:'deportes' },
+  { tag:'natacion', n:'Natación', c:'deportes' },
+  { tag:'ciclismo', n:'Ciclismo', c:'deportes' },
+  { tag:'boxeo', n:'Boxeo', c:'deportes' },
+  { tag:'ajedrez', n:'Ajedrez', c:'deportes' },
+  { tag:'formula_1', n:'Fórmula 1', c:'deportes' },
+  { tag:'olimpiadas', n:'Juegos Olímpicos', c:'deportes' },
+  { tag:'mundial', n:'Copa Mundial de Fútbol', c:'deportes' },
+  { tag:'nba', n:'National Basketball Association', c:'deportes' },
+  { tag:'messi', n:'Lionel Messi', c:'deportes' },
+  { tag:'cristiano', n:'Cristiano Ronaldo', c:'deportes' },
+  { tag:'maradona', n:'Diego Maradona', c:'deportes' },
+  { tag:'jordan', n:'Michael Jordan', c:'deportes' },
+
+  // ==================== MATEMÁTICAS ====================
+  { tag:'pi', n:'Número pi', c:'matematicas' },
+  { tag:'numero_e', n:'Número e', c:'matematicas' },
+  { tag:'pitagoras', n:'Teorema de Pitágoras', c:'matematicas' },
+  { tag:'calculo', n:'Cálculo infinitesimal', c:'matematicas' },
+  { tag:'algebra', n:'Álgebra', c:'matematicas' },
+  { tag:'geometria', n:'Geometría', c:'matematicas' },
+  { tag:'trigonometria', n:'Trigonometría', c:'matematicas' },
+  { tag:'estadistica', n:'Estadística', c:'matematicas' },
+  { tag:'probabilidad', n:'Probabilidad', c:'matematicas' },
+  { tag:'teoria_conjuntos', n:'Teoría de conjuntos', c:'matematicas' },
+  { tag:'logica_matematica', n:'Lógica matemática', c:'matematicas' },
+  { tag:'topologia', n:'Topología', c:'matematicas' },
+  { tag:'fractal', n:'Fractal', c:'matematicas' },
+  { tag:'caos', n:'Teoría del caos', c:'matematicas' },
+  { tag:'sucesion_fibonacci', n:'Sucesión de Fibonacci', c:'matematicas' },
+  { tag:'numero_oro', n:'Número áureo', c:'matematicas' },
+  { tag:'infinito', n:'Infinito', c:'matematicas' },
+  { tag:'numeros_complejos', n:'Número complejo', c:'matematicas' },
+
+  // ==================== ANIA / PERSONALIDAD ====================
+  { tag:'ania', n:'Ania', c:'ania' },
+  { tag:'cafe', n:'Café', c:'ania' },
+  { tag:'cafe_especialidad', n:'Café de especialidad', c:'ania' },
+  { tag:'yirgacheffe', n:'Yirgacheffe', c:'ania' },
+  { tag:'espresso', n:'Espresso', c:'ania' },
+  { tag:'pour_over', n:'Café filtrado', c:'ania' },
+  { tag:'aeropress', n:'AeroPress', c:'ania' },
+  { tag:'cold_brew', n:'Cold brew', c:'ania' },
+  { tag:'masa_madre', n:'Masa madre', c:'ania' },
+  { tag:'pan_casero', n:'Pan casero', c:'ania' },
+  { tag:'zombies', n:'Zombi', c:'ania' },
+  { tag:'supervivencia', n:'Supervivencia', c:'ania' },
+  { tag:'otaku', n:'Otaku', c:'ania' },
+  { tag:'productividad', n:'Productividad', c:'ania' },
+  { tag:'gtd', n:'Getting Things Done', c:'ania' },
+  { tag:'pomodoro', n:'Técnica Pomodoro', c:'ania' },
+  { tag:'minimalismo', n:'Minimalismo', c:'ania' }
+];
+
+// ============================================================
+// PLANTILLAS DE PATRONES
+// ============================================================
+const PLANTILLAS = [
+  '¿Qué es {t}?',
+  '¿Qué sabes de {t}?',
+  '¿Qué me puedes decir de {t}?',
+  '¿Conoces {t}?',
+  'Háblame de {t}',
+  'Cuéntame sobre {t}',
+  'Cuéntame de {t}',
+  'Dime algo de {t}',
+  'Dime algo interesante de {t}',
+  'Explícame {t}',
+  'Defíneme {t}',
+  'Definición de {t}',
+  'Explicación de {t}',
+  'Descríbeme {t}',
+  'Quiero saber de {t}',
+  'Quiero aprender de {t}',
+  'Necesito información de {t}',
+  'Necesito saber de {t}',
+  'Dame información de {t}',
+  'Dame un resumen de {t}',
+  'Dame datos de {t}',
+  'Resume {t}',
+  'Resumen de {t}',
+  '¿Cómo funciona {t}?',
+  '¿Para qué sirve {t}?',
+  '¿Por qué es importante {t}?',
+  '¿De qué trata {t}?',
+  '¿Cuándo se creó {t}?',
+  '¿Quién descubrió {t}?',
+  '¿Quién inventó {t}?',
+  '¿Dónde se originó {t}?',
+  '¿Cuáles son las características de {t}?',
+  '¿Qué tipos de {t} existen?',
+  'Aprende sobre {t}',
+  'Investiga {t}',
+  'Busca información de {t}',
+  // Coloquiales
+  'que es {t}',
+  'ke es {t}',
+  'q es {t}',
+  'k es {t}',
+  'hablame de {t}',
+  'cuentame de {t}',
+  'dime de {t}',
+  'info de {t}',
+  'info sobre {t}',
+  'data de {t}',
+  'necesito {t}',
+  'quiero {t}',
+  // Solo el término
+  '{t}',
+  '{t}?',
+  // Estilo cubano
+  'asere, dime de {t}',
+  'oye, cuéntame de {t}',
+  'qué bola con {t}',
+  'dame el dato de {t}',
+  // Inglés
+  'What is {t}?',
+  'Tell me about {t}',
+  'Explain {t}'
+];
+
+const VARIANTES = [
+  s => s,
+  s => s.toLowerCase(),
+  s => s.replace(/[áéíóúñÁÉÍÓÚÑ]/g, c => ({'á':'a','é':'e','í':'i','ó':'o','ú':'u','ñ':'n','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ñ':'N'}[c])),
+  s => s.replace(/[¿?¡!.,;:]/g, '')
+];
+
+// ============================================================
+// ESTADO
+// ============================================================
+let categoriasActivas = new Set(['ciencia','tecnologia','historia','geografia','filosofia','salud','cultura','economia','deportes','matematicas','ania']);
+let resultado = null;
+let stats = { tags: 0, patrones: 0, errores: 0, bytes: 0 };
+
 const logEl = document.getElementById('log');
-let resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2', datos: {} };
-let okCount = 0, errCount = 0, totalBytes = 0;
 
 function log(msg, cls='info') {
   const d = document.createElement('div');
@@ -66,12 +501,53 @@ function log(msg, cls='info') {
   logEl.appendChild(d);
   logEl.scrollTop = logEl.scrollHeight;
 }
+
 function updateStats() {
-  document.getElementById('statOk').textContent = okCount;
-  document.getElementById('statErr').textContent = errCount;
-  document.getElementById('statMB').textContent = (totalBytes/1024/1024).toFixed(2);
+  document.getElementById('statTags').textContent = stats.tags;
+  document.getElementById('statPatrones').textContent = stats.patrones;
+  document.getElementById('statErr').textContent = stats.errores;
+  document.getElementById('statMB').textContent = (stats.bytes/1024/1024).toFixed(2);
 }
 
+// ============================================================
+// UI: chips de categorías
+// ============================================================
+function renderChips() {
+  const box = document.getElementById('catsBox');
+  box.innerHTML = '';
+  const cats = [...new Set(TEMAS.map(t => t.c))].sort();
+  cats.forEach(cat => {
+    const chip = document.createElement('span');
+    chip.className = 'cat-chip' + (categoriasActivas.has(cat) ? ' on' : '');
+    chip.textContent = cat + ' (' + TEMAS.filter(t => t.c === cat).length + ')';
+    chip.addEventListener('click', () => {
+      if (categoriasActivas.has(cat)) {
+        categoriasActivas.delete(cat);
+        chip.classList.remove('on');
+      } else {
+        categoriasActivas.add(cat);
+        chip.classList.add('on');
+      }
+    });
+    box.appendChild(chip);
+  });
+}
+
+document.getElementById('allCat').addEventListener('click', () => {
+  categoriasActivas = new Set(TEMAS.map(t => t.c));
+  renderChips();
+});
+document.getElementById('noneCat').addEventListener('click', () => {
+  categoriasActivas.clear();
+  renderChips();
+});
+document.getElementById('clearLog').addEventListener('click', () => { logEl.innerHTML = ''; });
+
+renderChips();
+
+// ============================================================
+// FETCH con timeout
+// ============================================================
 async function fetchT(url, ms=25000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -86,23 +562,10 @@ async function fetchT(url, ms=25000) {
   }
 }
 
-function guardar(nombre, contenido) {
-  if (!contenido || !String(contenido).trim()) return false;
-  const s = String(contenido);
-  if (s.length < 200) return false; // ignorar artículos muy cortos
-  resultado.datos[nombre] = { contenido: s };
-  totalBytes += new Blob([s]).size;
-  okCount++;
-  return true;
-}
-
 // ============================================================
-// WIKIPEDIA COMPLETO — MediaWiki API (extracto entero)
+// WIKIPEDIA COMPLETO
 // ============================================================
-async function fetchArticuloCompleto(titulo, idioma) {
-  // explaintext=1 devuelve texto plano sin HTML
-  // exsectionformat=plain evita "=="
-  // redirects=1 sigue redirecciones
+async function fetchWikipedia(titulo, idioma = 'es') {
   const api = `https://${idioma}.wikipedia.org/w/api.php?` +
     `action=query&` +
     `titles=${encodeURIComponent(titulo)}&` +
@@ -112,15 +575,13 @@ async function fetchArticuloCompleto(titulo, idioma) {
     `redirects=1&` +
     `format=json&` +
     `origin=*`;
-
   const r = await fetchT(api, 30000);
   if (!r.ok) return null;
-
   try {
     const j = JSON.parse(r.text);
     const pages = j.query?.pages || {};
     const pageId = Object.keys(pages)[0];
-    if (!pageId) return null;
+    if (!pageId || pageId === '-1') return null;
     const page = pages[pageId];
     if (!page.extract || page.extract.length < 300) return null;
     return {
@@ -133,173 +594,308 @@ async function fetchArticuloCompleto(titulo, idioma) {
   }
 }
 
-const TEMAS_ES = [
-  // Ciencia
-  'Inteligencia artificial','Aprendizaje automático','Red neuronal artificial','Aprendizaje profundo',
-  'Procesamiento de lenguajes naturales','Visión artificial','Algoritmo','Estructura de datos',
-  'Física','Química','Biología','Matemáticas','Astronomía','Genética','Ecología',
-  'Mecánica cuántica','Relatividad general','Teoría de cuerdas','Evolución biológica','ADN',
-  'Sistema solar','Vía Láctea','Agujero negro','Big Bang','Materia oscura',
-  'Tabla periódica de los elementos','Átomo','Molécula','Protón','Neutrón','Electrón','Fotón',
-  // Tecnología
-  'Internet','World Wide Web','Computadora','Programación','Python (lenguaje de programación)',
-  'JavaScript','Linux','Windows','Android','iOS','Blockchain','Bitcoin','Ciberseguridad',
-  'Computación cuántica','Computación en la nube','Big data','Inteligencia artificial general',
-  // Historia
-  'Historia universal','Antigua Roma','Antigua Grecia','Antiguo Egipto','Imperio romano',
-  'Edad Media','Renacimiento','Revolución francesa','Revolución Industrial',
-  'Primera Guerra Mundial','Segunda Guerra Mundial','Guerra Fría','Cristóbal Colón',
-  // Geografía
-  'España','Cuba','México','Argentina','Colombia','Perú','Chile','Venezuela','Uruguay',
-  'Estados Unidos','Francia','Alemania','Italia','Reino Unido','Rusia','China','Japón','India','Brasil',
-  'La Habana','Madrid','Barcelona','Ciudad de México','Buenos Aires',
-  'Río Amazonas','Nilo','Everest','Sahara','Antártida','Océano Pacífico','Océano Atlántico',
-  // Filosofía y pensamiento
-  'Filosofía','Sócrates','Platón','Aristóteles','René Descartes','Immanuel Kant',
-  'Friedrich Nietzsche','Karl Marx','Sigmund Freud','Carl Jung','Jean-Paul Sartre',
-  // Salud
-  'Medicina','Anatomía humana','Corazón','Cerebro humano','Sistema nervioso','Sistema inmunitario',
-  'Cáncer','Diabetes','COVID-19','Nutrición','Salud mental','Depresión','Ansiedad',
-  // Arte y cultura
-  'Arte','Pintura','Escultura','Música','Literatura','Poesía','Cine','Teatro','Fotografía',
-  'Pablo Picasso','Leonardo da Vinci','Vincent van Gogh','Miguel de Cervantes',
-  'Gabriel García Márquez','Federico García Lorca','William Shakespeare','Frida Kahlo',
-  'Anime','Manga','Estudio Ghibli','Hayao Miyazaki',
-  // Economía y política
-  'Economía','Capitalismo','Socialismo','Comunismo','Democracia','Inflación',
-  'Producto interno bruto','Bolsa de valores','Globalización',
-  // Deportes
-  'Fútbol','Baloncesto','Béisbol','Tenis','Ajedrez','Juegos Olímpicos','Copa Mundial de Fútbol',
-  // Matemáticas
-  'Número pi','Número e','Teorema de Pitágoras','Cálculo infinitesimal','Álgebra','Geometría',
-  'Estadística','Probabilidad','Teoría de conjuntos','Lógica matemática'
-];
-
-const TEMAS_EN = [
-  'Artificial intelligence','Machine learning','Deep learning','Quantum computing',
-  'Climate change','Sustainable energy','Neuroscience','Biotechnology','Nanotechnology',
-  'Space exploration','International Space Station','Computer science','Programming language',
-  'Data science','Cryptography','World War II','Industrial Revolution','Internet',
-  'World Wide Web','Operating system','Database','Cloud computing','Software engineering',
-  'Mathematics','Physics','Chemistry','Biology','Philosophy','Economics','Psychology'
-];
-
-async function recolectarWikipediaCompleta(temas, idioma, prefijo) {
-  log('📚 Wikipedia ' + idioma.toUpperCase() + ' completa (' + temas.length + ' artículos)...', 'prog');
-  let completados = 0;
-  const tareas = temas.map(titulo => async () => {
-    const art = await fetchArticuloCompleto(titulo, idioma);
-    if (art) {
-      const contenido = '# ' + art.titulo + '\n\n' + art.texto + '\n\nFuente: ' + art.url;
-      if (guardar(prefijo + '_' + titulo.replace(/\s+/g, '_'), contenido)) {
-        completados++;
-      }
-    } else {
-      errCount++;
+// ============================================================
+// GENERADORES
+// ============================================================
+function generarPatrones(nombre) {
+  const patrones = new Set();
+  for (const plantilla of PLANTILLAS) {
+    const base = plantilla.replace(/\{t\}/g, nombre);
+    for (const variante of VARIANTES) {
+      const texto = variante(base).trim();
+      if (texto) patrones.add(texto);
     }
-    updateStats();
-    if (completados % 5 === 0 && completados > 0) {
-      log('✓ ' + completados + ' artículos completos · ' + (totalBytes/1024/1024).toFixed(2) + ' MB', 'ok');
-    }
-  });
-  await conLimite(tareas, 3); // menos concurrencia, artículos pesados
-  log('📚 Wikipedia ' + idioma.toUpperCase() + ' terminada: ' + completados + ' artículos', 'ok');
+  }
+  return [...patrones];
 }
 
-async function conLimite(tareas, limite) {
-  const cola = [...tareas];
-  await Promise.all(Array(limite).fill(0).map(async () => {
-    while (cola.length) await cola.shift()();
-  }));
+function generarRespuestas(nombre, extracto) {
+  if (!extracto) {
+    return [
+      `No tengo información detallada sobre **${nombre}** en mi base actual. ¿Quieres que lo busquemos juntos?`
+    ];
+  }
+
+  // Divide en párrafos
+  const parrafos = extracto.split(/\n\n+/).filter(p => p.trim().length > 100);
+  const primerParrafo = parrafos[0] || extracto.slice(0, 800);
+  const resumen = primerParrafo.slice(0, 900).replace(/\s+/g, ' ').trim();
+
+  // Respuesta 1: directa/formal
+  const r1 = `**${nombre}**\n\n${resumen}\n\n¿Quieres que profundice en algo?`;
+
+  // Respuesta 2: estilo Ania casual
+  const r2 = `¡Órale! De **${nombre}** te cuento:\n\n${resumen}\n\n¿Te sirve así o seguimos con más?`;
+
+  // Respuesta 3: cubana
+  const r3 = `Asere, sobre **${nombre}**:\n\n${resumen}\n\n¿Quieres más o pasamos a otra cosa?`;
+
+  // Respuesta 4: si hay más párrafos, resumen extendido
+  if (parrafos.length > 1) {
+    const segundos = parrafos.slice(1, 3).join(' ').slice(0, 700).replace(/\s+/g, ' ');
+    const r4 = `**${nombre}** (más detalles)\n\n${resumen}\n\nAdemás: ${segundos}`;
+    return [r1, r2, r3, r4];
+  }
+
+  return [r1, r2, r3];
 }
 
 // ============================================================
-// APIs con CORS abierto
+// APIS CORS ABIERTO
 // ============================================================
 const APIS = [
   { n:'countries_all', u:'https://restcountries.com/v3.1/all?fields=name,capital,population,region,languages,currencies' },
-  { n:'meteo_madrid', u:'https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m,wind_speed_10m,humidity' },
   { n:'meteo_habana', u:'https://api.open-meteo.com/v1/forecast?latitude=23.1136&longitude=-82.3666&current=temperature_2m,wind_speed_10m' },
   { n:'meteo_buenos_aires', u:'https://api.open-meteo.com/v1/forecast?latitude=-34.6037&longitude=-58.3816&current=temperature_2m' },
+  { n:'meteo_londres', u:'https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m' },
+  { n:'meteo_tokio', u:'https://api.open-meteo.com/v1/forecast?latitude=35.6762&longitude=139.6503&current=temperature_2m' },
   { n:'usgs_sismos', u:'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=30&orderby=time' },
   { n:'iss_location', u:'http://api.open-notify.org/iss-now.json' },
-  { n:'iss_people', u:'http://api.open-notify.org/astros.json' }
+  { n:'iss_people', u:'http://api.open-notify.org/astros.json' },
+  { n:'nasa_apod', u:'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY' },
+  { n:'noaa_solar', u:'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json' }
 ];
-
-async function recolectarAPIs() {
-  log('📡 APIs...', 'prog');
-  for (const a of APIS) {
-    try {
-      const r = await fetchT(a.u, 20000);
-      if (r.ok) {
-        let txt = r.text;
-        try { txt = JSON.stringify(JSON.parse(txt), null, 2); } catch (e) {}
-        guardar('api_' + a.n, txt);
-        log('✓ ' + a.n + ' (' + (txt.length/1024).toFixed(1) + ' KB)', 'ok');
-      } else {
-        errCount++;
-        log('✗ ' + a.n + ': ' + r.error, 'err');
-      }
-    } catch (e) {
-      errCount++;
-    }
-    updateStats();
-  }
-}
 
 // ============================================================
 // MAIN
 // ============================================================
 document.getElementById('go').addEventListener('click', async () => {
-  document.getElementById('go').disabled = true;
+  const btn = document.getElementById('go');
+  const dlBtn = document.getElementById('dl');
+  btn.disabled = true;
+  dlBtn.disabled = true;
   logEl.innerHTML = '';
-  resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2', datos: {} };
-  okCount = 0; errCount = 0; totalBytes = 0;
 
-  const numES = Math.min(300, Math.max(10, parseInt(document.getElementById('numES').value) || 50));
-  const numEN = Math.min(100, Math.max(5, parseInt(document.getElementById('numEN').value) || 20));
+  stats = { tags: 0, patrones: 0, errores: 0, bytes: 0 };
+  updateStats();
 
-  log('🚀 Iniciando recolección v2 (artículos completos)...', 'prog');
+  const numES = Math.min(500, Math.max(10, parseInt(document.getElementById('numES').value) || 150));
+  const numEN = Math.min(200, Math.max(5, parseInt(document.getElementById('numEN').value) || 30));
+  const usarAPIs = document.getElementById('cbApis').checked;
+  const usarPatrones = document.getElementById('cbPatrones').checked;
 
-  // Test
-  const test = await fetchArticuloCompleto('España', 'es');
+  // Filtrar temas
+  let temasES = TEMAS.filter(t => categoriasActivas.has(t.c)).slice(0, numES);
+  let temasEN = [
+    { tag:'ai_en', n:'Artificial intelligence', c:'ciencia' },
+    { tag:'ml_en', n:'Machine learning', c:'ciencia' },
+    { tag:'quantum_en', n:'Quantum computing', c:'ciencia' },
+    { tag:'climate_en', n:'Climate change', c:'ciencia' },
+    { tag:'space_en', n:'Space exploration', c:'ciencia' },
+    { tag:'www_en', n:'World Wide Web', c:'tecnologia' },
+    { tag:'internet_en', n:'Internet', c:'tecnologia' },
+    { tag:'cs_en', n:'Computer science', c:'tecnologia' },
+    { tag:'os_en', n:'Operating system', c:'tecnologia' },
+    { tag:'db_en', n:'Database', c:'tecnologia' },
+    { tag:'wwii_en', n:'World War II', c:'historia' },
+    { tag:'coldwar_en', n:'Cold War', c:'historia' },
+    { tag:'math_en', n:'Mathematics', c:'matematicas' },
+    { tag:'physics_en', n:'Physics', c:'ciencia' },
+    { tag:'chem_en', n:'Chemistry', c:'ciencia' },
+    { tag:'bio_en', n:'Biology', c:'ciencia' },
+    { tag:'philo_en', n:'Philosophy', c:'filosofia' },
+    { tag:'econ_en', n:'Economics', c:'economia' },
+    { tag:'psych_en', n:'Psychology', c:'salud' }
+  ].slice(0, numEN);
+
+  log('🚀 Iniciando recolección...', 'prog');
+  log('📊 Temas ES: ' + temasES.length + ' · Temas EN: ' + temasEN.length, 'info');
+
+  // Test de conectividad
+  const test = await fetchWikipedia('España', 'es');
   if (!test) {
-    log('❌ Wikipedia API no responde correctamente', 'err');
-    document.getElementById('go').disabled = false;
+    log('❌ Wikipedia API no responde. Revisa la conexión.', 'err');
+    btn.disabled = false;
     return;
   }
   log('✅ Wikipedia API funciona (test: ' + test.texto.length + ' chars)', 'ok');
 
-  // ES
-  const temasES = TEMAS_ES.slice(0, numES);
-  await recolectarWikipediaCompleta(temasES, 'es', 'wiki_es');
+  const entrenamiento = [];
 
-  // EN
-  const temasEN = TEMAS_EN.slice(0, numEN);
-  await recolectarWikipediaCompleta(temasEN, 'en', 'wiki_en');
+  // ========== Procesar temas ES ==========
+  log('📚 Procesando Wikipedia ES...', 'prog');
+  const tareasES = temasES.map(tema => async () => {
+    const wiki = await fetchWikipedia(tema.n, 'es');
+    const patrones = usarPatrones ? generarPatrones(tema.n) : [tema.n];
+    const respuestas = generarRespuestas(tema.n, wiki?.texto || '');
 
-  // APIs
-  if (document.getElementById('cbApis').checked) {
-    await recolectarAPIs();
+    entrenamiento.push({
+      tag: tema.tag,
+      categoria: tema.c,
+      tema: tema.n,
+      patterns: patrones,
+      responses: respuestas,
+      meta: {
+        categoria: tema.c,
+        fuente: wiki?.url || null,
+        longitud_texto: wiki?.texto.length || 0,
+        idioma: 'es',
+        tiene_contenido: !!wiki
+      }
+    });
+
+    stats.tags++;
+    stats.patrones += patrones.length;
+    if (!wiki) stats.errores++;
+    updateStats();
+
+    if (stats.tags % 5 === 0) {
+      log('✓ ' + stats.tags + ' tags · ' + stats.patrones + ' patrones · ' + (stats.bytes/1024/1024).toFixed(2) + ' MB', 'ok');
+    }
+  });
+  await conLimite(tareasES, 4);
+
+  // ========== Procesar temas EN ==========
+  log('📚 Procesando Wikipedia EN...', 'prog');
+  const tareasEN = temasEN.map(tema => async () => {
+    const wiki = await fetchWikipedia(tema.n, 'en');
+    const patrones = usarPatrones ? generarPatrones(tema.n) : [tema.n];
+    const respuestas = generarRespuestas(tema.n, wiki?.texto || '');
+
+    entrenamiento.push({
+      tag: tema.tag,
+      categoria: tema.c,
+      tema: tema.n,
+      patterns: patrones,
+      responses: respuestas,
+      meta: {
+        categoria: tema.c,
+        fuente: wiki?.url || null,
+        longitud_texto: wiki?.texto.length || 0,
+        idioma: 'en',
+        tiene_contenido: !!wiki
+      }
+    });
+
+    stats.tags++;
+    stats.patrones += patrones.length;
+    if (!wiki) stats.errores++;
+    updateStats();
+  });
+  await conLimite(tareasEN, 4);
+
+  // ========== APIs ==========
+  if (usarAPIs) {
+    log('📡 Procesando APIs...', 'prog');
+    for (const api of APIS) {
+      try {
+        const r = await fetchT(api.u, 20000);
+        if (r.ok) {
+          let txt = r.text;
+          try { txt = JSON.stringify(JSON.parse(txt), null, 2); } catch (e) {}
+          if (txt.length > 200) {
+            const patrones = [
+              api.n,
+              'dame ' + api.n,
+              'info de ' + api.n,
+              'qué es ' + api.n,
+              'cuéntame de ' + api.n
+            ];
+            entrenamiento.push({
+              tag: 'api_' + api.n,
+              categoria: 'api',
+              tema: api.n,
+              patterns: patrones,
+              responses: [
+                '**' + api.n + '** (datos en tiempo real):\n\n' + txt.slice(0, 1500)
+              ],
+              meta: {
+                categoria: 'api',
+                fuente: api.u,
+                longitud_texto: txt.length,
+                tipo: 'api'
+              }
+            });
+            stats.tags++;
+            stats.patrones += patrones.length;
+            log('✓ API ' + api.n, 'ok');
+          }
+        } else {
+          stats.errores++;
+          log('✗ API ' + api.n + ': ' + r.error, 'err');
+        }
+      } catch (e) {
+        stats.errores++;
+      }
+      updateStats();
+    }
   }
 
+  // ========== Construir JSON final con estructura Ania ==========
+  const salida = {
+    metadata: {
+      version: '1.0',
+      descripcion: 'Dataset generado por recolector.html — Wikipedia + APIs con estructura Ania',
+      creado_por: 'Recolector (GitHub Pages)',
+      fecha_actualizacion: new Date().toISOString(),
+      contadores: {
+        total_tags: stats.tags,
+        total_patrones: stats.patrones,
+        total_errores: stats.errores,
+        categorias_incluidas: [...categoriasActivas]
+      }
+    },
+    configuracion: {
+      categorias: [...categoriasActivas],
+      num_plantillas: PLANTILLAS.length,
+      num_variantes: VARIANTES.length,
+      incluye_wikipedia: true,
+      incluye_apis: usarAPIs
+    },
+    entrenamiento
+  };
+
+  // Calcular bytes reales
+  const json = JSON.stringify(salida);
+  stats.bytes = new Blob([json]).size;
+  updateStats();
+
+  resultado = salida;
+
   log('', 'info');
-  log('✅ COMPLETADO: ' + okCount + ' OK, ' + errCount + ' errores', 'ok');
-  log('📦 Total: ' + (totalBytes/1024/1024).toFixed(2) + ' MB', 'ok');
-  document.getElementById('dl').disabled = false;
-  document.getElementById('go').disabled = false;
+  log('✅ COMPLETADO', 'ok');
+  log('📊 Tags: ' + stats.tags + ' · Patrones: ' + stats.patrones + ' · Errores: ' + stats.errores, 'ok');
+  log('📦 Tamaño: ' + (stats.bytes/1024/1024).toFixed(2) + ' MB', 'ok');
+
+  dlBtn.disabled = false;
+  btn.disabled = false;
 });
 
+// Concurrencia limitada
+async function conLimite(tareas, limite) {
+  const cola = [...tareas];
+  const workers = Array(limite).fill(0).map(async () => {
+    while (cola.length) {
+      const t = cola.shift();
+      try { await t(); } catch (e) { stats.errores++; }
+    }
+  });
+  await Promise.all(workers);
+}
+
+// ============================================================
+// DESCARGA
+// ============================================================
 document.getElementById('dl').addEventListener('click', () => {
+  if (!resultado) return;
   const blob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'conocimiento.json';
-  document.body.appendChild(a); a.click();
+  a.href = url;
+  a.download = 'entrenamiento.json';
+  document.body.appendChild(a);
+  a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  log('💾 conocimiento.json descargado (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
+  log('💾 entrenamiento.json descargado (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
 });
+
+// ============================================================
+// LOG INICIAL
+// ============================================================
+log('🌐 Recolector listo', 'info');
+log('Categorías: ' + TEMAS.length + ' temas en ' + new Set(TEMAS.map(t => t.c)).size + ' categorías', 'info');
+log('Plantillas: ' + PLANTILLAS.length + ' · Variantes: ' + VARIANTES.length, 'info');
 </script>
 </body>
 </html>
