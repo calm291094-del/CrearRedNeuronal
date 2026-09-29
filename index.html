@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🧠 Cerebro HDF5 — Creador + Visor + Chat</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #0f172a; color: #e2e8f0;
+    margin: 0; padding: 20px; line-height: 1.5;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 { color: #38bdf8; margin-bottom: 4px; }
+  .subtitle { color: #94a3b8; margin-top: 0; }
+
+  .tabs { display: flex; gap: 4px; margin: 20px 0 0; border-bottom: 2px solid #334155; }
+  .tab {
+    padding: 12px 24px; background: transparent; color: #94a3b8;
+    border: none; cursor: pointer; font-size: 1rem; font-weight: 600;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+  }
+  .tab:hover { color: #cbd5e1; }
+  .tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .panel {
+    background: #1e293b; border-radius: 12px;
+    padding: 20px; margin: 16px 0;
+    border: 1px solid #334155;
+  }
+  .panel h2 { margin-top: 0; color: #7dd3fc; font-size: 1.1rem; }
+
+  input[type="file"] { display: block; margin: 8px 0; color: #cbd5e1; }
+  button {
+    background: #0ea5e9; color: white; border: none;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover:not(:disabled) { background: #0284c7; }
+  button:disabled { background: #475569; cursor: not-allowed; }
+  button.secondary { background: #475569; font-size: 0.85rem; padding: 8px 16px; }
+  button.secondary:hover:not(:disabled) { background: #64748b; }
+  label { display: flex; align-items: center; gap: 8px; color: #cbd5e1; }
+
+  #log {
+    background: #0f172a; border-radius: 8px; padding: 12px;
+    margin-top: 16px; max-height: 300px; overflow-y: auto;
+    font-family: ui-monospace, monospace; font-size: 0.8rem;
+  }
+  .log-info { color: #94a3b8; }
+  .log-ok { color: #4ade80; }
+  .log-err { color: #f87171; }
+  .log-warn { color: #fbbf24; }
+  .log-struct { color: #c084fc; }
+
+  .viewer {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 16px;
+    height: 620px;
+  }
+  .tree-panel {
+    background: #0f172a; border-radius: 8px;
+    border: 1px solid #334155; overflow: auto; padding: 12px;
+    font-family: ui-monospace, monospace; font-size: 0.85rem;
+  }
+  .detail-panel {
+    background: #0f172a; border-radius: 8px;
+    border: 1px solid #334155; overflow: auto; padding: 16px;
+  }
+  .tree-item {
+    padding: 3px 6px; cursor: pointer; border-radius: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tree-item:hover { background: #1e293b; }
+  .tree-item.selected { background: #0ea5e9; color: white; }
+  .tree-group { color: #7dd3fc; font-weight: 600; }
+  .tree-dataset { color: #cbd5e1; }
+
+  .detail-header { margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+  .detail-header h3 { margin: 0 0 6px; color: #38bdf8; word-break: break-all; font-size: 1rem; }
+  .detail-header .path { color: #94a3b8; font-size: 0.85rem; font-family: ui-monospace, monospace; }
+  .meta-row {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 8px; padding: 4px 0; font-size: 0.9rem;
+  }
+  .meta-key { color: #94a3b8; }
+  .meta-val { color: #e2e8f0; font-family: ui-monospace, monospace; word-break: break-all; }
+  .content-box {
+    background: #0f172a; border: 1px solid #334155;
+    border-radius: 6px; padding: 12px; margin-top: 12px;
+    font-family: ui-monospace, monospace; font-size: 0.8rem;
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 380px; overflow: auto;
+  }
+  .content-box.json { color: #fbbf24; }
+  .content-box.text { color: #e2e8f0; }
+  .content-box.binary { color: #f87171; font-style: italic; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .stat-card {
+    background: #0f172a; border: 1px solid #334155;
+    border-radius: 8px; padding: 12px; text-align: center;
+  }
+  .stat-value { font-size: 1.4rem; font-weight: 700; color: #38bdf8; word-break: break-all; }
+  .stat-label { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .empty-state {
+    color: #64748b; text-align: center;
+    padding: 40px 20px; font-style: italic;
+  }
+  .debug-box {
+    background: #0f172a; border: 1px solid #7c3aed;
+    border-radius: 6px; padding: 12px; margin-top: 12px;
+    font-family: ui-monospace, monospace; font-size: 0.75rem;
+    color: #c4b5fd; max-height: 500px; overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  /* ========== CHAT ========== */
+  #chatWindow {
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    padding: 16px;
+    height: 500px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg-user {
+    background: #0ea5e9;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .msg-bot {
+    background: #1e293b;
+    color: #e2e8f0;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #334155;
+  }
+  .msg-sys {
+    background: transparent;
+    color: #64748b;
+    font-style: italic;
+    font-size: 0.78rem;
+    align-self: center;
+    text-align: center;
+    max-width: 92%;
+    padding: 4px;
+  }
+  .msg-tag {
+    font-size: 0.68rem;
+    opacity: 0.55;
+    margin-top: 6px;
+    font-family: ui-monospace, monospace;
+    color: #7dd3fc;
+  }
+  .msg-typing span {
+    display: inline-block;
+    animation: blink 1.2s infinite;
+    font-size: 1.2rem;
+    line-height: 0.8;
+  }
+  .msg-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .msg-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 60%, 100% { opacity: 0.2; }
+    30% { opacity: 1; }
+  }
+
+  #chatInputRow {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  #chatInput {
+    flex: 1;
+    padding: 12px 14px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  #chatInput:focus {
+    outline: none;
+    border-color: #0ea5e9;
+  }
+  #chatInput:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .chat-status {
+    margin-left: 12px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+  .chat-status.ok { color: #4ade80; }
+  .chat-status.err { color: #f87171; }
+  .chat-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sugg {
+    background: #334155;
+    color: #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .sugg:hover { background: #475569; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🧠 Cerebro HDF5</h1>
+  <p class="subtitle">Creador · Visor · Chat — 100% offline</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="creador">🚀 Creador</button>
+    <button class="tab" data-tab="visor">🔍 Visor</button>
+    <button class="tab" data-tab="chat">💬 Chat</button>
+  </div>
+
+  <!-- =================== CREADOR =================== -->
+  <div class="tab-content active" id="tab-creador">
+    <div class="panel">
+      <h2>1. Selecciona archivos</h2>
+      <p style="color:#94a3b8;font-size:0.9rem">Formatos: .json (entrenamiento Ania o genérico) · .txt · .pdf · .docx</p>
+      <input type="file" id="fileInput" multiple accept=".txt,.json,.pdf,.docx" />
+      <h2 style="margin-top:16px">o una carpeta completa</h2>
+      <input type="file" id="folderInput" webkitdirectory multiple />
+    </div>
+
+    <div class="panel">
+      <h2>2. Datos de APIs (opcional)</h2>
+      <p style="color:#94a3b8;font-size:0.9rem">Carga aquí el <code>datos_apis.json</code> del recolector.</p>
+      <input type="file" id="apisInput" accept=".json" />
+    </div>
+
+    <div class="panel">
+      <h2>3. Generar archivo</h2>
+      <button id="processBtn">🚀 Procesar y crear cerebro.h5</button>
+      <button id="viewResultBtn" class="secondary" style="margin-left:8px; display:none">🔍 Ver resultado</button>
+      <button id="chatWithResultBtn" class="secondary" style="margin-left:8px; display:none">💬 Chatear</button>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <!-- =================== VISOR =================== -->
+  <div class="tab-content" id="tab-visor">
+    <div class="panel">
+      <h2>Cargar archivo HDF5</h2>
+      <input type="file" id="h5Input" accept=".h5,.hdf5" />
+      <button id="loadH5Btn" class="secondary">📂 Cargar</button>
+      <button id="unloadH5Btn" class="secondary">✖ Cerrar</button>
+      <button id="debugBtn" class="secondary">🔬 Diagnóstico</button>
+    </div>
+
+    <div class="panel" id="viewerPanel" style="display:none">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="viewer">
+        <div class="tree-panel" id="treePanel"></div>
+        <div class="detail-panel" id="detailPanel">
+          <div class="empty-state">Selecciona un nodo del árbol para ver su contenido</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewerEmpty" class="panel">
+      <div class="empty-state">
+        Carga un archivo .h5 para explorarlo<br>
+        <span style="font-size:0.85rem">o genera uno en la pestaña "Creador" y pulsa "Ver resultado"</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== CHAT =================== -->
+  <div class="tab-content" id="tab-chat">
+    <div class="panel">
+      <h2>1. Cargar cerebro.h5</h2>
+      <input type="file" id="chatH5Input" accept=".h5,.hdf5" />
+      <button id="chatLoadBtn" class="secondary">🧠 Cargar cerebro</button>
+      <button id="chatUseLastBtn" class="secondary" style="display:none">⚡ Usar último cerebro</button>
+      <span id="chatStatus" class="chat-status">Sin cerebro cargado</span>
+    </div>
+
+    <div class="panel">
+      <h2>2. Conversación</h2>
+      <div id="chatWindow">
+        <div class="msg msg-sys">Carga un cerebro.h5 para empezar a conversar</div>
+      </div>
+      <div id="chatInputRow">
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." disabled />
+        <button id="chatSend" disabled>Enviar</button>
+        <button id="chatClear" class="secondary">🗑</button>
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LIBRERÍAS LOCALES ============ -->
+<script src="libs/h5wasm.js"></script>
+<script src="libs/pdf.min.js"></script>
+<script src="libs/mammoth.browser.min.js"></script>
+
+<script>
+// ============================================================
+// CONFIG WORKER PDF.JS
+// ============================================================
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'libs/pdf.worker.min.js';
+}
+
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+const processBtn = $('processBtn');
+const viewResultBtn = $('viewResultBtn');
+const chatWithResultBtn = $('chatWithResultBtn');
+
+// ============================================================
+// PESTAÑAS
+// ============================================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    $('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ============================================================
+// LOG
+// ============================================================
+function log(msg, type = 'info') {
+  const div = document.createElement('div');
+  div.className = 'log-' + type;
+  div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function sanitize(name) {
+  return String(name)
+    .replace(/[\/\\:*?"<>|\s]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 100) || 'item';
+}
+
+function bytesLen(text) {
+  return new TextEncoder().encode(text).length;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ============================================================
+// NOMBRES ÚNICOS POR PADRE
+// ============================================================
+const _usedNames = new WeakMap();
+
+function nombreUnico(parent, name) {
+  if (!_usedNames.has(parent)) _usedNames.set(parent, new Set());
+  const set = _usedNames.get(parent);
+  const base = name;
+  let candidate = base;
+  let i = 1;
+  while (set.has(candidate)) {
+    candidate = base + '_' + i;
+    i++;
+  }
+  set.add(candidate);
+  return candidate;
+}
+
+function crearGrupoSeguro(parent, name) {
+  const unique = nombreUnico(parent, sanitize(name));
+  try {
+    return parent.create_group(unique);
+  } catch (e) {
+    log('  ✗ grupo ' + unique + ': ' + e.message, 'err');
+    return null;
+  }
+}
+
+function writeString(parent, name, text) {
+  if (!text || !String(text).trim()) return false;
+  const s = String(text);
+  const size = bytesLen(s);
+  if (size === 0) return false;
+
+  const unique = nombreUnico(parent, sanitize(name));
+
+  try {
+    parent.create_dataset({
+      name: unique, data: s, dtype: 'S' + size,
+      compression: 'gzip', compression_opts: 6
+    });
+    return true;
+  } catch (e1) {
+    try {
+      parent.create_dataset({ name: unique, data: s, dtype: 'S' + size });
+      return true;
+    } catch (e2) {
+      log('  ✗ dataset ' + unique + ': ' + e2.message, 'err');
+      return false;
+    }
+  }
+}
+
+// ============================================================
+// HELPERS h5wasm
+// ============================================================
+function h5Keys(obj) {
+  if (!obj) return [];
+  if (typeof obj.keys === 'function') {
+    try {
+      const k = obj.keys();
+      if (Array.isArray(k)) return k;
+      if (k && typeof k[Symbol.iterator] === 'function') return Array.from(k);
+    } catch (e) {}
+  }
+  try {
+    return Object.keys(obj).filter(x =>
+      typeof obj[x] !== 'function' && !x.startsWith('_')
+    );
+  } catch (e) {}
+  return [];
+}
+
+function h5Get(obj, key) {
+  if (!obj) return null;
+  if (typeof obj.get === 'function') {
+    try {
+      const h = obj.get(key);
+      if (h) return h;
+    } catch (e) {}
+  }
+  try {
+    const h = obj[key];
+    if (h && typeof h !== 'function') return h;
+  } catch (e) {}
+  return null;
+}
+
+function esGrupo(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  try {
+    const c = obj.constructor && obj.constructor.name;
+    if (c === 'Group' || c === 'File') return true;
+    if (c === 'Dataset') return false;
+  } catch (e) {}
+  try {
+    if (obj.dtype !== undefined && obj.shape !== undefined) return false;
+  } catch (e) {}
+  try {
+    if (typeof obj.keys === 'function') {
+      const k = obj.keys();
+      if (Array.isArray(k) || (k && typeof k[Symbol.iterator] === 'function')) return true;
+    }
+  } catch (e) {}
+  try {
+    if (obj.metadata && obj.metadata.type) return obj.metadata.type === 'Group';
+  } catch (e) {}
+  return false;
+}
+
+// Leer dataset de texto
+function leerTexto(dataset) {
+  if (!dataset) return '';
+  try {
+    const v = dataset.value;
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'string') return v;
+    if (v instanceof Uint8Array) return new TextDecoder('utf-8').decode(v);
+    if (Array.isArray(v)) {
+      if (v.length && typeof v[0] === 'number') {
+        return new TextDecoder('utf-8').decode(new Uint8Array(v));
+      }
+      return v.join('\n');
+    }
+    return String(v);
+  } catch (e) {
+    return '';
+  }
+}
+
+// ============================================================
+// JSON DE ENTRENAMIENTO
+// ============================================================
+function esEntrenamientoAnia(obj) {
+  return obj && typeof obj === 'object'
+    && Array.isArray(obj.entrenamiento)
+    && obj.entrenamiento.length > 0
+    && obj.entrenamiento.every(it => it && typeof it.tag === 'string');
+}
+
+function escribirMetadata(grupo, metadata) {
+  Object.keys(metadata).forEach(k => {
+    const v = metadata[k];
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const sub = crearGrupoSeguro(grupo, k);
+      if (!sub) return;
+      Object.keys(v).forEach(k2 => {
+        writeString(sub, k2, typeof v[k2] === 'object'
+          ? JSON.stringify(v[k2], null, 2) : String(v[k2]));
+      });
+    } else if (Array.isArray(v)) {
+      writeString(grupo, k, v.join('\n'));
+    } else {
+      writeString(grupo, k, String(v));
+    }
+  });
+}
+
+function escribirConfiguracion(grupo, config) {
+  Object.keys(config).forEach(seccion => {
+    const sub = crearGrupoSeguro(grupo, seccion);
+    if (!sub) return;
+    const contenido = config[seccion];
+    if (typeof contenido === 'object' && contenido !== null && !Array.isArray(contenido)) {
+      escribirObjetoRecursivo(sub, contenido);
+    } else if (Array.isArray(contenido)) {
+      writeString(sub, 'lista', contenido.join('\n'));
+    } else {
+      writeString(sub, 'valor', String(contenido));
+    }
+  });
+}
+
+function escribirObjetoRecursivo(grupo, obj) {
+  Object.keys(obj).forEach(k => {
+    const v = obj[k];
+    if (v === null || v === undefined) return;
+    if (typeof v === 'object' && !Array.isArray(v)) {
+      const sub = crearGrupoSeguro(grupo, k);
+      if (sub) escribirObjetoRecursivo(sub, v);
+    } else if (Array.isArray(v)) {
+      writeString(grupo, k, v.join('\n'));
+    } else {
+      writeString(grupo, k, String(v));
+    }
+  });
+}
+
+function escribirEntrenamiento(grupoEntrenamiento, entrenamiento) {
+  let ok = 0, err = 0;
+  entrenamiento.forEach((item, idx) => {
+    const tagName = sanitize(item.tag || ('tag_' + idx));
+    const g = crearGrupoSeguro(grupoEntrenamiento, tagName);
+    if (!g) { err++; return; }
+
+    try {
+      g.create_attribute('tag_original', String(item.tag || ''));
+      g.create_attribute('num_patterns', (item.patterns || []).length);
+      g.create_attribute('num_responses', (item.responses || []).length);
+      g.create_attribute('indice', idx);
+    } catch (e) {}
+
+    if (Array.isArray(item.patterns)) {
+      writeString(g, 'patterns', item.patterns.join('\n'));
+    }
+    if (Array.isArray(item.responses)) {
+      writeString(g, 'responses', item.responses.join('\n---\n'));
+      item.responses.forEach((r, i) => {
+        writeString(g, 'resp_' + String(i).padStart(3, '0'), r);
+      });
+    }
+    if (item.meta && typeof item.meta === 'object') {
+      const gMeta = crearGrupoSeguro(g, 'meta');
+      if (gMeta) escribirObjetoRecursivo(gMeta, item.meta);
+      writeString(g, 'meta_json', JSON.stringify(item.meta, null, 2));
+    }
+    ok++;
+    log('  ✓ tag: ' + tagName + ' (' + (item.patterns || []).length + 'p, ' + (item.responses || []).length + 'r)', 'struct');
+  });
+  return { ok, err };
+}
+
+// ============================================================
+// PDF / DOCX
+// ============================================================
+async function extractPdf(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({
+    data: buf,
+    useSystemFonts: true,
+    disableFontFace: false,
+    standardFontDataUrl: 'libs/standard_fonts/'
+  }).promise;
+  let out = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    out += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  return out;
+}
+
+async function extractDocx(file) {
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
+  return result.value;
+}
+
+// ============================================================
+// DEDUPLICAR ARCHIVOS
+// ============================================================
+function deduplicarArchivos(files) {
+  const vistos = new Set();
+  const unicos = [];
+  for (const f of files) {
+    const key = f.name + '::' + f.size + '::' + (f.lastModified || 0);
+    if (vistos.has(key)) continue;
+    vistos.add(key);
+    unicos.push(f);
+  }
+  return unicos;
+}
+
+// ============================================================
+// CONSTRUCCIÓN DEL HDF5
+// ============================================================
+async function buildHDF5(files, apisData) {
+  if (typeof h5wasm === 'undefined') throw new Error('h5wasm no está disponible');
+  log('Inicializando h5wasm...');
+  await h5wasm.ready;
+  const FS = h5wasm.FS;
+  const File = h5wasm.File;
+
+  const f = new File('cerebro.h5', 'w');
+
+  const gMeta = f.create_group('metadata');
+  const gConfig = f.create_group('configuracion');
+  const gEntr = f.create_group('entrenamiento');
+  const gDocs = f.create_group('documentos');
+  const gApis = f.create_group('apis');
+
+  const stats = { metadata:0, config:0, tags:0, documentos:0, apis:0 };
+
+  for (const file of files) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const rel = file.webkitRelativePath || file.name;
+
+    if (ext === 'json') {
+      log('📄 Analizando ' + rel, 'info');
+      let parsed;
+      try {
+        parsed = JSON.parse(await file.text());
+      } catch (e) {
+        log('  ✗ JSON inválido: ' + e.message, 'err');
+        continue;
+      }
+
+      if (esEntrenamientoAnia(parsed)) {
+        log('  🎯 JSON de entrenamiento Ania detectado', 'struct');
+        if (parsed.metadata) {
+          escribirMetadata(gMeta, parsed.metadata);
+          stats.metadata++;
+        }
+        if (parsed.configuracion) {
+          escribirConfiguracion(gConfig, parsed.configuracion);
+          stats.config++;
+        }
+        log('  Procesando ' + parsed.entrenamiento.length + ' tags...', 'struct');
+        const r = escribirEntrenamiento(gEntr, parsed.entrenamiento);
+        stats.tags += r.ok;
+        log('  ✓ ' + r.ok + ' tags, ' + r.err + ' errores', 'ok');
+      } else {
+        writeString(gDocs, rel, JSON.stringify(parsed, null, 2));
+        stats.documentos++;
+        log('  ✓ ' + rel + ' (JSON genérico)', 'ok');
+      }
+    } else if (ext === 'txt') {
+      const text = await file.text();
+      if (writeString(gDocs, rel, text)) {
+        stats.documentos++;
+        log('  ✓ ' + rel, 'ok');
+      }
+    } else if (ext === 'pdf') {
+      try {
+        const text = await extractPdf(file);
+        if (writeString(gDocs, rel, text)) {
+          stats.documentos++;
+          log('  ✓ ' + rel, 'ok');
+        }
+      } catch (e) {
+        log('  ✗ PDF ' + rel + ': ' + e.message, 'err');
+      }
+    } else if (ext === 'docx') {
+      try {
+        const text = await extractDocx(file);
+        if (writeString(gDocs, rel, text)) {
+          stats.documentos++;
+          log('  ✓ ' + rel, 'ok');
+        }
+      } catch (e) {
+        log('  ✗ DOCX ' + rel + ': ' + e.message, 'err');
+      }
+    } else {
+      log('  ⏭ Ignorado: ' + rel, 'warn');
+    }
+  }
+
+  if (apisData && apisData.datos) {
+    log('📡 Procesando ' + Object.keys(apisData.datos).length + ' APIs...', 'info');
+    Object.keys(apisData.datos).forEach(k => {
+      const item = apisData.datos[k];
+      if (item.contenido) {
+        writeString(gApis, k, item.contenido);
+        stats.apis++;
+      }
+    });
+    log('  ✓ ' + stats.apis + ' APIs guardadas', 'ok');
+  }
+
+  try {
+    f.create_attribute('fecha_creacion', new Date().toISOString());
+    f.create_attribute('version_formato', 'ania-h5-v1');
+    f.create_attribute('num_tags_entrenamiento', stats.tags);
+    f.create_attribute('num_documentos', stats.documentos);
+    f.create_attribute('num_apis', stats.apis);
+    f.create_attribute('fuente', 'navegador-offline');
+  } catch (e) {
+    log('Aviso atributos: ' + e.message, 'warn');
+  }
+
+  f.close();
+  const data = FS.readFile('cerebro.h5');
+  return { blob: new Blob([data], { type: 'application/x-hdf5' }), stats };
+}
+
+// ============================================================
+// DESCARGA
+// ============================================================
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ============================================================
+// FLUJO CREADOR
+// ============================================================
+let ultimoBlob = null;
+
+processBtn.addEventListener('click', async () => {
+  processBtn.disabled = true;
+  viewResultBtn.style.display = 'none';
+  chatWithResultBtn.style.display = 'none';
+  logEl.innerHTML = '';
+  log('Iniciando proceso...', 'info');
+
+  const rawFiles = [
+    ...Array.from($('fileInput').files || []),
+    ...Array.from($('folderInput').files || [])
+  ];
+  const files = deduplicarArchivos(rawFiles);
+
+  if (files.length === 0) {
+    log('Selecciona al menos un archivo.', 'warn');
+    processBtn.disabled = false;
+    return;
+  }
+
+  if (rawFiles.length !== files.length) {
+    log('⚠️ ' + (rawFiles.length - files.length) + ' duplicado(s) ignorado(s)', 'warn');
+  }
+  log('Archivos únicos: ' + files.length, 'info');
+
+  let apisData = null;
+  const apiFile = $('apisInput').files[0];
+  if (apiFile) {
+    try {
+      apisData = JSON.parse(await apiFile.text());
+      log('✓ ' + apiFile.name + ' cargado', 'ok');
+    } catch (e) {
+      log('✗ Error APIs: ' + e.message, 'err');
+    }
+  }
+
+  try {
+    const { blob, stats } = await buildHDF5(files, apisData);
+    ultimoBlob = blob;
+    download(blob, 'cerebro.h5');
+    log('', 'info');
+    log('🎉 cerebro.h5 generado (' + (blob.size / 1024).toFixed(1) + ' KB)', 'ok');
+    log('📊 Tags: ' + stats.tags + ' · Docs: ' + stats.documentos + ' · APIs: ' + stats.apis, 'struct');
+    viewResultBtn.style.display = 'inline-block';
+    chatWithResultBtn.style.display = 'inline-block';
+    // Hacer visible el botón "usar último cerebro" en el chat
+    $('chatUseLastBtn').style.display = 'inline-block';
+  } catch (e) {
+    log('Error: ' + e.message, 'err');
+    console.error(e);
+  }
+  processBtn.disabled = false;
+});
+
+viewResultBtn.addEventListener('click', async () => {
+  if (!ultimoBlob) return;
+  document.querySelector('.tab[data-tab="visor"]').click();
+  await cargarH5DesdeBlob(ultimoBlob, 'cerebro.h5 (recién creado)');
+});
+
+chatWithResultBtn.addEventListener('click', async () => {
+  if (!ultimoBlob) return;
+  document.querySelector('.tab[data-tab="chat"]').click();
+  await cargarCerebroParaChat(ultimoBlob, 'cerebro.h5 (recién creado)');
+});
+
+// ============================================================
+// VISOR HDF5
+// ============================================================
+let h5FileActual = null;
+
+const h5Input = $('h5Input');
+const loadH5Btn = $('loadH5Btn');
+const unloadH5Btn = $('unloadH5Btn');
+const debugBtn = $('debugBtn');
+const viewerPanel = $('viewerPanel');
+const viewerEmpty = $('viewerEmpty');
+const treePanel = $('treePanel');
+const detailPanel = $('detailPanel');
+const statsGrid = $('statsGrid');
+
+async function cargarH5DesdeBlob(blob, nombre) {
+  if (typeof h5wasm === 'undefined') { alert('h5wasm no está cargado'); return; }
+  try {
+    await h5wasm.ready;
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    const FS = h5wasm.FS;
+    try { FS.unlink('/_viewer.h5'); } catch (e) {}
+    FS.writeFile('/_viewer.h5', buf);
+
+    if (h5FileActual) { try { h5FileActual.close(); } catch (e) {} }
+    h5FileActual = new h5wasm.File('/_viewer.h5', 'r');
+
+    const raiz = { name: '/', type: 'group', path: '', children: [], attributes: [] };
+    explorarGrupo(h5FileActual, raiz);
+
+    const contStats = contarNodos(raiz);
+
+    viewerEmpty.style.display = 'none';
+    viewerPanel.style.display = 'block';
+    renderStats({
+      nombre: nombre,
+      bytes: blob.size,
+      grupos: contStats.grupos,
+      datasets: contStats.datasets,
+      atributos: contStats.atributos,
+      raizAttrs: extraerAtributos(h5FileActual).length
+    });
+    renderTree(raiz);
+    detailPanel.innerHTML = '<div class="empty-state">Selecciona un nodo del árbol</div>';
+    log('✓ HDF5 cargado: ' + nombre, 'ok');
+    log('  Grupos: ' + contStats.grupos + ' · Datasets: ' + contStats.datasets, 'struct');
+  } catch (e) {
+    alert('Error cargando HDF5: ' + e.message);
+    console.error(e);
+  }
+}
+
+function explorarGrupo(grupo, nodo) {
+  nodo.attributes = extraerAtributos(grupo);
+  const keys = h5Keys(grupo);
+
+  for (const key of keys) {
+    const child = h5Get(grupo, key);
+    if (!child) continue;
+
+    const esGrp = esGrupo(child);
+    const childNode = {
+      name: key,
+      type: esGrp ? 'group' : 'dataset',
+      path: (nodo.path || '') + '/' + key,
+      children: [],
+      attributes: extraerAtributos(child),
+      obj: child
+    };
+
+    if (esGrp) {
+      explorarGrupo(child, childNode);
+    } else {
+      try { childNode.dtype = String(child.dtype); } catch (e) {}
+      try { childNode.shape = child.shape; } catch (e) {}
+    }
+    nodo.children.push(childNode);
+  }
+}
+
+function extraerAtributos(obj) {
+  const attrs = [];
+  try {
+    if (!obj || !obj.attrs) return attrs;
+    let keys = [];
+    try { keys = Object.keys(obj.attrs); } catch (e) {}
+    if (keys.length === 0 && typeof obj.attrs.keys === 'function') {
+      try { keys = obj.attrs.keys(); } catch (e) {}
+    }
+    for (const k of keys) {
+      let val;
+      try {
+        val = obj.attrs[k];
+        if (val && typeof val === 'object' && val.value !== undefined) val = val.value;
+        if (val instanceof Uint8Array || ArrayBuffer.isView(val)) {
+          val = new TextDecoder().decode(val);
+        }
+      } catch (e) { val = '(error)'; }
+      attrs.push({ key: k, value: val });
+    }
+  } catch (e) {}
+  return attrs;
+}
+
+function contarNodos(nodo) {
+  const r = { grupos: 0, datasets: 0, atributos: (nodo.attributes || []).length };
+  (nodo.children || []).forEach(c => {
+    if (c.type === 'group') {
+      r.grupos++;
+      const sub = contarNodos(c);
+      r.grupos += sub.grupos;
+      r.datasets += sub.datasets;
+      r.atributos += sub.atributos;
+    } else {
+      r.datasets++;
+      r.atributos += (c.attributes || []).length;
+    }
+  });
+  return r;
+}
+
+function renderStats({ nombre, bytes, grupos, datasets, atributos, raizAttrs }) {
+  statsGrid.innerHTML = '';
+  const cards = [
+    { label: 'Archivo', value: nombre.length > 24 ? nombre.slice(0, 24) + '…' : nombre },
+    { label: 'Tamaño', value: bytes > 1024 * 1024
+        ? (bytes / 1024 / 1024).toFixed(2) + ' MB'
+        : (bytes / 1024).toFixed(1) + ' KB' },
+    { label: 'Grupos', value: grupos },
+    { label: 'Datasets', value: datasets },
+    { label: 'Atributos', value: atributos + raizAttrs }
+  ];
+  cards.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'stat-card';
+    el.innerHTML = '<div class="stat-label">' + c.label + '</div>'
+                 + '<div class="stat-value">' + escapeHtml(String(c.value)) + '</div>';
+    statsGrid.appendChild(el);
+  });
+}
+
+function renderTree(raiz) {
+  treePanel.innerHTML = '';
+  const nodoRaiz = document.createElement('div');
+  nodoRaiz.className = 'tree-item tree-group selected';
+  nodoRaiz.textContent = '📦 / (raíz)';
+  nodoRaiz.addEventListener('click', () => {
+    treePanel.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
+    nodoRaiz.classList.add('selected');
+    seleccionarNodo(h5FileActual, '/', 'group');
+  });
+  treePanel.appendChild(nodoRaiz);
+  raiz.children.forEach(c => renderNodo(c, 1));
+}
+
+function renderNodo(nodo, nivel) {
+  const el = document.createElement('div');
+  el.className = 'tree-item ' + (nodo.type === 'group' ? 'tree-group' : 'tree-dataset');
+  el.style.paddingLeft = (nivel * 14) + 'px';
+  el.textContent = (nodo.type === 'group' ? '📁 ' : '📄 ') + nodo.name;
+  el.title = nodo.path;
+  el.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    treePanel.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    seleccionarNodo(nodo.obj, nodo.path, nodo.type);
+  });
+  treePanel.appendChild(el);
+  (nodo.children || []).forEach(c => renderNodo(c, nivel + 1));
+}
+
+async function seleccionarNodo(obj, path, tipo) {
+  detailPanel.innerHTML = '';
+  const header = document.createElement('div');
+  header.className = 'detail-header';
+  const nombre = obj.name || obj.filename || (path.split('/').pop() || '/');
+  header.innerHTML = '<h3>' + (tipo === 'group' ? '📁' : '📄') + ' ' + escapeHtml(nombre)
+                   + '</h3><div class="path">' + escapeHtml(path) + '</div>';
+  detailPanel.appendChild(header);
+
+  const infoBox = document.createElement('div');
+  const info = [['Tipo', tipo === 'group' ? 'Grupo' : 'Dataset']];
+  if (tipo === 'dataset') {
+    try { info.push(['dtype', String(obj.dtype)]); } catch (e) {}
+    try { info.push(['shape', JSON.stringify(obj.shape)]); } catch (e) {}
+  }
+  info.forEach(([k, v]) => {
+    const row = document.createElement('div');
+    row.className = 'meta-row';
+    row.innerHTML = '<div class="meta-key">' + escapeHtml(k) + '</div>'
+                  + '<div class="meta-val">' + escapeHtml(String(v)) + '</div>';
+    infoBox.appendChild(row);
+  });
+  detailPanel.appendChild(infoBox);
+
+  const attrs = extraerAtributos(obj);
+  if (attrs.length > 0) {
+    const h = document.createElement('h4');
+    h.style.cssText = 'color:#7dd3fc;margin-top:16px;margin-bottom:8px';
+    h.textContent = '🏷️ Atributos (' + attrs.length + ')';
+    detailPanel.appendChild(h);
+    attrs.forEach(a => {
+      const row = document.createElement('div');
+      row.className = 'meta-row';
+      let valStr = a.value;
+      if (typeof valStr === 'object' && valStr !== null) valStr = JSON.stringify(valStr);
+      row.innerHTML = '<div class="meta-key">' + escapeHtml(a.key) + '</div>'
+                    + '<div class="meta-val">' + escapeHtml(String(valStr)) + '</div>';
+      detailPanel.appendChild(row);
+    });
+  }
+
+  if (tipo === 'dataset') {
+    try {
+      const val = obj.value;
+      const cont = document.createElement('div');
+      cont.className = 'content-box';
+      const decoded = decodificarValor(val);
+      cont.textContent = decoded;
+      if (typeof decoded === 'string' && (decoded.trim().startsWith('{') || decoded.trim().startsWith('['))) {
+        try {
+          cont.textContent = JSON.stringify(JSON.parse(decoded), null, 2);
+          cont.classList.add('json');
+        } catch (e) { cont.classList.add('text'); }
+      } else {
+        cont.classList.add('text');
+      }
+      const h = document.createElement('h4');
+      h.style.cssText = 'color:#7dd3fc;margin-top:16px;margin-bottom:8px';
+      h.textContent = '📄 Contenido';
+      detailPanel.appendChild(h);
+      detailPanel.appendChild(cont);
+    } catch (e) {
+      const err = document.createElement('div');
+      err.className = 'content-box binary';
+      err.textContent = 'No se pudo leer el dataset: ' + e.message;
+      detailPanel.appendChild(err);
+    }
+  }
+}
+
+function decodificarValor(val) {
+  if (val === null || val === undefined) return '(vacío)';
+  if (typeof val === 'string') return val;
+  if (val instanceof Uint8Array) {
+    return new TextDecoder('utf-8', { fatal: false }).decode(val);
+  }
+  if (Array.isArray(val)) {
+    if (val.length && typeof val[0] === 'number') {
+      try { return new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(val)); }
+      catch (e) { return JSON.stringify(val); }
+    }
+    return val.map(v => decodificarValor(v)).join(', ');
+  }
+  if (typeof val === 'object') {
+    if (val.value !== undefined) return decodificarValor(val.value);
+    return JSON.stringify(val, null, 2);
+  }
+  return String(val);
+}
+
+loadH5Btn.addEventListener('click', async () => {
+  const f = h5Input.files[0];
+  if (!f) { alert('Selecciona un archivo .h5'); return; }
+  await cargarH5DesdeBlob(f, f.name);
+});
+
+unloadH5Btn.addEventListener('click', () => {
+  try { if (h5FileActual) h5FileActual.close(); } catch (e) {}
+  h5FileActual = null;
+  viewerPanel.style.display = 'none';
+  viewerEmpty.style.display = 'block';
+  h5Input.value = '';
+});
+
+debugBtn.addEventListener('click', () => {
+  if (!h5FileActual) { alert('Carga un HDF5 primero'); return; }
+  const info = [];
+  info.push('=== DIAGNÓSTICO h5wasm ===');
+  info.push('typeof h5wasm.File: ' + typeof h5wasm.File);
+  info.push('');
+  info.push('=== RAÍZ ===');
+  info.push('constructor.name: ' + (h5FileActual.constructor && h5FileActual.constructor.name));
+  let keys = [];
+  try { keys = h5FileActual.keys(); } catch (e) { info.push('ERROR: ' + e.message); }
+  info.push('keys(): ' + JSON.stringify(keys));
+  keys.forEach(k => {
+    const child = h5Get(h5FileActual, k);
+    info.push('');
+    info.push('--- ' + k + ' ---');
+    if (!child) { info.push('NULL'); return; }
+    info.push('constructor: ' + (child.constructor && child.constructor.name));
+    info.push('dtype: ' + (child.dtype !== undefined ? String(child.dtype) : '(no)'));
+    info.push('esGrupo(): ' + esGrupo(child));
+  });
+  detailPanel.innerHTML = '';
+  const h = document.createElement('div');
+  h.className = 'detail-header';
+  h.innerHTML = '<h3>🔬 Diagnóstico</h3>';
+  detailPanel.appendChild(h);
+  const box = document.createElement('div');
+  box.className = 'debug-box';
+  box.textContent = info.join('\n');
+  detailPanel.appendChild(box);
+});
+
+// ============================================================
+// ==================== MOTOR DE CHAT =========================
+// ============================================================
+
+// Estado global del chat
+const chatState = {
+  cargado: false,
+  nombreArchivo: '',
+  tags: [],              // [{tag, patterns[], responses[], meta, patternsNorm[]}]
+  substitutions: {},     // {"q":"que", "k":"que", ...}
+  userName: null,
+  ultimaTag: null,
+  ultimaRespIndex: {},   // tag → último índice usado (para no repetir)
+  totalPatterns: 0
+};
+
+// Cargar el H5 en el chat
+async function cargarCerebroParaChat(blob, nombre) {
+  const status = $('chatStatus');
+  status.textContent = 'Cargando...';
+  status.className = 'chat-status';
+
+  if (typeof h5wasm === 'undefined') {
+    status.textContent = '✗ h5wasm no disponible';
+    status.className = 'chat-status err';
+    return;
+  }
+
+  try {
+    await h5wasm.ready;
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    const FS = h5wasm.FS;
+    try { FS.unlink('/_chat.h5'); } catch (e) {}
+    FS.writeFile('/_chat.h5', buf);
+
+    // Cerrar anterior si existe
+    if (chatState.file) { try { chatState.file.close(); } catch (e) {} }
+    const file = new h5wasm.File('/_chat.h5', 'r');
+    chatState.file = file;
+
+    // Reset state
+    chatState.tags = [];
+    chatState.substitutions = {};
+    chatState.userName = null;
+    chatState.ultimaTag = null;
+    chatState.ultimaRespIndex = {};
+    chatState.totalPatterns = 0;
+
+    // Cargar sustituciones del configuracion/mini_lenguaje...
+    cargarSubstituciones(file);
+
+    // Cargar tags de entrenamiento
+    cargarTagsEntrenamiento(file);
+
+    if (chatState.tags.length === 0) {
+      status.textContent = '⚠ No hay tags de entrenamiento en este H5';
+      status.className = 'chat-status err';
+      addChatMsg('sys', 'Este cerebro no contiene datos de entrenamiento (grupo /entrenamiento/). Solo se pueden usar los PDFs/documentos en el Visor.');
+      return;
+    }
+
+    chatState.cargado = true;
+    chatState.nombreArchivo = nombre;
+    status.textContent = '✓ ' + chatState.tags.length + ' tags · ' + chatState.totalPatterns + ' patrones';
+    status.className = 'chat-status ok';
+
+    addChatMsg('sys', '🧠 Cerebro cargado: ' + chatState.tags.length + ' tags, ' + chatState.totalPatterns + ' patrones');
+    addChatMsg('bot', '¡Hola! Soy Ania. ¿En qué te puedo ayudar hoy? 💫');
+    $('chatInput').disabled = false;
+    $('chatSend').disabled = false;
+    $('chatInput').focus();
+    renderSugerencias();
+  } catch (e) {
+    console.error(e);
+    status.textContent = '✗ Error: ' + e.message;
+    status.className = 'chat-status err';
+  }
+}
+
+function cargarSubstituciones(file) {
+  try {
+    const gConfig = h5Get(file, 'configuracion');
+    if (!gConfig) return;
+    const gMini = h5Get(gConfig, 'mini_lenguaje_natural_humano');
+    if (!gMini) return;
+    const gNorm = h5Get(gMini, 'normalizacion_emocional');
+    if (!gNorm) return;
+    const keys = h5Keys(gNorm);
+    for (const k of keys) {
+      const ds = h5Get(gNorm, k);
+      if (!ds) continue;
+      const val = leerTexto(ds).trim();
+      if (val) chatState.substitutions[k.toLowerCase()] = val.toLowerCase();
+    }
+    log('💬 Substituciones cargadas: ' + Object.keys(chatState.substitutions).length, 'info');
+  } catch (e) {
+    console.warn('No se pudieron cargar sustituciones:', e);
+  }
+}
+
+function cargarTagsEntrenamiento(file) {
+  const gEntr = h5Get(file, 'entrenamiento');
+  if (!gEntr) return;
+  const keys = h5Keys(gEntr);
+
+  for (const tagName of keys) {
+    const gTag = h5Get(gEntr, tagName);
+    if (!gTag || !esGrupo(gTag)) continue;
+
+    // Patterns (uno por línea)
+    const patternsTxt = leerTexto(h5Get(gTag, 'patterns'));
+    const patterns = patternsTxt ? patternsTxt.split('\n').filter(p => p.trim()) : [];
+
+    // Responses (separadas por \n---\n)
+    let responses = [];
+    const respTxt = leerTexto(h5Get(gTag, 'responses'));
+    if (respTxt) {
+      responses = respTxt.split('\n---\n').filter(r => r.trim());
+    } else {
+      // Fallback: leer resp_000, resp_001...
+      const subKeys = h5Keys(gTag).filter(k => k.startsWith('resp_')).sort();
+      for (const sk of subKeys) {
+        const r = leerTexto(h5Get(gTag, sk));
+        if (r) responses.push(r);
+      }
+    }
+
+    if (patterns.length === 0 || responses.length === 0) continue;
+
+    // Meta
+    let meta = {};
+    try {
+      const metaJson = leerTexto(h5Get(gTag, 'meta_json'));
+      if (metaJson) meta = JSON.parse(metaJson);
+    } catch (e) {}
+
+    // Normalizar patterns una vez
+    const patternsNorm = patterns.map(p => normalizar(p, chatState.substitutions));
+
+    chatState.tags.push({
+      tag: tagName,
+      patterns: patterns,
+      patternsNorm: patternsNorm,
+      responses: responses,
+      meta: meta
+    });
+    chatState.totalPatterns += patterns.length;
+  }
+
+  log('💬 Tags de chat cargados: ' + chatState.tags.length, 'info');
+}
+
+// Normalizar texto: minúsculas, sin acentos, aplicar substituciones
+function normalizar(texto, subs) {
+  if (!texto) return '';
+  let t = String(texto).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // Aplicar substituciones por palabra completa
+  if (subs && Object.keys(subs).length > 0) {
+    t = t.replace(/\b\w+\b/g, w => subs[w] || w);
+  }
+  // Quitar puntuación y espacios múltiples
+  t = t.replace(/[¿?¡!.,;:()"']/g, ' ').replace(/\s+/g, ' ').trim();
+  return t;
+}
+
+// Puntuar coincidencia entre input y patrón
+function puntuar(inputNorm, patronNorm) {
+  if (!patronNorm || !inputNorm) return 0;
+  if (inputNorm === patronNorm) return 100;
+  if (inputNorm.includes(patronNorm)) return 85 + Math.min(10, patronNorm.length / 2);
+  if (patronNorm.includes(inputNorm) && inputNorm.length >= 4) return 70 + Math.min(10, inputNorm.length / 2);
+
+  // Solapamiento de palabras
+  const inputWords = new Set(inputNorm.split(' ').filter(Boolean));
+  const patWords = patronNorm.split(' ').filter(Boolean);
+  if (patWords.length === 0) return 0;
+  let overlap = 0;
+  for (const w of patWords) {
+    if (inputWords.has(w)) overlap++;
+  }
+  // Requiere al menos 1 palabra en común
+  if (overlap === 0) return 0;
+  return (overlap / patWords.length) * 60;
+}
+
+// Buscar la mejor tag para un input
+function encontrarMejorTag(input) {
+  const inputNorm = normalizar(input, chatState.substitutions);
+  if (!inputNorm) return null;
+
+  let mejor = null;
+  let mejorScore = 0;
+
+  for (const t of chatState.tags) {
+    let maxScore = 0;
+    for (const pNorm of t.patternsNorm) {
+      const s = puntuar(inputNorm, pNorm);
+      if (s > maxScore) maxScore = s;
+      if (maxScore >= 100) break;
+    }
+    // Bonus por prioridad alta
+    if (t.meta && t.meta.prioridad === 'alta') maxScore *= 1.15;
+
+    if (maxScore > mejorScore) {
+      mejorScore = maxScore;
+      mejor = t;
+    }
+  }
+
+  // Umbral mínimo
+  if (mejorScore < 30) return null;
+  return { tag: mejor, score: mejorScore };
+}
+
+// Extraer nombre del usuario de un input
+function extraerNombre(input) {
+  const patrones = [
+    /me llamo\s+([a-záéíóúñ]+)/i,
+    /mi nombre es\s+([a-záéíóúñ]+)/i,
+    /puedes llamarme\s+([a-záéíóúñ]+)/i,
+    /^soy\s+([a-záéíóúñ]+)$/i,
+    /yo soy\s+([a-záéíóúñ]+)/i
+  ];
+  for (const re of patrones) {
+    const m = input.match(re);
+    if (m && m[1]) {
+      return m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+    }
+  }
+  return null;
+}
+
+// Elegir una respuesta del tag (evitando repetir la última)
+function elegirRespuesta(tagObj) {
+  const tagName = tagObj.tag;
+  const resps = tagObj.responses;
+  if (resps.length === 1) return resps[0];
+
+  let idx;
+  let intentos = 0;
+  do {
+    idx = Math.floor(Math.random() * resps.length);
+    intentos++;
+  } while (idx === chatState.ultimaRespIndex[tagName] && intentos < 10);
+
+  chatState.ultimaRespIndex[tagName] = idx;
+  return resps[idx];
+}
+
+// Reemplazar placeholders [nombre]
+function aplicarPlaceholders(texto) {
+  const nombre = chatState.userName || 'amigo/a';
+  return texto.replace(/\[nombre\]/g, nombre);
+}
+
+// Generar respuesta del bot
+function generarRespuesta(inputUsuario) {
+  // Intentar extraer nombre
+  const nombreDetectado = extraerNombre(inputUsuario);
+  if (nombreDetectado) {
+    chatState.userName = nombreDetectado;
+  }
+
+  // Buscar mejor tag
+  const resultado = encontrarMejorTag(inputUsuario);
+
+  if (!resultado) {
+    const fallbacks = [
+      'Mmm... no estoy segura de cómo responder a eso. ¿Puedes decirlo de otra forma? 🤔',
+      'No tengo un patrón para eso todavía. ¡Sigo aprendiendo! ¿Probamos con un saludo o preguntarme cómo estoy?',
+      'Lo siento, no encontré una respuesta adecuada. ¿Puedes intentar con otras palabras? 💫',
+      'Eso se me escapa por ahora. ¿Charlamos de otra cosa?'
+    ];
+    return {
+      texto: fallbacks[Math.floor(Math.random() * fallbacks.length)],
+      tag: null,
+      score: 0
+    };
+  }
+
+  const respuesta = elegirRespuesta(resultado.tag);
+  const texto = aplicarPlaceholders(respuesta);
+
+  // Si el tag tiene meta.guardar_nombre y el usuario dijo su nombre
+  if (resultado.tag.meta && resultado.tag.meta.accion === 'guardar_nombre') {
+    // El nombre ya se guardó arriba
+  }
+
+  return {
+    texto: texto,
+    tag: resultado.tag.tag,
+    score: resultado.score
+  };
+}
+
+// ============================================================
+// UI DEL CHAT
+// ============================================================
+function addChatMsg(tipo, texto, tag) {
+  const win = $('chatWindow');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + (tipo === 'user' ? 'user' : tipo === 'bot' ? 'bot' : 'sys');
+  const textDiv = document.createElement('div');
+  textDiv.textContent = texto;
+  div.appendChild(textDiv);
+  if (tag) {
+    const tagDiv = document.createElement('div');
+    tagDiv.className = 'msg-tag';
+    tagDiv.textContent = '[' + tag + ']';
+    div.appendChild(tagDiv);
+  }
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+  return div;
+}
+
+function addTypingIndicator() {
+  const win = $('chatWindow');
+  const div = document.createElement('div');
+  div.className = 'msg msg-bot msg-typing';
+  div.id = 'typingIndicator';
+  div.innerHTML = '<span>●</span><span>●</span><span>●</span>';
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = $('typingIndicator');
+  if (el) el.remove();
+}
+
+function enviarMensajeChat() {
+  const input = $('chatInput');
+  const texto = input.value.trim();
+  if (!texto || !chatState.cargado) return;
+
+  addChatMsg('user', texto);
+  input.value = '';
+  input.focus();
+
+  addTypingIndicator();
+
+  // Delay artificial para parecer humano
+  const delay = 300 + Math.random() * 600;
+  setTimeout(() => {
+    removeTypingIndicator();
+    const respuesta = generarRespuesta(texto);
+    addChatMsg('bot', respuesta.texto, respuesta.tag);
+  }, delay);
+}
+
+// Eventos del chat
+$('chatInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviarMensajeChat();
+  }
+});
+$('chatSend').addEventListener('click', enviarMensajeChat);
+
+$('chatClear').addEventListener('click', () => {
+  $('chatWindow').innerHTML = '';
+  chatState.ultimaTag = null;
+  chatState.ultimaRespIndex = {};
+  if (chatState.cargado) {
+    addChatMsg('sys', '🧠 Conversación reiniciada');
+    addChatMsg('bot', '¡Hola de nuevo! ¿En qué te ayudo? 💫');
+  } else {
+    addChatMsg('sys', 'Carga un cerebro.h5 para empezar a conversar');
+  }
+});
+
+$('chatLoadBtn').addEventListener('click', async () => {
+  const f = $('chatH5Input').files[0];
+  if (!f) { alert('Selecciona un cerebro.h5'); return; }
+  await cargarCerebroParaChat(f, f.name);
+});
+
+$('chatUseLastBtn').addEventListener('click', async () => {
+  if (!ultimoBlob) { alert('No hay cerebro reciente. Genera uno en la pestaña Creador.'); return; }
+  await cargarCerebroParaChat(ultimoBlob, 'cerebro.h5 (recién creado)');
+});
+
+// Sugerencias rápidas
+function renderSugerencias() {
+  const sugg = $('chatSuggestions');
+  sugg.innerHTML = '';
+  const frases = ['hola', '¿cómo estás?', 'qué bola', 'quién eres', 'gracias', 'me llamo Carlos'];
+  frases.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'sugg';
+    b.textContent = f;
+    b.addEventListener('click', () => {
+      $('chatInput').value = f;
+      enviarMensajeChat();
+    });
+    sugg.appendChild(b);
+  });
+}
+
+// ============================================================
+// DIAGNÓSTICO INICIAL
+// ============================================================
+window.addEventListener('load', () => {
+  log('Diagnóstico:', 'info');
+  log('h5wasm: ' + (typeof h5wasm !== 'undefined' ? '✓' : '✗'),
+      typeof h5wasm !== 'undefined' ? 'ok' : 'err');
+  log('pdfjsLib: ' + (typeof pdfjsLib !== 'undefined' ? '✓' : '✗'),
+      typeof pdfjsLib !== 'undefined' ? 'ok' : 'err');
+  log('mammoth: ' + (typeof mammoth !== 'undefined' ? '✓' : '✗'),
+      typeof mammoth !== 'undefined' ? 'ok' : 'err');
+});
+</script>
+</body>
+</html>
