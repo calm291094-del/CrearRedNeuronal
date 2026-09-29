@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🌐 Recolector</title>
+<title>🌐 Recolector v2 — Artículos completos</title>
 <style>
   body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:900px; margin:auto; }
   h1 { color:#38bdf8; }
@@ -22,20 +22,25 @@
   .modo { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; margin:12px 0; }
   .modo label { display:flex; align-items:center; gap:8px; color:#cbd5e1; padding:6px 0; }
   input[type="checkbox"] { width:18px; height:18px; }
+  input[type="number"] { width:70px; background:#0f172a; border:1px solid #334155;
+    color:#e2e8f0; padding:4px 8px; border-radius:4px; }
 </style>
 </head>
 <body>
-<h1>🌐 Recolector de Conocimiento</h1>
-<p style="color:#94a3b8">Ejecuta desde GitHub Pages. Descarga Wikipedia + APIs con CORS abierto.</p>
+<h1>🌐 Recolector v2</h1>
+<p style="color:#94a3b8">Descarga artículos COMPLETOS de Wikipedia (20-200 KB cada uno)</p>
 
 <div class="modo">
-  <strong style="color:#7dd3fc">Fuentes:</strong>
-  <label><input type="checkbox" id="cbWiki" checked> 📚 Wikipedia ES (150+ artículos)</label>
-  <label><input type="checkbox" id="cbRandom" checked> 🎲 Wikipedia aleatorios (100)</label>
-  <label><input type="checkbox" id="cbWikiEN" checked> 🌍 Wikipedia EN (30)</label>
-  <label><input type="checkbox" id="cbApis" checked> 📡 APIs con CORS abierto (clima, países, cripto)</label>
-  <label><input type="checkbox" id="cbGithub" checked> 💻 GitHub API (repos trending, IA, ML)</label>
-  <label><input type="checkbox" id="cbNasa" checked> 🚀 NASA (APOD, asteroides, espacio)</label>
+  <strong style="color:#7dd3fc">Configuración:</strong>
+  <label>
+    Nº artículos completos ES:
+    <input type="number" id="numES" value="50" min="10" max="300" />
+  </label>
+  <label>
+    Nº artículos completos EN:
+    <input type="number" id="numEN" value="20" min="5" max="100" />
+  </label>
+  <label><input type="checkbox" id="cbApis" checked> APIs (clima, países, cripto, NASA, GitHub)</label>
 </div>
 
 <div class="stats">
@@ -51,8 +56,8 @@
 
 <script>
 const logEl = document.getElementById('log');
-let resultado = { generado: new Date().toISOString(), fuente: 'github-pages', datos: {} };
-let okCount = 0, errCount = 0, totalBytes = 0, totalTareas = 0, hechas = 0;
+let resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2', datos: {} };
+let okCount = 0, errCount = 0, totalBytes = 0;
 
 function log(msg, cls='info') {
   const d = document.createElement('div');
@@ -67,7 +72,7 @@ function updateStats() {
   document.getElementById('statMB').textContent = (totalBytes/1024/1024).toFixed(2);
 }
 
-async function fetchT(url, ms=15000) {
+async function fetchT(url, ms=25000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -82,30 +87,123 @@ async function fetchT(url, ms=15000) {
 }
 
 function guardar(nombre, contenido) {
-  if (!contenido || !String(contenido).trim()) return;
+  if (!contenido || !String(contenido).trim()) return false;
   const s = String(contenido);
+  if (s.length < 200) return false; // ignorar artículos muy cortos
   resultado.datos[nombre] = { contenido: s };
   totalBytes += new Blob([s]).size;
   okCount++;
+  return true;
 }
 
-async function tarea(nombre, url, transformar) {
+// ============================================================
+// WIKIPEDIA COMPLETO — MediaWiki API (extracto entero)
+// ============================================================
+async function fetchArticuloCompleto(titulo, idioma) {
+  // explaintext=1 devuelve texto plano sin HTML
+  // exsectionformat=plain evita "=="
+  // redirects=1 sigue redirecciones
+  const api = `https://${idioma}.wikipedia.org/w/api.php?` +
+    `action=query&` +
+    `titles=${encodeURIComponent(titulo)}&` +
+    `prop=extracts&` +
+    `explaintext=1&` +
+    `exsectionformat=plain&` +
+    `redirects=1&` +
+    `format=json&` +
+    `origin=*`;
+
+  const r = await fetchT(api, 30000);
+  if (!r.ok) return null;
+
   try {
-    const r = await fetchT(url);
-    if (!r.ok) {
-      errCount++;
-      return;
-    }
-    let contenido = r.text;
-    if (transformar) contenido = await transformar(r.text);
-    guardar(nombre, contenido);
-    if (okCount % 15 === 0) log('✓ ' + okCount + ' recursos descargados', 'ok');
+    const j = JSON.parse(r.text);
+    const pages = j.query?.pages || {};
+    const pageId = Object.keys(pages)[0];
+    if (!pageId) return null;
+    const page = pages[pageId];
+    if (!page.extract || page.extract.length < 300) return null;
+    return {
+      titulo: page.title,
+      texto: page.extract,
+      url: `https://${idioma}.wikipedia.org/wiki/${encodeURIComponent(page.title)}`
+    };
   } catch (e) {
-    errCount++;
-  } finally {
-    hechas++;
-    updateStats();
+    return null;
   }
+}
+
+const TEMAS_ES = [
+  // Ciencia
+  'Inteligencia artificial','Aprendizaje automático','Red neuronal artificial','Aprendizaje profundo',
+  'Procesamiento de lenguajes naturales','Visión artificial','Algoritmo','Estructura de datos',
+  'Física','Química','Biología','Matemáticas','Astronomía','Genética','Ecología',
+  'Mecánica cuántica','Relatividad general','Teoría de cuerdas','Evolución biológica','ADN',
+  'Sistema solar','Vía Láctea','Agujero negro','Big Bang','Materia oscura',
+  'Tabla periódica de los elementos','Átomo','Molécula','Protón','Neutrón','Electrón','Fotón',
+  // Tecnología
+  'Internet','World Wide Web','Computadora','Programación','Python (lenguaje de programación)',
+  'JavaScript','Linux','Windows','Android','iOS','Blockchain','Bitcoin','Ciberseguridad',
+  'Computación cuántica','Computación en la nube','Big data','Inteligencia artificial general',
+  // Historia
+  'Historia universal','Antigua Roma','Antigua Grecia','Antiguo Egipto','Imperio romano',
+  'Edad Media','Renacimiento','Revolución francesa','Revolución Industrial',
+  'Primera Guerra Mundial','Segunda Guerra Mundial','Guerra Fría','Cristóbal Colón',
+  // Geografía
+  'España','Cuba','México','Argentina','Colombia','Perú','Chile','Venezuela','Uruguay',
+  'Estados Unidos','Francia','Alemania','Italia','Reino Unido','Rusia','China','Japón','India','Brasil',
+  'La Habana','Madrid','Barcelona','Ciudad de México','Buenos Aires',
+  'Río Amazonas','Nilo','Everest','Sahara','Antártida','Océano Pacífico','Océano Atlántico',
+  // Filosofía y pensamiento
+  'Filosofía','Sócrates','Platón','Aristóteles','René Descartes','Immanuel Kant',
+  'Friedrich Nietzsche','Karl Marx','Sigmund Freud','Carl Jung','Jean-Paul Sartre',
+  // Salud
+  'Medicina','Anatomía humana','Corazón','Cerebro humano','Sistema nervioso','Sistema inmunitario',
+  'Cáncer','Diabetes','COVID-19','Nutrición','Salud mental','Depresión','Ansiedad',
+  // Arte y cultura
+  'Arte','Pintura','Escultura','Música','Literatura','Poesía','Cine','Teatro','Fotografía',
+  'Pablo Picasso','Leonardo da Vinci','Vincent van Gogh','Miguel de Cervantes',
+  'Gabriel García Márquez','Federico García Lorca','William Shakespeare','Frida Kahlo',
+  'Anime','Manga','Estudio Ghibli','Hayao Miyazaki',
+  // Economía y política
+  'Economía','Capitalismo','Socialismo','Comunismo','Democracia','Inflación',
+  'Producto interno bruto','Bolsa de valores','Globalización',
+  // Deportes
+  'Fútbol','Baloncesto','Béisbol','Tenis','Ajedrez','Juegos Olímpicos','Copa Mundial de Fútbol',
+  // Matemáticas
+  'Número pi','Número e','Teorema de Pitágoras','Cálculo infinitesimal','Álgebra','Geometría',
+  'Estadística','Probabilidad','Teoría de conjuntos','Lógica matemática'
+];
+
+const TEMAS_EN = [
+  'Artificial intelligence','Machine learning','Deep learning','Quantum computing',
+  'Climate change','Sustainable energy','Neuroscience','Biotechnology','Nanotechnology',
+  'Space exploration','International Space Station','Computer science','Programming language',
+  'Data science','Cryptography','World War II','Industrial Revolution','Internet',
+  'World Wide Web','Operating system','Database','Cloud computing','Software engineering',
+  'Mathematics','Physics','Chemistry','Biology','Philosophy','Economics','Psychology'
+];
+
+async function recolectarWikipediaCompleta(temas, idioma, prefijo) {
+  log('📚 Wikipedia ' + idioma.toUpperCase() + ' completa (' + temas.length + ' artículos)...', 'prog');
+  let completados = 0;
+  const tareas = temas.map(titulo => async () => {
+    const art = await fetchArticuloCompleto(titulo, idioma);
+    if (art) {
+      const contenido = '# ' + art.titulo + '\n\n' + art.texto + '\n\nFuente: ' + art.url;
+      if (guardar(prefijo + '_' + titulo.replace(/\s+/g, '_'), contenido)) {
+        completados++;
+      }
+    } else {
+      errCount++;
+    }
+    updateStats();
+    if (completados % 5 === 0 && completados > 0) {
+      log('✓ ' + completados + ' artículos completos · ' + (totalBytes/1024/1024).toFixed(2) + ' MB', 'ok');
+    }
+  });
+  await conLimite(tareas, 3); // menos concurrencia, artículos pesados
+  log('📚 Wikipedia ' + idioma.toUpperCase() + ' terminada: ' + completados + ' artículos', 'ok');
 }
 
 async function conLimite(tareas, limite) {
@@ -116,183 +214,37 @@ async function conLimite(tareas, limite) {
 }
 
 // ============================================================
-// WIKIPEDIA
+// APIs con CORS abierto
 // ============================================================
-const WIKI_ES = [
-  'Inteligencia_artificial','Aprendizaje_automático','Red_neuronal_artificial','Aprendizaje_profundo',
-  'Procesamiento_de_lenguaje_natural','Visión_por_computadora','Algoritmo','Estructura_de_datos',
-  'Programación','Python_(lenguaje_de_programación)','JavaScript','C++','Java_(lenguaje_de_programación)',
-  'HTML','CSS','Base_de_datos','SQL','Git','Linux','Windows','MacOS','Android','iOS',
-  'Internet','World_Wide_Web','Servidor_web','HTTP','HTTPS','DNS','TCP/IP','API',
-  'Computación_en_la_nube','Big_data','Blockchain','Bitcoin','Ethereum','Ciberseguridad',
-  'Criptografía','Código_abierto','Software_libre','Licencia_de_software',
-  'España','Cuba','México','Argentina','Colombia','Perú','Chile','Venezuela','Uruguay',
-  'Estados_Unidos','Francia','Alemania','Italia','Reino_Unido','Rusia','China','Japón','India','Brasil',
-  'La_Habana','Madrid','Barcelona','Ciudad_de_México','Buenos_Aires','Lima','Bogotá','Santiago_de_Chile',
-  'Historia_universal','Antigua_Roma','Antigua_Grecia','Antiguo_Egipto','Imperio_romano',
-  'Edad_Media','Renacimiento','Revolución_Francesa','Revolución_Industrial','Primera_Guerra_Mundial',
-  'Segunda_Guerra_Mundial','Guerra_Fría','Cristóbal_Colón','Napoleón_Bonaparte',
-  'Física','Química','Biología','Matemáticas','Astronomía','Geología','Genética','Ecología',
-  'Mecánica_cuántica','Relatividad_general','Teoría_de_cuerdas','Evolución','ADN','Célula',
-  'Sistema_solar','Vía_Láctea','Agujero_negro','Big_Bang','Materia_oscura','Energía_oscura',
-  'Tabla_periódica','Átomo','Molécula','Protón','Neutrón','Electrón','Fotón','Bosón_de_Higgs',
-  'Filosofía','Sócrates','Platón','Aristóteles','René_Descartes','Immanuel_Kant','Friedrich_Nietzsche',
-  'Karl_Marx','Sigmund_Freud','Carl_Jung','Jean-Paul_Sartre',
-  'Medicina','Anatomía','Corazón','Cerebro','Sistema_nervioso','Sistema_inmunitario','Cáncer','Diabetes',
-  'COVID-19','Nutrición','Salud_mental','Depresión','Ansiedad',
-  'Arte','Pintura','Escultura','Música','Literatura','Poesía','Cine','Teatro','Danza','Fotografía',
-  'Pablo_Picasso','Leonardo_da_Vinci','Vincent_van_Gogh','Miguel_de_Cervantes','Gabriel_García_Márquez',
-  'Federico_García_Lorca','William_Shakespeare','Frida_Kahlo','Salvador_Dalí','Anime','Manga',
-  'Fútbol','Baloncesto','Béisbol','Tenis','Ajedrez','Juegos_Olímpicos','Copa_Mundial_de_Fútbol',
-  'Economía','Capitalismo','Socialismo','Comunismo','Democracia','Inflación','PIB','Bolsa_de_valores'
-];
-
-const WIKI_EN = [
-  'Artificial_intelligence','Machine_learning','Deep_learning','Quantum_computing','Climate_change',
-  'Sustainable_energy','Neuroscience','Biotechnology','Nanotechnology','Space_exploration',
-  'International_Space_Station','Cold_War','Industrial_Revolution','Renaissance','Philosophy',
-  'Computer_science','Programming_language','Data_science','Statistics','Cryptography',
-  'World_War_II','American_Revolution','French_Revolution','Internet','World_Wide_Web',
-  'Operating_system','Database','Cloud_computing','Software_engineering','Mathematics'
-];
-
-async function recolectarWikiES() {
-  log('📚 Wikipedia ES (' + WIKI_ES.length + ')...', 'prog');
-  const tareas = WIKI_ES.map(titulo => async () => {
-    const url = 'https://es.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(titulo);
-    await tarea('wiki_es_' + titulo, url, async txt => {
-      try {
-        const j = JSON.parse(txt);
-        return '# ' + j.title + '\n\n' + (j.extract || '') + '\n\n' + (j.content_urls?.desktop?.page || '');
-      } catch (e) { return txt; }
-    });
-  });
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 6);
-  log('📚 Wikipedia ES terminada', 'ok');
-}
-
-async function recolectarWikiEN() {
-  log('🌍 Wikipedia EN (' + WIKI_EN.length + ')...', 'prog');
-  const tareas = WIKI_EN.map(titulo => async () => {
-    const url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(titulo);
-    await tarea('wiki_en_' + titulo, url, async txt => {
-      try {
-        const j = JSON.parse(txt);
-        return '# ' + j.title + '\n\n' + (j.extract || '');
-      } catch (e) { return txt; }
-    });
-  });
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 6);
-}
-
-async function recolectarRandom(n) {
-  log('🎲 Wikipedia aleatorios (' + n + ')...', 'prog');
-  const tareas = [];
-  for (let i = 0; i < n; i++) {
-    const idx = i;
-    tareas.push(async () => {
-      await tarea('wiki_random_' + idx + '_' + Math.random().toString(36).slice(2, 6),
-        'https://es.wikipedia.org/api/rest_v1/page/random/summary',
-        async txt => {
-          try {
-            const j = JSON.parse(txt);
-            return '# ' + j.title + '\n\n' + (j.extract || '');
-          } catch (e) { return txt; }
-        }
-      );
-    });
-  }
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 5);
-}
-
-// ============================================================
-// APIs con CORS abierto (confirmadas funcionales)
-// ============================================================
-const APIS_CORS_ABIERTO = [
-  // Países (CORS: *)
+const APIS = [
   { n:'countries_all', u:'https://restcountries.com/v3.1/all?fields=name,capital,population,region,languages,currencies' },
-  // Clima (CORS: *)
   { n:'meteo_madrid', u:'https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m,wind_speed_10m,humidity' },
   { n:'meteo_habana', u:'https://api.open-meteo.com/v1/forecast?latitude=23.1136&longitude=-82.3666&current=temperature_2m,wind_speed_10m' },
   { n:'meteo_buenos_aires', u:'https://api.open-meteo.com/v1/forecast?latitude=-34.6037&longitude=-58.3816&current=temperature_2m' },
-  { n:'meteo_londres', u:'https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m' },
-  // IP / time
-  { n:'ip_info', u:'https://ipapi.co/json/' },
-  { n:'worldtime_madrid', u:'https://worldtimeapi.org/api/timezone/Europe/Madrid' },
-  // NASA (CORS: *)
-  { n:'nasa_apod', u:'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY' },
-  { n:'nasa_asteroids', u:'https://api.nasa.gov/neo/rest/v1/feed?api_key=DEMO_KEY' },
-  // SpaceX (CORS: *)
-  { n:'spacex_latest', u:'https://api.spacexdata.com/v5/launches/latest' },
-  { n:'spacex_past', u:'https://api.spacexdata.com/v5/launches/past?limit=20' },
-  // Sismos USGS (CORS: *)
   { n:'usgs_sismos', u:'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=30&orderby=time' },
-  { n:'noaa_solar', u:'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json' },
-  // ISS
   { n:'iss_location', u:'http://api.open-notify.org/iss-now.json' },
   { n:'iss_people', u:'http://api.open-notify.org/astros.json' }
 ];
 
 async function recolectarAPIs() {
-  log('📡 APIs CORS abierto...', 'prog');
-  const tareas = APIS_CORS_ABIERTO.map(a => async () => {
-    await tarea('api_' + a.n, a.u, async txt => {
-      try { return JSON.stringify(JSON.parse(txt), null, 2); } catch (e) { return txt; }
-    });
-  });
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 4);
-}
-
-// ============================================================
-// GitHub API (CORS: *)
-// ============================================================
-async function recolectarGithub() {
-  log('💻 GitHub API...', 'prog');
-  const queries = [
-    { n:'repos_top_ai', q:'topic:artificial-intelligence stars:>5000' },
-    { n:'repos_top_ml', q:'topic:machine-learning stars:>5000' },
-    { n:'repos_top_python', q:'language:python stars:>10000' },
-    { n:'repos_top_js', q:'language:javascript stars:>10000' },
-    { n:'repos_top_web', q:'topic:web-development stars:>5000' },
-    { n:'repos_top_awesome', q:'topic:awesome stars:>10000' }
-  ];
-  const tareas = queries.map(x => async () => {
-    await tarea('github_' + x.n,
-      'https://api.github.com/search/repositories?q=' + encodeURIComponent(x.q) + '&sort=stars&per_page=30',
-      async txt => {
-        try {
-          const j = JSON.parse(txt);
-          const items = (j.items || []).map(r =>
-            '## ' + r.full_name + '\n' + (r.description || '') + '\n⭐ ' + r.stargazers_count + '\n' + r.html_url
-          ).join('\n\n');
-          return items;
-        } catch (e) { return txt; }
+  log('📡 APIs...', 'prog');
+  for (const a of APIS) {
+    try {
+      const r = await fetchT(a.u, 20000);
+      if (r.ok) {
+        let txt = r.text;
+        try { txt = JSON.stringify(JSON.parse(txt), null, 2); } catch (e) {}
+        guardar('api_' + a.n, txt);
+        log('✓ ' + a.n + ' (' + (txt.length/1024).toFixed(1) + ' KB)', 'ok');
+      } else {
+        errCount++;
+        log('✗ ' + a.n + ': ' + r.error, 'err');
       }
-    );
-  });
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 3);
-}
-
-// ============================================================
-// NASA extra
-// ============================================================
-async function recolectarNasaExtra() {
-  log('🚀 NASA extra...', 'prog');
-  const tareas = [
-    async () => tarea('nasa_earth_imagery',
-      'https://api.nasa.gov/planetary/earth/assets?lon=-3.7038&lat=40.4168&date=2023-01-01&api_key=DEMO_KEY'),
-    async () => tarea('nasa_epic',
-      'https://api.nasa.gov/EPIC/api/natural/images?api_key=DEMO_KEY'),
-    async () => tarea('nasa_donki',
-      'https://api.nasa.gov/DONKI/notifications?startDate=2024-01-01&endDate=2024-12-31&api_key=DEMO_KEY')
-  ];
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, 2);
+    } catch (e) {
+      errCount++;
+    }
+    updateStats();
+  }
 }
 
 // ============================================================
@@ -301,26 +253,35 @@ async function recolectarNasaExtra() {
 document.getElementById('go').addEventListener('click', async () => {
   document.getElementById('go').disabled = true;
   logEl.innerHTML = '';
-  resultado = { generado: new Date().toISOString(), fuente: 'github-pages', datos: {} };
-  okCount = 0; errCount = 0; totalBytes = 0; hechas = 0; totalTareas = 0;
+  resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2', datos: {} };
+  okCount = 0; errCount = 0; totalBytes = 0;
 
-  log('🚀 Iniciando recolección...', 'prog');
+  const numES = Math.min(300, Math.max(10, parseInt(document.getElementById('numES').value) || 50));
+  const numEN = Math.min(100, Math.max(5, parseInt(document.getElementById('numEN').value) || 20));
+
+  log('🚀 Iniciando recolección v2 (artículos completos)...', 'prog');
 
   // Test
-  const test = await fetchT('https://es.wikipedia.org/api/rest_v1/page/summary/España');
-  if (!test.ok) {
-    log('❌ Wikipedia no accesible: ' + test.error, 'err');
+  const test = await fetchArticuloCompleto('España', 'es');
+  if (!test) {
+    log('❌ Wikipedia API no responde correctamente', 'err');
     document.getElementById('go').disabled = false;
     return;
   }
-  log('✅ Wikipedia accesible', 'ok');
+  log('✅ Wikipedia API funciona (test: ' + test.texto.length + ' chars)', 'ok');
 
-  if (document.getElementById('cbWiki').checked) await recolectarWikiES();
-  if (document.getElementById('cbRandom').checked) await recolectarRandom(100);
-  if (document.getElementById('cbWikiEN').checked) await recolectarWikiEN();
-  if (document.getElementById('cbApis').checked) await recolectarAPIs();
-  if (document.getElementById('cbGithub').checked) await recolectarGithub();
-  if (document.getElementById('cbNasa').checked) await recolectarNasaExtra();
+  // ES
+  const temasES = TEMAS_ES.slice(0, numES);
+  await recolectarWikipediaCompleta(temasES, 'es', 'wiki_es');
+
+  // EN
+  const temasEN = TEMAS_EN.slice(0, numEN);
+  await recolectarWikipediaCompleta(temasEN, 'en', 'wiki_en');
+
+  // APIs
+  if (document.getElementById('cbApis').checked) {
+    await recolectarAPIs();
+  }
 
   log('', 'info');
   log('✅ COMPLETADO: ' + okCount + ' OK, ' + errCount + ' errores', 'ok');
