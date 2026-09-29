@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🌐 Recolector — Entrenamiento estructurado</title>
+<title>🌐 Recolector Universal — Ania Doctora · Informática · Cinéfila</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:1000px; margin:auto; }
+  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:1100px; margin:auto; }
   h1 { color:#38bdf8; margin-bottom:4px; }
   .sub { color:#94a3b8; margin-top:0; font-size:0.9rem; }
   h2 { color:#7dd3fc; font-size:1rem; margin-top:24px; }
@@ -30,14 +30,14 @@
   .categorias { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
   .cat-chip {
     background:#334155; color:#cbd5e1; padding:4px 10px; border-radius:12px;
-    font-size:0.78rem; cursor:pointer; user-select:none; border:2px solid transparent;
+    font-size:0.75rem; cursor:pointer; user-select:none; border:2px solid transparent;
   }
   .cat-chip.on { background:#0ea5e9; color:white; border-color:#38bdf8; }
 </style>
 </head>
 <body>
-<h1>🌐 Recolector</h1>
-<p class="sub">Descarga Wikipedia + APIs y genera JSON con estructura de entrenamiento (compatible con cerebro.html)</p>
+<h1>🌐 Recolector Universal</h1>
+<p class="sub">Ania: doctora · enfermera · ingeniera informática · fotógrafa · astrónoma · cinéfila · otaku · programadora Python</p>
 
 <div class="modo">
   <strong style="color:#7dd3fc">1. Categorías a incluir:</strong>
@@ -50,14 +50,15 @@
   <strong style="color:#7dd3fc">2. Configuración:</strong>
   <label>
     Límite de artículos ES:
-    <input type="number" id="numES" value="150" min="10" max="500" />
+    <input type="number" id="numES" value="200" min="10" max="500" />
   </label>
   <label>
     Límite de artículos EN:
     <input type="number" id="numEN" value="30" min="5" max="200" />
   </label>
-  <label><input type="checkbox" id="cbApis" checked> Incluir APIs adicionales (clima, sismos, NASA)</label>
-  <label><input type="checkbox" id="cbPatrones" checked> Generar patrones conversacionales (recomendado)</label>
+  <label><input type="checkbox" id="cbApis" checked> Incluir APIs adicionales</label>
+  <label><input type="checkbox" id="cbPatrones" checked> Generar patrones conversacionales</label>
+  <label><input type="checkbox" id="cbCodigo" checked> Incluir ejemplos de código Python</label>
 </div>
 
 <div class="stats">
@@ -75,7 +76,7 @@
 
 <script>
 // ============================================================
-// BASE DE CONOCIMIENTO — Temas con tag, nombre y categoría
+// BASE DE CONOCIMIENTO — +400 temas
 // ============================================================
 const TEMAS = [
   // ==================== CIENCIA ====================
@@ -87,6 +88,7 @@ const TEMAS = [
   { tag:'vision_artificial', n:'Visión artificial', c:'ciencia' },
   { tag:'algoritmo', n:'Algoritmo', c:'ciencia' },
   { tag:'estructuras_datos', n:'Estructura de datos', c:'ciencia' },
+  { tag:'complejidad', n:'Complejidad computacional', c:'ciencia' },
   { tag:'fisica', n:'Física', c:'ciencia' },
   { tag:'quimica', n:'Química', c:'ciencia' },
   { tag:'biologia', n:'Biología', c:'ciencia' },
@@ -96,7 +98,6 @@ const TEMAS = [
   { tag:'ecologia', n:'Ecología', c:'ciencia' },
   { tag:'mecanica_cuantica', n:'Mecánica cuántica', c:'ciencia' },
   { tag:'relatividad', n:'Relatividad general', c:'ciencia' },
-  { tag:'teoria_cuerdas', n:'Teoría de cuerdas', c:'ciencia' },
   { tag:'evolucion', n:'Evolución biológica', c:'ciencia' },
   { tag:'adn', n:'ADN', c:'ciencia' },
   { tag:'sistema_solar', n:'Sistema solar', c:'ciencia' },
@@ -104,42 +105,29 @@ const TEMAS = [
   { tag:'agujero_negro', n:'Agujero negro', c:'ciencia' },
   { tag:'big_bang', n:'Big Bang', c:'ciencia' },
   { tag:'materia_oscura', n:'Materia oscura', c:'ciencia' },
-  { tag:'tabla_periodica', n:'Tabla periódica de los elementos', c:'ciencia' },
   { tag:'atomo', n:'Átomo', c:'ciencia' },
-  { tag:'molecula', n:'Molécula', c:'ciencia' },
-  { tag:'proton', n:'Protón', c:'ciencia' },
-  { tag:'neutron', n:'Neutrón', c:'ciencia' },
-  { tag:'electron', n:'Electrón', c:'ciencia' },
-  { tag:'foton', n:'Fotón', c:'ciencia' },
   { tag:'termodinamica', n:'Termodinámica', c:'ciencia' },
   { tag:'electromagnetismo', n:'Electromagnetismo', c:'ciencia' },
   { tag:'gravedad', n:'Gravedad', c:'ciencia' },
-  { tag:'energia', n:'Energía', c:'ciencia' },
   { tag:'entropia', n:'Entropía', c:'ciencia' },
   { tag:'fision_nuclear', n:'Fisión nuclear', c:'ciencia' },
   { tag:'fusion_nuclear', n:'Fusión nuclear', c:'ciencia' },
   { tag:'numeros_primos', n:'Número primo', c:'ciencia' },
   { tag:'nanotecnologia', n:'Nanotecnología', c:'ciencia' },
   { tag:'neurociencia', n:'Neurociencia', c:'ciencia' },
-  { tag:'bioquimica', n:'Bioquímica', c:'ciencia' },
-  { tag:'microbiologia', n:'Microbiología', c:'ciencia' },
-  { tag:'optica', n:'Óptica', c:'ciencia' },
-  { tag:'acustica', n:'Acústica', c:'ciencia' },
 
   // ==================== TECNOLOGÍA ====================
   { tag:'internet', n:'Internet', c:'tecnologia' },
   { tag:'www', n:'World Wide Web', c:'tecnologia' },
   { tag:'computadora', n:'Computadora', c:'tecnologia' },
   { tag:'programacion', n:'Programación', c:'tecnologia' },
-  { tag:'python', n:'Python (lenguaje de programación)', c:'tecnologia' },
+  { tag:'python_leng', n:'Python (lenguaje de programación)', c:'tecnologia' },
   { tag:'javascript', n:'JavaScript', c:'tecnologia' },
   { tag:'typescript', n:'TypeScript', c:'tecnologia' },
-  { tag:'java', n:'Java (lenguaje de programación)', c:'tecnologia' },
   { tag:'cpp', n:'C++', c:'tecnologia' },
   { tag:'rust', n:'Rust (lenguaje de programación)', c:'tecnologia' },
   { tag:'nodejs', n:'Node.js', c:'tecnologia' },
   { tag:'react', n:'React (biblioteca JavaScript)', c:'tecnologia' },
-  { tag:'vue', n:'Vue.js', c:'tecnologia' },
   { tag:'linux', n:'Linux', c:'tecnologia' },
   { tag:'windows', n:'Microsoft Windows', c:'tecnologia' },
   { tag:'android', n:'Android', c:'tecnologia' },
@@ -166,108 +154,86 @@ const TEMAS = [
   { tag:'pytorch', n:'PyTorch', c:'tecnologia' },
   { tag:'openai', n:'OpenAI', c:'tecnologia' },
   { tag:'deepmind', n:'DeepMind', c:'tecnologia' },
-  { tag:'alphago', n:'AlphaGo', c:'tecnologia' },
   { tag:'robotica', n:'Robótica', c:'tecnologia' },
   { tag:'realidad_virtual', n:'Realidad virtual', c:'tecnologia' },
-  { tag:'realidad_aumentada', n:'Realidad aumentada', c:'tecnologia' },
   { tag:'internet_cosas', n:'Internet de las cosas', c:'tecnologia' },
 
-  // ==================== HISTORIA ====================
-  { tag:'historia_universal', n:'Historia universal', c:'historia' },
-  { tag:'prehistoria', n:'Prehistoria', c:'historia' },
-  { tag:'mesopotamia', n:'Mesopotamia', c:'historia' },
-  { tag:'roma_antigua', n:'Antigua Roma', c:'historia' },
-  { tag:'grecia_antigua', n:'Antigua Grecia', c:'historia' },
-  { tag:'egipto_antiguo', n:'Antiguo Egipto', c:'historia' },
-  { tag:'imperio_romano', n:'Imperio romano', c:'historia' },
-  { tag:'imperio_bizantino', n:'Imperio bizantino', c:'historia' },
-  { tag:'imperio_otomano', n:'Imperio otomano', c:'historia' },
-  { tag:'edad_media', n:'Edad Media', c:'historia' },
-  { tag:'renacimiento', n:'Renacimiento', c:'historia' },
-  { tag:'ilustracion', n:'Ilustración', c:'historia' },
-  { tag:'rev_francesa', n:'Revolución francesa', c:'historia' },
-  { tag:'rev_industrial', n:'Revolución Industrial', c:'historia' },
-  { tag:'rev_rusa', n:'Revolución rusa', c:'historia' },
-  { tag:'rev_cubana', n:'Revolución cubana', c:'historia' },
-  { tag:'primera_guerra', n:'Primera Guerra Mundial', c:'historia' },
-  { tag:'segunda_guerra', n:'Segunda Guerra Mundial', c:'historia' },
-  { tag:'guerra_fria', n:'Guerra Fría', c:'historia' },
-  { tag:'holocausto', n:'Holocausto', c:'historia' },
-  { tag:'colombia', n:'Cristóbal Colón', c:'historia' },
-  { tag:'napoleon', n:'Napoleón Bonaparte', c:'historia' },
-  { tag:'hitler', n:'Adolf Hitler', c:'historia' },
-  { tag:'independencia_america', n:'Independencia de América', c:'historia' },
-  { tag:'imperio_espanol', n:'Imperio español', c:'historia' },
-  { tag:'civilizacion_maya', n:'Civilización maya', c:'historia' },
-  { tag:'imperio_inca', n:'Imperio inca', c:'historia' },
-  { tag:'aztecas', n:'Mexicas', c:'historia' },
-  { tag:'guerra_civil_espanola', n:'Guerra civil española', c:'historia' },
-  { tag:'muro_berlin', n:'Muro de Berlín', c:'historia' },
+  // ==================== INGENIERÍA INFORMÁTICA ====================
+  { tag:'ingenieria_informatica', n:'Ingeniería informática', c:'ingenieria' },
+  { tag:'ingenieria_software', n:'Ingeniería de software', c:'ingenieria' },
+  { tag:'arquitectura_software', n:'Arquitectura de software', c:'ingenieria' },
+  { tag:'patrones_diseno', n:'Patrón de diseño', c:'ingenieria' },
+  { tag:'sistemas_operativos', n:'Sistema operativo', c:'ingenieria' },
+  { tag:'redes_computadoras', n:'Red de computadoras', c:'ingenieria' },
+  { tag:'base_datos', n:'Base de datos', c:'ingenieria' },
+  { tag:'bases_datos_relacionales', n:'Base de datos relacional', c:'ingenieria' },
+  { tag:'bases_datos_nosql', n:'Base de datos NoSQL', c:'ingenieria' },
+  { tag:'compiladores', n:'Compilador', c:'ingenieria' },
+  { tag:'teoria_automatas', n:'Teoría de autómatas', c:'ingenieria' },
+  { tag:'lenguajes_formales', n:'Lenguaje formal', c:'ingenieria' },
+  { tag:'teoria_informacion', n:'Teoría de la información', c:'ingenieria' },
+  { tag:'criptografia', n:'Criptografía', c:'ingenieria' },
+  { tag:'telecomunicaciones', n:'Telecomunicaciones', c:'ingenieria' },
+  { tag:'electronica', n:'Electrónica', c:'ingenieria' },
+  { tag:'sistemas_embebidos', n:'Sistema embebido', c:'ingenieria' },
+  { tag:'devops', n:'DevOps', c:'ingenieria' },
+  { tag:'microservicios', n:'Microservicios', c:'ingenieria' },
+  { tag:'testing_software', n:'Pruebas de software', c:'ingenieria' },
+  { tag:'scrum', n:'Scrum (marco de trabajo)', c:'ingenieria' },
+  { tag:'agile', n:'Desarrollo ágil de software', c:'ingenieria' },
 
-  // ==================== GEOGRAFÍA ====================
-  { tag:'espana', n:'España', c:'geografia' },
-  { tag:'cuba', n:'Cuba', c:'geografia' },
-  { tag:'mexico', n:'México', c:'geografia' },
-  { tag:'argentina', n:'Argentina', c:'geografia' },
-  { tag:'colombia_pais', n:'Colombia', c:'geografia' },
-  { tag:'peru', n:'Perú', c:'geografia' },
-  { tag:'chile', n:'Chile', c:'geografia' },
-  { tag:'venezuela', n:'Venezuela', c:'geografia' },
-  { tag:'uruguay', n:'Uruguay', c:'geografia' },
-  { tag:'ecuador', n:'Ecuador', c:'geografia' },
-  { tag:'bolivia', n:'Bolivia', c:'geografia' },
-  { tag:'eeuu', n:'Estados Unidos', c:'geografia' },
-  { tag:'canada', n:'Canadá', c:'geografia' },
-  { tag:'francia', n:'Francia', c:'geografia' },
-  { tag:'alemania', n:'Alemania', c:'geografia' },
-  { tag:'italia', n:'Italia', c:'geografia' },
-  { tag:'reino_unido', n:'Reino Unido', c:'geografia' },
-  { tag:'portugal', n:'Portugal', c:'geografia' },
-  { tag:'rusia', n:'Rusia', c:'geografia' },
-  { tag:'china', n:'China', c:'geografia' },
-  { tag:'japon', n:'Japón', c:'geografia' },
-  { tag:'india', n:'India', c:'geografia' },
-  { tag:'brasil', n:'Brasil', c:'geografia' },
-  { tag:'australia', n:'Australia', c:'geografia' },
-  { tag:'egipto', n:'Egipto', c:'geografia' },
-  { tag:'habana', n:'La Habana', c:'geografia' },
-  { tag:'madrid', n:'Madrid', c:'geografia' },
-  { tag:'barcelona', n:'Barcelona', c:'geografia' },
-  { tag:'cdmx', n:'Ciudad de México', c:'geografia' },
-  { tag:'buenos_aires', n:'Buenos Aires', c:'geografia' },
-  { tag:'nueva_york', n:'Nueva York', c:'geografia' },
-  { tag:'paris', n:'París', c:'geografia' },
-  { tag:'londres', n:'Londres', c:'geografia' },
-  { tag:'amazonas', n:'Río Amazonas', c:'geografia' },
-  { tag:'nilo', n:'Nilo', c:'geografia' },
-  { tag:'everest', n:'Everest', c:'geografia' },
-  { tag:'sahara', n:'Sahara', c:'geografia' },
-  { tag:'antartida', n:'Antártida', c:'geografia' },
-  { tag:'pacifico', n:'Océano Pacífico', c:'geografia' },
-  { tag:'atlantico', n:'Océano Atlántico', c:'geografia' },
-
-  // ==================== FILOSOFÍA ====================
-  { tag:'filosofia', n:'Filosofía', c:'filosofia' },
-  { tag:'socrates', n:'Sócrates', c:'filosofia' },
-  { tag:'platon', n:'Platón', c:'filosofia' },
-  { tag:'aristoteles', n:'Aristóteles', c:'filosofia' },
-  { tag:'descartes', n:'René Descartes', c:'filosofia' },
-  { tag:'kant', n:'Immanuel Kant', c:'filosofia' },
-  { tag:'hegel', n:'Georg Wilhelm Friedrich Hegel', c:'filosofia' },
-  { tag:'nietzsche', n:'Friedrich Nietzsche', c:'filosofia' },
-  { tag:'marx', n:'Karl Marx', c:'filosofia' },
-  { tag:'freud', n:'Sigmund Freud', c:'filosofia' },
-  { tag:'jung', n:'Carl Jung', c:'filosofia' },
-  { tag:'sartre', n:'Jean-Paul Sartre', c:'filosofia' },
-  { tag:'camus', n:'Albert Camus', c:'filosofia' },
-  { tag:'estoicismo', n:'Estoicismo', c:'filosofia' },
-  { tag:'existencialismo', n:'Existencialismo', c:'filosofia' },
-  { tag:'etica', n:'Ética', c:'filosofia' },
-  { tag:'epistemologia', n:'Epistemología', c:'filosofia' },
-  { tag:'metafisica', n:'Metafísica', c:'filosofia' },
+  // ==================== MEDICINA / FARMACIA ====================
+  { tag:'medicina_general', n:'Medicina', c:'medicina' },
+  { tag:'paracetamol', n:'Paracetamol', c:'medicina' },
+  { tag:'ibuprofeno', n:'Ibuprofeno', c:'medicina' },
+  { tag:'aspirina', n:'Ácido acetilsalicílico', c:'medicina' },
+  { tag:'amoxicilina', n:'Amoxicilina', c:'medicina' },
+  { tag:'azitromicina', n:'Azitromicina', c:'medicina' },
+  { tag:'ciprofloxacino', n:'Ciprofloxacino', c:'medicina' },
+  { tag:'metformina', n:'Metformina', c:'medicina' },
+  { tag:'omeprazol', n:'Omeprazol', c:'medicina' },
+  { tag:'loratadina', n:'Loratadina', c:'medicina' },
+  { tag:'dexametasona', n:'Dexametasona', c:'medicina' },
+  { tag:'prednisona', n:'Prednisona', c:'medicina' },
+  { tag:'salbutamol', n:'Salbutamol', c:'medicina' },
+  { tag:'insulina', n:'Insulina', c:'medicina' },
+  { tag:'warfarina', n:'Warfarina', c:'medicina' },
+  { tag:'enalapril', n:'Enalapril', c:'medicina' },
+  { tag:'losartan', n:'Losartán', c:'medicina' },
+  { tag:'atorvastatina', n:'Atorvastatina', c:'medicina' },
+  { tag:'levotiroxina', n:'Levotiroxina', c:'medicina' },
+  { tag:'fluoxetina', n:'Fluoxetina', c:'medicina' },
+  { tag:'sertralina', n:'Sertralina', c:'medicina' },
+  { tag:'diazepam', n:'Diazepam', c:'medicina' },
+  { tag:'tramadol', n:'Tramadol', c:'medicina' },
+  { tag:'morfina', n:'Morfina', c:'medicina' },
+  { tag:'vacuna_covid', n:'Vacuna contra la COVID-19', c:'medicina' },
+  { tag:'anestesia', n:'Anestesia', c:'medicina' },
+  { tag:'antibiotico', n:'Antibiótico', c:'medicina' },
+  { tag:'analgesico', n:'Analgésico', c:'medicina' },
+  { tag:'antiinflamatorio', n:'Antiinflamatorio no esteroideo', c:'medicina' },
+  { tag:'antihipertensivo', n:'Antihipertensivo', c:'medicina' },
+  { tag:'antidepresivo', n:'Antidepresivo', c:'medicina' },
+  { tag:'ansiolitico', n:'Ansiolítico', c:'medicina' },
+  { tag:'anticoagulante', n:'Anticoagulante', c:'medicina' },
+  { tag:'antihistaminico', n:'Antihistamínico', c:'medicina' },
+  { tag:'corticoide', n:'Corticoesteroide', c:'medicina' },
+  { tag:'broncodilatador', n:'Broncodilatador', c:'medicina' },
+  { tag:'diuretico', n:'Diurético', c:'medicina' },
+  { tag:'primeros_auxilios', n:'Primeros auxilios', c:'medicina' },
+  { tag:'reanimacion_cpr', n:'Reanimación cardiopulmonar', c:'medicina' },
+  { tag:'presion_arterial', n:'Presión arterial', c:'medicina' },
+  { tag:'frecuencia_cardiaca', n:'Frecuencia cardíaca', c:'medicina' },
+  { tag:'temperatura_corporal', n:'Temperatura corporal', c:'medicina' },
+  { tag:'heridas', n:'Herida', c:'medicina' },
+  { tag:'quemaduras', n:'Quemadura', c:'medicina' },
+  { tag:'fracturas', n:'Fractura ósea', c:'medicina' },
+  { tag:'intoxicacion', n:'Intoxicación', c:'medicina' },
+  { tag:'alergia', n:'Alergia', c:'medicina' },
+  { tag:'asma', n:'Asma', c:'medicina' },
+  { tag:'epoc', n:'Enfermedad pulmonar obstructiva crónica', c:'medicina' },
 
   // ==================== SALUD ====================
-  { tag:'medicina', n:'Medicina', c:'salud' },
   { tag:'anatomia', n:'Anatomía humana', c:'salud' },
   { tag:'corazon', n:'Corazón', c:'salud' },
   { tag:'cerebro_humano', n:'Cerebro humano', c:'salud' },
@@ -286,90 +252,313 @@ const TEMAS = [
   { tag:'estres', n:'Estrés', c:'salud' },
   { tag:'vacuna', n:'Vacuna', c:'salud' },
   { tag:'sueno', n:'Sueño', c:'salud' },
+  { tag:'ejercicio', n:'Ejercicio físico', c:'salud' },
+  { tag:'meditacion', n:'Meditación', c:'salud' },
+
+  // ==================== FOTOGRAFÍA ====================
+  { tag:'fotografia', n:'Fotografía', c:'fotografia' },
+  { tag:'camara_fotografica', n:'Cámara fotográfica', c:'fotografia' },
+  { tag:'camara_reflex', n:'Cámara réflex', c:'fotografia' },
+  { tag:'camara_mirrorless', n:'Cámara sin espejo', c:'fotografia' },
+  { tag:'objetivo_fotografico', n:'Objetivo fotográfico', c:'fotografia' },
+  { tag:'diafragma', n:'Diafragma (fotografía)', c:'fotografia' },
+  { tag:'velocidad_obturacion', n:'Velocidad de obturación', c:'fotografia' },
+  { tag:'iso_fotografia', n:'Sensibilidad ISO', c:'fotografia' },
+  { tag:'exposicion_fotografica', n:'Exposición fotográfica', c:'fotografia' },
+  { tag:'triangulo_exposicion', n:'Triángulo de exposición', c:'fotografia' },
+  { tag:'profundidad_campo', n:'Profundidad de campo', c:'fotografia' },
+  { tag:'composicion_fotografica', n:'Composición fotográfica', c:'fotografia' },
+  { tag:'regla_tercios', n:'Regla de los tercios', c:'fotografia' },
+  { tag:'encuadre_fotografico', n:'Encuadre fotográfico', c:'fotografia' },
+  { tag:'iluminacion_fotografia', n:'Iluminación en fotografía', c:'fotografia' },
+  { tag:'luz_natural', n:'Luz natural', c:'fotografia' },
+  { tag:'flash_fotografico', n:'Flash (fotografía)', c:'fotografia' },
+  { tag:'fotografia_nocturna', n:'Fotografía nocturna', c:'fotografia' },
+  { tag:'fotografia_paisaje', n:'Fotografía de paisaje', c:'fotografia' },
+  { tag:'fotografia_retrato', n:'Fotografía de retrato', c:'fotografia' },
+  { tag:'fotografia_macro', n:'Fotografía macro', c:'fotografia' },
+  { tag:'fotografia_callejera', n:'Fotografía callejera', c:'fotografia' },
+  { tag:'fotografia_deporte', n:'Fotografía deportiva', c:'fotografia' },
+  { tag:'fotografia_nocturna_larga', n:'Larga exposición', c:'fotografia' },
+  { tag:'hdr_fotografia', n:'Alto rango dinámico', c:'fotografia' },
+  { tag:'raw_fotografia', n:'Formato RAW', c:'fotografia' },
+  { tag:'postprocesado', n:'Postprocesado fotográfico', c:'fotografia' },
+  { tag:'lightroom', n:'Adobe Lightroom', c:'fotografia' },
+  { tag:'photoshop', n:'Adobe Photoshop', c:'fotografia' },
+  { tag:'gimp', n:'GIMP', c:'fotografia' },
+
+  // ==================== UNIVERSO / ASTRONOMÍA ====================
+  { tag:'universo', n:'Universo', c:'universo' },
+  { tag:'cosmologia', n:'Cosmología', c:'universo' },
+  { tag:'estrella', n:'Estrella', c:'universo' },
+  { tag:'planeta', n:'Planeta', c:'universo' },
+  { tag:'galaxia', n:'Galaxia', c:'universo' },
+  { tag:'nebula', n:'Nebulosa', c:'universo' },
+  { tag:'cometa', n:'Cometa', c:'universo' },
+  { tag:'asteroide', n:'Asteroide', c:'universo' },
+  { tag:'meteoro', n:'Meteoroide', c:'universo' },
+  { tag:'supernova', n:'Supernova', c:'universo' },
+  { tag:'pulsar', n:'Púlsar', c:'universo' },
+  { tag:'quasar', n:'Cuásar', c:'universo' },
+  { tag:'constelacion_aries', n:'Aries (constelación)', c:'universo' },
+  { tag:'constelacion_tauro', n:'Tauro (constelación)', c:'universo' },
+  { tag:'constelacion_geminis', n:'Géminis (constelación)', c:'universo' },
+  { tag:'constelacion_cancer', n:'Cáncer (constelación)', c:'universo' },
+  { tag:'constelacion_leo', n:'Leo (constelación)', c:'universo' },
+  { tag:'constelacion_virgo', n:'Virgo (constelación)', c:'universo' },
+  { tag:'constelacion_libra', n:'Libra (constelación)', c:'universo' },
+  { tag:'constelacion_escorpio', n:'Escorpio (constelación)', c:'universo' },
+  { tag:'constelacion_sagitario', n:'Sagitario (constelación)', c:'universo' },
+  { tag:'constelacion_capricornio', n:'Capricornio (constelación)', c:'universo' },
+  { tag:'constelacion_acuario', n:'Acuario (constelación)', c:'universo' },
+  { tag:'constelacion_piscis', n:'Piscis (constelación)', c:'universo' },
+  { tag:'constelacion_orion', n:'Orión (constelación)', c:'universo' },
+  { tag:'constelacion_osa_mayor', n:'Osa Mayor', c:'universo' },
+  { tag:'constelacion_osa_menor', n:'Osa Menor', c:'universo' },
+  { tag:'constelacion_casiopea', n:'Casiopea (constelación)', c:'universo' },
+  { tag:'constelacion_cygnus', n:'Cygnus (constelación)', c:'universo' },
+  { tag:'via_lactea_astro', n:'Vía Láctea', c:'universo' },
+  { tag:'andromeda_galaxia', n:'Galaxia de Andrómeda', c:'universo' },
+  { tag:'telescopio_hubble', n:'Telescopio espacial Hubble', c:'universo' },
+  { tag:'telescopio_james_webb', n:'Telescopio espacial James Webb', c:'universo' },
+  { tag:'nasa', n:'NASA', c:'universo' },
+  { tag:'spacex', n:'SpaceX', c:'universo' },
+  { tag:'estacion_espacial', n:'Estación Espacial Internacional', c:'universo' },
+  { tag:'agencia_espacial_europea', n:'Agencia Espacial Europea', c:'universo' },
+
+  // ==================== ANIME ====================
+  { tag:'anime', n:'Anime', c:'anime' },
+  { tag:'manga', n:'Manga', c:'anime' },
+  { tag:'shonen', n:'Shōnen', c:'anime' },
+  { tag:'shojo', n:'Shōjo', c:'anime' },
+  { tag:'seinen', n:'Seinen', c:'anime' },
+  { tag:'josei', n:'Josei', c:'anime' },
+  { tag:'isekai', n:'Isekai', c:'anime' },
+  { tag:'mecha', n:'Mecha', c:'anime' },
+  { tag:'slice_of_life', n:'Recuentos de la vida', c:'anime' },
+  { tag:'ghibli', n:'Studio Ghibli', c:'anime' },
+  { tag:'miyazaki', n:'Hayao Miyazaki', c:'anime' },
+  { tag:'one_piece', n:'One Piece', c:'anime' },
+  { tag:'naruto', n:'Naruto', c:'anime' },
+  { tag:'dragon_ball', n:'Dragon Ball', c:'anime' },
+  { tag:'attack_on_titan', n:'Shingeki no Kyojin', c:'anime' },
+  { tag:'kimetsu', n:'Kimetsu no Yaiba', c:'anime' },
+  { tag:'my_hero', n:'My Hero Academia', c:'anime' },
+  { tag:'evangelion', n:'Neon Genesis Evangelion', c:'anime' },
+  { tag:'cowboy_bebop', n:'Cowboy Bebop', c:'anime' },
+  { tag:'death_note', n:'Death Note', c:'anime' },
+  { tag:'fullmetal', n:'Fullmetal Alchemist', c:'anime' },
+  { tag:'steins_gate', n:'Steins;Gate', c:'anime' },
+  { tag:'hunter_x_hunter', n:'Hunter × Hunter', c:'anime' },
+  { tag:'jujutsu_kaisen', n:'Jujutsu Kaisen', c:'anime' },
+  { tag:'chainsaw_man', n:'Chainsaw Man', c:'anime' },
+  { tag:'spy_x_family', n:'Spy × Family', c:'anime' },
+  { tag:'tokyo_ghoul', n:'Tokyo Ghoul', c:'anime' },
+  { tag:'sword_art_online', n:'Sword Art Online', c:'anime' },
+  { tag:'overlord', n:'Overlord (novela ligera)', c:'anime' },
+  { tag:'rezero', n:'Re:Zero', c:'anime' },
+  { tag:'sailor_moon', n:'Sailor Moon', c:'anime' },
+  { tag:'pokemon', n:'Pokémon', c:'anime' },
+  { tag:'digimon', n:'Digimon', c:'anime' },
+
+  // ==================== CINE / PELÍCULAS ====================
+  { tag:'cine', n:'Cine', c:'cine' },
+  { tag:'pelicula_accion', n:'Cine de acción', c:'cine' },
+  { tag:'pelicula_comedia', n:'Comedia cinematográfica', c:'cine' },
+  { tag:'pelicula_drama', n:'Drama cinematográfico', c:'cine' },
+  { tag:'pelicula_terror', n:'Cine de terror', c:'cine' },
+  { tag:'pelicula_ciencia_ficcion', n:'Cine de ciencia ficción', c:'cine' },
+  { tag:'pelicula_fantasia', n:'Cine fantástico', c:'cine' },
+  { tag:'pelicula_romance', n:'Cine romántico', c:'cine' },
+  { tag:'pelicula_thriller', n:'Thriller', c:'cine' },
+  { tag:'pelicula_animacion', n:'Cine de animación', c:'cine' },
+  { tag:'pelicula_documental', n:'Documental', c:'cine' },
+  { tag:'pelicula_historica', n:'Cine histórico', c:'cine' },
+  { tag:'pelicula_aventura', n:'Cine de aventuras', c:'cine' },
+  { tag:'pelicula_belica', n:'Cine bélico', c:'cine' },
+  { tag:'pelicula_western', n:'Western', c:'cine' },
+  { tag:'pelicula_musical', n:'Cine musical', c:'cine' },
+  { tag:'star_wars', n:'Star Wars', c:'cine' },
+  { tag:'matrix', n:'Matrix', c:'cine' },
+  { tag:'el_padrino', n:'El padrino', c:'cine' },
+  { tag:'pulp_fiction', n:'Pulp Fiction', c:'cine' },
+  { tag:'inception', n:'Origen (película)', c:'cine' },
+  { tag:'interstellar', n:'Interstellar', c:'cine' },
+  { tag:'titanic', n:'Titanic (película de 1997)', c:'cine' },
+  { tag:'avatar', n:'Avatar (película de 2009)', c:'cine' },
+  { tag:'marvel', n:'Universo cinematográfico de Marvel', c:'cine' },
+  { tag:'dc_comics', n:'DC Comics', c:'cine' },
+  { tag:'spielberg', n:'Steven Spielberg', c:'cine' },
+  { tag:'tarantino', n:'Quentin Tarantino', c:'cine' },
+  { tag:'nolan', n:'Christopher Nolan', c:'cine' },
+  { tag:'scorsese', n:'Martin Scorsese', c:'cine' },
+  { tag:'kubrick', n:'Stanley Kubrick', c:'cine' },
+
+  // ==================== SERIES DE TV ====================
+  { tag:'series_tv', n:'Serie de televisión', c:'series' },
+  { tag:'serie_drama', n:'Drama televisivo', c:'series' },
+  { tag:'serie_comedia', n:'Comedia televisiva', c:'series' },
+  { tag:'serie_ciencia_ficcion', n:'Ciencia ficción televisiva', c:'series' },
+  { tag:'serie_thriller', n:'Thriller televisivo', c:'series' },
+  { tag:'serie_terror', n:'Terror televisivo', c:'series' },
+  { tag:'serie_policiaca', n:'Serie policíaca', c:'series' },
+  { tag:'breaking_bad', n:'Breaking Bad', c:'series' },
+  { tag:'game_of_thrones', n:'Juego de tronos', c:'series' },
+  { tag:'stranger_things', n:'Stranger Things', c:'series' },
+  { tag:'the_walking_dead', n:'The Walking Dead', c:'series' },
+  { tag:'la_casa_de_papel', n:'La casa de papel', c:'series' },
+  { tag:'friends', n:'Friends', c:'series' },
+  { tag:'the_office', n:'The Office', c:'series' },
+  { tag:'los_simpsons', n:'Los Simpson', c:'series' },
+  { tag:'doctor_who', n:'Doctor Who', c:'series' },
+  { tag:'star_trek', n:'Star Trek', c:'series' },
+  { tag:'the_x_files', n:'Expediente X', c:'series' },
+  { tag:'black_mirror', n:'Black Mirror', c:'series' },
+  { tag:'dark', n:'Dark (serie de televisión)', c:'series' },
+  { tag:'chernobyl', n:'Chernóbil (miniserie)', c:'series' },
+
+  // ==================== PYTHON CON CÓDIGO ====================
+  { tag:'python_basico', n:'Python (lenguaje de programación)', c:'python' },
+  { tag:'python_variables', n:'Variables en Python', c:'python' },
+  { tag:'python_tipos_datos', n:'Tipos de datos en Python', c:'python' },
+  { tag:'python_operadores', n:'Operadores en Python', c:'python' },
+  { tag:'python_condicionales', n:'Condicionales en Python', c:'python' },
+  { tag:'python_bucles', n:'Bucles en Python', c:'python' },
+  { tag:'python_funciones', n:'Funciones en Python', c:'python' },
+  { tag:'python_listas', n:'Listas en Python', c:'python' },
+  { tag:'python_diccionarios', n:'Diccionarios en Python', c:'python' },
+  { tag:'python_tuplas', n:'Tuplas en Python', c:'python' },
+  { tag:'python_conjuntos', n:'Conjuntos en Python', c:'python' },
+  { tag:'python_archivos', n:'Manejo de archivos en Python', c:'python' },
+  { tag:'python_excepciones', n:'Excepciones en Python', c:'python' },
+  { tag:'python_clases', n:'Clases en Python', c:'python' },
+  { tag:'python_poo', n:'Programación orientada a objetos en Python', c:'python' },
+  { tag:'python_modulos', n:'Módulos en Python', c:'python' },
+  { tag:'python_paquetes', n:'Paquetes en Python', c:'python' },
+  { tag:'python_calculadora', n:'Calculadora en Python', c:'python' },
+  { tag:'python_juego_adivinanza', n:'Juego de adivinanza en Python', c:'python' },
+  { tag:'python_piedra_papel_tijera', n:'Piedra, papel o tijera en Python', c:'python' },
+  { tag:'python_ahorcado', n:'Ahorcado en Python', c:'python' },
+  { tag:'python_tres_en_raya', n:'Tres en raya en Python', c:'python' },
+  { tag:'python_snake', n:'Snake en Python', c:'python' },
+  { tag:'python_operaciones_basicas', n:'Operaciones básicas en Python', c:'python' },
+  { tag:'python_suma', n:'Suma en Python', c:'python' },
+  { tag:'python_resta', n:'Resta en Python', c:'python' },
+  { tag:'python_multiplicacion', n:'Multiplicación en Python', c:'python' },
+  { tag:'python_division', n:'División en Python', c:'python' },
+  { tag:'python_potencias', n:'Potencias en Python', c:'python' },
+  { tag:'python_raiz_cuadrada', n:'Raíz cuadrada en Python', c:'python' },
+  { tag:'python_numeros_pares', n:'Números pares en Python', c:'python' },
+  { tag:'python_fibonacci', n:'Sucesión de Fibonacci en Python', c:'python' },
+  { tag:'python_factorial', n:'Factorial en Python', c:'python' },
+  { tag:'python_tabla_multiplicar', n:'Tabla de multiplicar en Python', c:'python' },
+
+  // ==================== HISTORIA ====================
+  { tag:'historia_universal', n:'Historia universal', c:'historia' },
+  { tag:'roma_antigua', n:'Antigua Roma', c:'historia' },
+  { tag:'grecia_antigua', n:'Antigua Grecia', c:'historia' },
+  { tag:'egipto_antiguo', n:'Antiguo Egipto', c:'historia' },
+  { tag:'edad_media', n:'Edad Media', c:'historia' },
+  { tag:'renacimiento', n:'Renacimiento', c:'historia' },
+  { tag:'rev_francesa', n:'Revolución francesa', c:'historia' },
+  { tag:'rev_industrial', n:'Revolución Industrial', c:'historia' },
+  { tag:'primera_guerra', n:'Primera Guerra Mundial', c:'historia' },
+  { tag:'segunda_guerra', n:'Segunda Guerra Mundial', c:'historia' },
+  { tag:'guerra_fria', n:'Guerra Fría', c:'historia' },
+  { tag:'colombia', n:'Cristóbal Colón', c:'historia' },
+  { tag:'napoleon', n:'Napoleón Bonaparte', c:'historia' },
+  { tag:'imperio_romano', n:'Imperio romano', c:'historia' },
+  { tag:'civilizacion_maya', n:'Civilización maya', c:'historia' },
+  { tag:'imperio_inca', n:'Imperio inca', c:'historia' },
+  { tag:'aztecas', n:'Mexicas', c:'historia' },
+
+  // ==================== GEOGRAFÍA ====================
+  { tag:'espana', n:'España', c:'geografia' },
+  { tag:'cuba', n:'Cuba', c:'geografia' },
+  { tag:'mexico', n:'México', c:'geografia' },
+  { tag:'argentina', n:'Argentina', c:'geografia' },
+  { tag:'colombia_pais', n:'Colombia', c:'geografia' },
+  { tag:'peru', n:'Perú', c:'geografia' },
+  { tag:'chile', n:'Chile', c:'geografia' },
+  { tag:'venezuela', n:'Venezuela', c:'geografia' },
+  { tag:'eeuu', n:'Estados Unidos', c:'geografia' },
+  { tag:'francia', n:'Francia', c:'geografia' },
+  { tag:'alemania', n:'Alemania', c:'geografia' },
+  { tag:'italia', n:'Italia', c:'geografia' },
+  { tag:'reino_unido', n:'Reino Unido', c:'geografia' },
+  { tag:'rusia', n:'Rusia', c:'geografia' },
+  { tag:'china', n:'China', c:'geografia' },
+  { tag:'japon', n:'Japón', c:'geografia' },
+  { tag:'india', n:'India', c:'geografia' },
+  { tag:'brasil', n:'Brasil', c:'geografia' },
+  { tag:'habana', n:'La Habana', c:'geografia' },
+  { tag:'madrid', n:'Madrid', c:'geografia' },
+  { tag:'barcelona', n:'Barcelona', c:'geografia' },
+  { tag:'cdmx', n:'Ciudad de México', c:'geografia' },
+  { tag:'buenos_aires', n:'Buenos Aires', c:'geografia' },
+  { tag:'nueva_york', n:'Nueva York', c:'geografia' },
+  { tag:'paris', n:'París', c:'geografia' },
+  { tag:'londres', n:'Londres', c:'geografia' },
+  { tag:'amazonas', n:'Río Amazonas', c:'geografia' },
+  { tag:'everest', n:'Everest', c:'geografia' },
+  { tag:'sahara', n:'Sahara', c:'geografia' },
+  { tag:'antartida', n:'Antártida', c:'geografia' },
+
+  // ==================== FILOSOFÍA ====================
+  { tag:'filosofia', n:'Filosofía', c:'filosofia' },
+  { tag:'socrates', n:'Sócrates', c:'filosofia' },
+  { tag:'platon', n:'Platón', c:'filosofia' },
+  { tag:'aristoteles', n:'Aristóteles', c:'filosofia' },
+  { tag:'descartes', n:'René Descartes', c:'filosofia' },
+  { tag:'kant', n:'Immanuel Kant', c:'filosofia' },
+  { tag:'nietzsche', n:'Friedrich Nietzsche', c:'filosofia' },
+  { tag:'marx', n:'Karl Marx', c:'filosofia' },
+  { tag:'freud', n:'Sigmund Freud', c:'filosofia' },
+  { tag:'jung', n:'Carl Jung', c:'filosofia' },
+  { tag:'sartre', n:'Jean-Paul Sartre', c:'filosofia' },
+  { tag:'estoicismo', n:'Estoicismo', c:'filosofia' },
+  { tag:'existencialismo', n:'Existencialismo', c:'filosofia' },
+  { tag:'etica', n:'Ética', c:'filosofia' },
 
   // ==================== ARTE Y CULTURA ====================
   { tag:'arte', n:'Arte', c:'cultura' },
   { tag:'pintura', n:'Pintura', c:'cultura' },
   { tag:'escultura', n:'Escultura', c:'cultura' },
-  { tag:'arquitectura', n:'Arquitectura', c:'cultura' },
   { tag:'musica', n:'Música', c:'cultura' },
   { tag:'literatura', n:'Literatura', c:'cultura' },
   { tag:'poesia', n:'Poesía', c:'cultura' },
-  { tag:'cine', n:'Cine', c:'cultura' },
   { tag:'teatro', n:'Teatro', c:'cultura' },
-  { tag:'fotografia', n:'Fotografía', c:'cultura' },
-  { tag:'impresionismo', n:'Impresionismo', c:'cultura' },
-  { tag:'cubismo', n:'Cubismo', c:'cultura' },
-  { tag:'surrealismo', n:'Surrealismo', c:'cultura' },
-  { tag:'barroco', n:'Barroco', c:'cultura' },
   { tag:'picasso', n:'Pablo Picasso', c:'cultura' },
   { tag:'davinci', n:'Leonardo da Vinci', c:'cultura' },
   { tag:'vangogh', n:'Vincent van Gogh', c:'cultura' },
-  { tag:'michelangelo', n:'Miguel Ángel', c:'cultura' },
-  { tag:'dali', n:'Salvador Dalí', c:'cultura' },
-  { tag:'frida', n:'Frida Kahlo', c:'cultura' },
-  { tag:'goya', n:'Francisco de Goya', c:'cultura' },
   { tag:'cervantes', n:'Miguel de Cervantes', c:'cultura' },
-  { tag:'shakespeare', n:'William Shakespeare', c:'cultura' },
   { tag:'gabo', n:'Gabriel García Márquez', c:'cultura' },
   { tag:'borges', n:'Jorge Luis Borges', c:'cultura' },
-  { tag:'neruda', n:'Pablo Neruda', c:'cultura' },
-  { tag:'lorca', n:'Federico García Lorca', c:'cultura' },
-  { tag:'kafka', n:'Franz Kafka', c:'cultura' },
-  { tag:'orwell', n:'George Orwell', c:'cultura' },
-  { tag:'anime', n:'Anime', c:'cultura' },
-  { tag:'manga', n:'Manga', c:'cultura' },
-  { tag:'ghibli', n:'Studio Ghibli', c:'cultura' },
-  { tag:'miyazaki', n:'Hayao Miyazaki', c:'cultura' },
-  { tag:'overlord', n:'Overlord (novela ligera)', c:'cultura' },
-  { tag:'rezero', n:'Re:Zero', c:'cultura' },
-  { tag:'one_piece', n:'One Piece', c:'cultura' },
-  { tag:'naruto', n:'Naruto', c:'cultura' },
-  { tag:'dragon_ball', n:'Dragon Ball', c:'cultura' },
-  { tag:'attack_on_titan', n:'Shingeki no Kyojin', c:'cultura' },
-  { tag:'kimetsu', n:'Kimetsu no Yaiba', c:'cultura' },
-  { tag:'videojuegos', n:'Videojuego', c:'cultura' },
+  { tag:'shakespeare', n:'William Shakespeare', c:'cultura' },
+  { tag:'frida', n:'Frida Kahlo', c:'cultura' },
 
   // ==================== ECONOMÍA ====================
   { tag:'economia', n:'Economía', c:'economia' },
   { tag:'capitalismo', n:'Capitalismo', c:'economia' },
   { tag:'socialismo', n:'Socialismo', c:'economia' },
   { tag:'comunismo', n:'Comunismo', c:'economia' },
-  { tag:'anarquismo', n:'Anarquismo', c:'economia' },
-  { tag:'liberalismo', n:'Liberalismo', c:'economia' },
   { tag:'democracia', n:'Democracia', c:'economia' },
-  { tag:'monarquia', n:'Monarquía', c:'economia' },
-  { tag:'republica', n:'República', c:'economia' },
   { tag:'inflacion', n:'Inflación', c:'economia' },
   { tag:'pib', n:'Producto interno bruto', c:'economia' },
   { tag:'bolsa', n:'Bolsa de valores', c:'economia' },
-  { tag:'banco_central', n:'Banco central', c:'economia' },
-  { tag:'dinero', n:'Dinero', c:'economia' },
   { tag:'globalizacion', n:'Globalización', c:'economia' },
-  { tag:'microeconomia', n:'Microeconomía', c:'economia' },
-  { tag:'macroeconomia', n:'Macroeconomía', c:'economia' },
   { tag:'criptomonedas', n:'Criptomoneda', c:'economia' },
-  { tag:'nft', n:'Token no fungible', c:'economia' },
 
   // ==================== DEPORTES ====================
   { tag:'futbol', n:'Fútbol', c:'deportes' },
   { tag:'baloncesto', n:'Baloncesto', c:'deportes' },
   { tag:'beisbol', n:'Béisbol', c:'deportes' },
   { tag:'tenis', n:'Tenis', c:'deportes' },
-  { tag:'voleibol', n:'Voleibol', c:'deportes' },
-  { tag:'atletismo', n:'Atletismo', c:'deportes' },
-  { tag:'natacion', n:'Natación', c:'deportes' },
-  { tag:'ciclismo', n:'Ciclismo', c:'deportes' },
-  { tag:'boxeo', n:'Boxeo', c:'deportes' },
   { tag:'ajedrez', n:'Ajedrez', c:'deportes' },
-  { tag:'formula_1', n:'Fórmula 1', c:'deportes' },
   { tag:'olimpiadas', n:'Juegos Olímpicos', c:'deportes' },
   { tag:'mundial', n:'Copa Mundial de Fútbol', c:'deportes' },
-  { tag:'nba', n:'National Basketball Association', c:'deportes' },
   { tag:'messi', n:'Lionel Messi', c:'deportes' },
   { tag:'cristiano', n:'Cristiano Ronaldo', c:'deportes' },
-  { tag:'maradona', n:'Diego Maradona', c:'deportes' },
-  { tag:'jordan', n:'Michael Jordan', c:'deportes' },
 
   // ==================== MATEMÁTICAS ====================
   { tag:'pi', n:'Número pi', c:'matematicas' },
@@ -378,18 +567,12 @@ const TEMAS = [
   { tag:'calculo', n:'Cálculo infinitesimal', c:'matematicas' },
   { tag:'algebra', n:'Álgebra', c:'matematicas' },
   { tag:'geometria', n:'Geometría', c:'matematicas' },
-  { tag:'trigonometria', n:'Trigonometría', c:'matematicas' },
   { tag:'estadistica', n:'Estadística', c:'matematicas' },
   { tag:'probabilidad', n:'Probabilidad', c:'matematicas' },
-  { tag:'teoria_conjuntos', n:'Teoría de conjuntos', c:'matematicas' },
-  { tag:'logica_matematica', n:'Lógica matemática', c:'matematicas' },
-  { tag:'topologia', n:'Topología', c:'matematicas' },
   { tag:'fractal', n:'Fractal', c:'matematicas' },
-  { tag:'caos', n:'Teoría del caos', c:'matematicas' },
   { tag:'sucesion_fibonacci', n:'Sucesión de Fibonacci', c:'matematicas' },
   { tag:'numero_oro', n:'Número áureo', c:'matematicas' },
   { tag:'infinito', n:'Infinito', c:'matematicas' },
-  { tag:'numeros_complejos', n:'Número complejo', c:'matematicas' },
 
   // ==================== ANIA / PERSONALIDAD ====================
   { tag:'ania', n:'Ania', c:'ania' },
@@ -398,7 +581,6 @@ const TEMAS = [
   { tag:'yirgacheffe', n:'Yirgacheffe', c:'ania' },
   { tag:'espresso', n:'Espresso', c:'ania' },
   { tag:'pour_over', n:'Café filtrado', c:'ania' },
-  { tag:'aeropress', n:'AeroPress', c:'ania' },
   { tag:'cold_brew', n:'Cold brew', c:'ania' },
   { tag:'masa_madre', n:'Masa madre', c:'ania' },
   { tag:'pan_casero', n:'Pan casero', c:'ania' },
@@ -410,6 +592,254 @@ const TEMAS = [
   { tag:'pomodoro', n:'Técnica Pomodoro', c:'ania' },
   { tag:'minimalismo', n:'Minimalismo', c:'ania' }
 ];
+
+// ============================================================
+// CÓDIGO PYTHON DE EJEMPLO
+// ============================================================
+const CODIGOS_PYTHON = {
+  python_calculadora: `# Calculadora básica en Python
+def suma(a, b): return a + b
+def resta(a, b): return a - b
+def multiplicacion(a, b): return a * b
+def division(a, b):
+    if b == 0:
+        return "Error: división por cero"
+    return a / b
+
+print("Calculadora básica")
+print("1. Suma")
+print("2. Resta")
+print("3. Multiplicación")
+print("4. División")
+opcion = input("Elige una opción (1-4): ")
+a = float(input("Ingresa el primer número: "))
+b = float(input("Ingresa el segundo número: "))
+
+if opcion == '1':
+    print("Resultado:", suma(a, b))
+elif opcion == '2':
+    print("Resultado:", resta(a, b))
+elif opcion == '3':
+    print("Resultado:", multiplicacion(a, b))
+elif opcion == '4':
+    print("Resultado:", division(a, b))
+else:
+    print("Opción inválida")`,
+
+  python_juego_adivinanza: `# Juego de adivinanza en Python
+import random
+
+numero_secreto = random.randint(1, 100)
+intentos = 0
+max_intentos = 10
+
+print("¡Adivina el número entre 1 y 100!")
+print(f"Tienes {max_intentos} intentos.")
+
+while intentos < max_intentos:
+    intento = int(input("Ingresa tu número: "))
+    intentos += 1
+    
+    if intento == numero_secreto:
+        print(f"¡Correcto! Adivinaste en {intentos} intentos.")
+        break
+    elif intento < numero_secreto:
+        print("Muy bajo. Intenta de nuevo.")
+    else:
+        print("Muy alto. Intenta de nuevo.")
+else:
+    print(f"Se acabaron los intentos. El número era {numero_secreto}.")`,
+
+  python_piedra_papel_tijera: `# Piedra, papel o tijera en Python
+import random
+
+opciones = ["piedra", "papel", "tijera"]
+victorias_jugador = 0
+victorias_maquina = 0
+
+print("¡Piedra, papel o tijera!")
+print("Escribe 'salir' para terminar.")
+
+while True:
+    jugador = input("Elige piedra, papel o tijera: ").lower()
+    if jugador == 'salir':
+        break
+    if jugador not in opciones:
+        print("Opción inválida.")
+        continue
+    
+    maquina = random.choice(opciones)
+    print(f"Tú: {jugador} | Máquina: {maquina}")
+    
+    if jugador == maquina:
+        print("Empate.")
+    elif (jugador == "piedra" and maquina == "tijera") or \\
+         (jugador == "papel" and maquina == "piedra") or \\
+         (jugador == "tijera" and maquina == "papel"):
+        print("¡Ganaste!")
+        victorias_jugador += 1
+    else:
+        print("Perdiste.")
+        victorias_maquina += 1
+
+print(f"Marcador final: Tú {victorias_jugador} - Máquina {victorias_maquina}")`,
+
+  python_ahorcado: `# Juego del ahorcado en Python
+import random
+
+palabras = ["python", "programacion", "computadora", "algoritmo", "variable"]
+palabra = random.choice(palabras)
+letras_adivinadas = set()
+intentos = 6
+
+print("¡Ahorcado!")
+print(f"La palabra tiene {len(palabra)} letras.")
+
+while intentos > 0:
+    progreso = "".join([letra if letra in letras_adivinadas else "_" for letra in palabra])
+    print(f"\\nPalabra: {progreso}")
+    print(f"Intentos restantes: {intentos}")
+    
+    if "_" not in progreso:
+        print("¡Ganaste!")
+        break
+    
+    letra = input("Ingresa una letra: ").lower()
+    if letra in letras_adivinadas:
+        print("Ya usaste esa letra.")
+        continue
+    
+    letras_adivinadas.add(letra)
+    if letra not in palabra:
+        intentos -= 1
+        print("Letra incorrecta.")
+else:
+    print(f"Perdiste. La palabra era: {palabra}")`,
+
+  python_tres_en_raya: `# Tres en raya en Python
+tablero = [" " for _ in range(9)]
+
+def mostrar_tablero():
+    print(f" {tablero[0]} | {tablero[1]} | {tablero[2]} ")
+    print("---+---+---")
+    print(f" {tablero[3]} | {tablero[4]} | {tablero[5]} ")
+    print("---+---+---")
+    print(f" {tablero[6]} | {tablero[7]} | {tablero[8]} ")
+
+def hay_ganador(jugador):
+    combinaciones = [
+        [0,1,2],[3,4,5],[6,7,8],  # filas
+        [0,3,6],[1,4,7],[2,5,8],  # columnas
+        [0,4,8],[2,4,6]            # diagonales
+    ]
+    return any(all(tablero[i] == jugador for i in combo) for combo in combinaciones)
+
+jugador_actual = "X"
+for turno in range(9):
+    mostrar_tablero()
+    print(f"Turno de {jugador_actual}")
+    posicion = int(input("Elige posición (1-9): ")) - 1
+    if tablero[posicion] != " ":
+        print("Posición ocupada.")
+        continue
+    tablero[posicion] = jugador_actual
+    if hay_ganador(jugador_actual):
+        mostrar_tablero()
+        print(f"¡{jugador_actual} gana!")
+        break
+    jugador_actual = "O" if jugador_actual == "X" else "X"
+else:
+    mostrar_tablero()
+    print("Empate.")`,
+
+  python_operaciones_basicas: `# Operaciones básicas en Python
+a = 10
+b = 3
+
+print("Suma:", a + b)              # 13
+print("Resta:", a - b)             # 7
+print("Multiplicación:", a * b)    # 30
+print("División:", a / b)          # 3.333...
+print("División entera:", a // b)  # 3
+print("Módulo:", a % b)            # 1
+print("Potencia:", a ** b)         # 1000
+
+# Operaciones con input del usuario
+num1 = float(input("Ingresa el primer número: "))
+num2 = float(input("Ingresa el segundo número: "))
+print(f"La suma de {num1} + {num2} = {num1 + num2}")`,
+
+  python_fibonacci: `# Sucesión de Fibonacci en Python
+def fibonacci(n):
+    """Genera los primeros n números de Fibonacci."""
+    secuencia = [0, 1]
+    for i in range(2, n):
+        secuencia.append(secuencia[-1] + secuencia[-2])
+    return secuencia[:n]
+
+# Ejemplo
+print(fibonacci(10))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+# Versión recursiva
+def fib_recursivo(n):
+    if n <= 1:
+        return n
+    return fib_recursivo(n-1) + fib_recursivo(n-2)
+
+print(fib_recursivo(10))  # 55`,
+
+  python_factorial: `# Factorial en Python
+def factorial(n):
+    """Calcula el factorial de n."""
+    if n < 0:
+        return "No existe factorial de negativos"
+    resultado = 1
+    for i in range(1, n + 1):
+        resultado *= i
+    return resultado
+
+print(factorial(5))   # 120
+print(factorial(0))   # 1
+
+# Versión recursiva
+def factorial_recursivo(n):
+    if n <= 1:
+        return 1
+    return n * factorial_recursivo(n - 1)
+
+print(factorial_recursivo(5))  # 120`,
+
+  python_tabla_multiplicar: `# Tabla de multiplicar en Python
+numero = int(input("Ingresa un número: "))
+
+print(f"Tabla del {numero}:")
+for i in range(1, 11):
+    print(f"{numero} x {i} = {numero * i}")
+
+# Tabla completa del 1 al 10
+for n in range(1, 11):
+    print(f"\\n--- Tabla del {n} ---")
+    for i in range(1, 11):
+        print(f"{n} x {i} = {n * i}")`,
+
+  python_numeros_pares: `# Números pares en Python
+# Del 1 al 20
+pares = [n for n in range(1, 21) if n % 2 == 0]
+print("Pares del 1 al 20:", pares)
+
+# Con bucle
+print("Pares del 1 al 20:")
+for n in range(1, 21):
+    if n % 2 == 0:
+        print(n, end=" ")
+
+# Verificar si un número es par
+numero = int(input("\\nIngresa un número: "))
+if numero % 2 == 0:
+    print(f"{numero} es par")
+else:
+    print(f"{numero} es impar")`
+};
 
 // ============================================================
 // PLANTILLAS DE PATRONES
@@ -451,7 +881,6 @@ const PLANTILLAS = [
   'Aprende sobre {t}',
   'Investiga {t}',
   'Busca información de {t}',
-  // Coloquiales
   'que es {t}',
   'ke es {t}',
   'q es {t}',
@@ -464,15 +893,12 @@ const PLANTILLAS = [
   'data de {t}',
   'necesito {t}',
   'quiero {t}',
-  // Solo el término
   '{t}',
   '{t}?',
-  // Estilo cubano
   'asere, dime de {t}',
   'oye, cuéntame de {t}',
   'qué bola con {t}',
   'dame el dato de {t}',
-  // Inglés
   'What is {t}?',
   'Tell me about {t}',
   'Explain {t}'
@@ -488,7 +914,7 @@ const VARIANTES = [
 // ============================================================
 // ESTADO
 // ============================================================
-let categoriasActivas = new Set(['ciencia','tecnologia','historia','geografia','filosofia','salud','cultura','economia','deportes','matematicas','ania']);
+let categoriasActivas = new Set(['ciencia','tecnologia','ingenieria','medicina','salud','fotografia','universo','anime','cine','series','python','historia','geografia','filosofia','cultura','economia','deportes','matematicas','ania']);
 let resultado = null;
 let stats = { tags: 0, patrones: 0, errores: 0, bytes: 0 };
 
@@ -609,28 +1035,35 @@ function generarPatrones(nombre) {
   return [...patrones];
 }
 
-function generarRespuestas(nombre, extracto) {
+function generarRespuestas(nombre, extracto, categoria) {
   if (!extracto) {
     return [
       `No tengo información detallada sobre **${nombre}** en mi base actual. ¿Quieres que lo busquemos juntos?`
     ];
   }
 
-  // Divide en párrafos
   const parrafos = extracto.split(/\n\n+/).filter(p => p.trim().length > 100);
   const primerParrafo = parrafos[0] || extracto.slice(0, 800);
   const resumen = primerParrafo.slice(0, 900).replace(/\s+/g, ' ').trim();
 
-  // Respuesta 1: directa/formal
   const r1 = `**${nombre}**\n\n${resumen}\n\n¿Quieres que profundice en algo?`;
-
-  // Respuesta 2: estilo Ania casual
   const r2 = `¡Órale! De **${nombre}** te cuento:\n\n${resumen}\n\n¿Te sirve así o seguimos con más?`;
-
-  // Respuesta 3: cubana
   const r3 = `Asere, sobre **${nombre}**:\n\n${resumen}\n\n¿Quieres más o pasamos a otra cosa?`;
 
-  // Respuesta 4: si hay más párrafos, resumen extendido
+  // Respuestas especiales por categoría
+  if (categoria === 'medicina') {
+    const r4 = `**${nombre}** — Información médica\n\n${resumen}\n\n⚠️ Recuerda: siempre consulta a un médico antes de tomar cualquier medicamento.`;
+    return [r1, r2, r3, r4];
+  }
+  if (categoria === 'python') {
+    const r4 = `**${nombre}** en Python\n\n${resumen}\n\n¿Quieres que te muestre un ejemplo de código?`;
+    return [r1, r2, r3, r4];
+  }
+  if (categoria === 'fotografia') {
+    const r4 = `**${nombre}** — Fotografía\n\n${resumen}\n\n¿Quieres consejos prácticos para aplicarlo?`;
+    return [r1, r2, r3, r4];
+  }
+
   if (parrafos.length > 1) {
     const segundos = parrafos.slice(1, 3).join(' ').slice(0, 700).replace(/\s+/g, ' ');
     const r4 = `**${nombre}** (más detalles)\n\n${resumen}\n\nAdemás: ${segundos}`;
@@ -669,42 +1102,19 @@ document.getElementById('go').addEventListener('click', async () => {
   stats = { tags: 0, patrones: 0, errores: 0, bytes: 0 };
   updateStats();
 
-  const numES = Math.min(500, Math.max(10, parseInt(document.getElementById('numES').value) || 150));
+  const numES = Math.min(500, Math.max(10, parseInt(document.getElementById('numES').value) || 200));
   const numEN = Math.min(200, Math.max(5, parseInt(document.getElementById('numEN').value) || 30));
   const usarAPIs = document.getElementById('cbApis').checked;
   const usarPatrones = document.getElementById('cbPatrones').checked;
+  const usarCodigo = document.getElementById('cbCodigo').checked;
 
-  // Filtrar temas
   let temasES = TEMAS.filter(t => categoriasActivas.has(t.c)).slice(0, numES);
-  let temasEN = [
-    { tag:'ai_en', n:'Artificial intelligence', c:'ciencia' },
-    { tag:'ml_en', n:'Machine learning', c:'ciencia' },
-    { tag:'quantum_en', n:'Quantum computing', c:'ciencia' },
-    { tag:'climate_en', n:'Climate change', c:'ciencia' },
-    { tag:'space_en', n:'Space exploration', c:'ciencia' },
-    { tag:'www_en', n:'World Wide Web', c:'tecnologia' },
-    { tag:'internet_en', n:'Internet', c:'tecnologia' },
-    { tag:'cs_en', n:'Computer science', c:'tecnologia' },
-    { tag:'os_en', n:'Operating system', c:'tecnologia' },
-    { tag:'db_en', n:'Database', c:'tecnologia' },
-    { tag:'wwii_en', n:'World War II', c:'historia' },
-    { tag:'coldwar_en', n:'Cold War', c:'historia' },
-    { tag:'math_en', n:'Mathematics', c:'matematicas' },
-    { tag:'physics_en', n:'Physics', c:'ciencia' },
-    { tag:'chem_en', n:'Chemistry', c:'ciencia' },
-    { tag:'bio_en', n:'Biology', c:'ciencia' },
-    { tag:'philo_en', n:'Philosophy', c:'filosofia' },
-    { tag:'econ_en', n:'Economics', c:'economia' },
-    { tag:'psych_en', n:'Psychology', c:'salud' }
-  ].slice(0, numEN);
-
   log('🚀 Iniciando recolección...', 'prog');
-  log('📊 Temas ES: ' + temasES.length + ' · Temas EN: ' + temasEN.length, 'info');
+  log('📊 Temas activos: ' + temasES.length + ' en ' + categoriasActivas.size + ' categorías', 'info');
 
-  // Test de conectividad
   const test = await fetchWikipedia('España', 'es');
   if (!test) {
-    log('❌ Wikipedia API no responde. Revisa la conexión.', 'err');
+    log('❌ Wikipedia API no responde.', 'err');
     btn.disabled = false;
     return;
   }
@@ -712,12 +1122,18 @@ document.getElementById('go').addEventListener('click', async () => {
 
   const entrenamiento = [];
 
-  // ========== Procesar temas ES ==========
-  log('📚 Procesando Wikipedia ES...', 'prog');
+  // ========== Procesar temas ==========
+  log('📚 Procesando Wikipedia...', 'prog');
   const tareasES = temasES.map(tema => async () => {
     const wiki = await fetchWikipedia(tema.n, 'es');
     const patrones = usarPatrones ? generarPatrones(tema.n) : [tema.n];
-    const respuestas = generarRespuestas(tema.n, wiki?.texto || '');
+    const respuestas = generarRespuestas(tema.n, wiki?.texto || '', tema.c);
+
+    // Si es tema de Python y hay código, añadir código como respuesta extra
+    if (tema.c === 'python' && usarCodigo && CODIGOS_PYTHON[tema.tag]) {
+      respuestas.push('**Código de ejemplo:**\\n\\n```python\\n' + CODIGOS_PYTHON[tema.tag] + '\\n```');
+      respuestas.push('Aquí tienes un ejemplo de código Python:\\n\\n```python\\n' + CODIGOS_PYTHON[tema.tag] + '\\n```');
+    }
 
     entrenamiento.push({
       tag: tema.tag,
@@ -730,7 +1146,8 @@ document.getElementById('go').addEventListener('click', async () => {
         fuente: wiki?.url || null,
         longitud_texto: wiki?.texto.length || 0,
         idioma: 'es',
-        tiene_contenido: !!wiki
+        tiene_contenido: !!wiki,
+        tiene_codigo: !!(tema.c === 'python' && CODIGOS_PYTHON[tema.tag])
       }
     });
 
@@ -739,40 +1156,11 @@ document.getElementById('go').addEventListener('click', async () => {
     if (!wiki) stats.errores++;
     updateStats();
 
-    if (stats.tags % 5 === 0) {
-      log('✓ ' + stats.tags + ' tags · ' + stats.patrones + ' patrones · ' + (stats.bytes/1024/1024).toFixed(2) + ' MB', 'ok');
+    if (stats.tags % 10 === 0) {
+      log('✓ ' + stats.tags + ' tags · ' + stats.patrones + ' patrones', 'ok');
     }
   });
   await conLimite(tareasES, 4);
-
-  // ========== Procesar temas EN ==========
-  log('📚 Procesando Wikipedia EN...', 'prog');
-  const tareasEN = temasEN.map(tema => async () => {
-    const wiki = await fetchWikipedia(tema.n, 'en');
-    const patrones = usarPatrones ? generarPatrones(tema.n) : [tema.n];
-    const respuestas = generarRespuestas(tema.n, wiki?.texto || '');
-
-    entrenamiento.push({
-      tag: tema.tag,
-      categoria: tema.c,
-      tema: tema.n,
-      patterns: patrones,
-      responses: respuestas,
-      meta: {
-        categoria: tema.c,
-        fuente: wiki?.url || null,
-        longitud_texto: wiki?.texto.length || 0,
-        idioma: 'en',
-        tiene_contenido: !!wiki
-      }
-    });
-
-    stats.tags++;
-    stats.patrones += patrones.length;
-    if (!wiki) stats.errores++;
-    updateStats();
-  });
-  await conLimite(tareasEN, 4);
 
   // ========== APIs ==========
   if (usarAPIs) {
@@ -784,27 +1172,14 @@ document.getElementById('go').addEventListener('click', async () => {
           let txt = r.text;
           try { txt = JSON.stringify(JSON.parse(txt), null, 2); } catch (e) {}
           if (txt.length > 200) {
-            const patrones = [
-              api.n,
-              'dame ' + api.n,
-              'info de ' + api.n,
-              'qué es ' + api.n,
-              'cuéntame de ' + api.n
-            ];
+            const patrones = [api.n, 'dame ' + api.n, 'info de ' + api.n, 'qué es ' + api.n];
             entrenamiento.push({
               tag: 'api_' + api.n,
               categoria: 'api',
               tema: api.n,
               patterns: patrones,
-              responses: [
-                '**' + api.n + '** (datos en tiempo real):\n\n' + txt.slice(0, 1500)
-              ],
-              meta: {
-                categoria: 'api',
-                fuente: api.u,
-                longitud_texto: txt.length,
-                tipo: 'api'
-              }
+              responses: ['**' + api.n + '** (datos en tiempo real):\\n\\n' + txt.slice(0, 1500)],
+              meta: { categoria: 'api', fuente: api.u, tipo: 'api' }
             });
             stats.tags++;
             stats.patrones += patrones.length;
@@ -812,20 +1187,17 @@ document.getElementById('go').addEventListener('click', async () => {
           }
         } else {
           stats.errores++;
-          log('✗ API ' + api.n + ': ' + r.error, 'err');
         }
-      } catch (e) {
-        stats.errores++;
-      }
+      } catch (e) { stats.errores++; }
       updateStats();
     }
   }
 
-  // ========== Construir JSON final con estructura Ania ==========
+  // ========== Construir JSON final ==========
   const salida = {
     metadata: {
-      version: '1.0',
-      descripcion: 'Dataset generado por recolector.html — Wikipedia + APIs con estructura Ania',
+      version: '2.0',
+      descripcion: 'Dataset generado por recolector.html — Ania: doctora, informática, fotógrafa, cinéfila, otaku, programadora Python',
       creado_por: 'Recolector (GitHub Pages)',
       fecha_actualizacion: new Date().toISOString(),
       contadores: {
@@ -840,12 +1212,12 @@ document.getElementById('go').addEventListener('click', async () => {
       num_plantillas: PLANTILLAS.length,
       num_variantes: VARIANTES.length,
       incluye_wikipedia: true,
-      incluye_apis: usarAPIs
+      incluye_apis: usarAPIs,
+      incluye_codigo_python: usarCodigo
     },
     entrenamiento
   };
 
-  // Calcular bytes reales
   const json = JSON.stringify(salida);
   stats.bytes = new Blob([json]).size;
   updateStats();
@@ -893,9 +1265,9 @@ document.getElementById('dl').addEventListener('click', () => {
 // ============================================================
 // LOG INICIAL
 // ============================================================
-log('🌐 Recolector listo', 'info');
+log('🌐 Recolector Universal listo', 'info');
 log('Categorías: ' + TEMAS.length + ' temas en ' + new Set(TEMAS.map(t => t.c)).size + ' categorías', 'info');
-log('Plantillas: ' + PLANTILLAS.length + ' · Variantes: ' + VARIANTES.length, 'info');
+log('Nuevas: medicina, ingenieria, fotografia, universo, anime, cine, series, python', 'ok');
 </script>
 </body>
 </html>
