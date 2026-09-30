@@ -3,365 +3,356 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Recolector 4 — Diccionario · Traducción · Conocimiento Universal</title>
+<title>🤖 Auto-Cerebro — Cero configuración</title>
 <style>
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
     background: #0f172a; color: #e2e8f0;
-    margin: 0; padding: 20px; line-height: 1.5;
+    margin: 0; padding: 16px; line-height: 1.5;
   }
-  .container { max-width: 1100px; margin: 0 auto; }
-  h1 { color: #38bdf8; margin-bottom: 4px; }
-  .subtitle { color: #94a3b8; margin-top: 0; }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { color: #38bdf8; margin: 0 0 4px; font-size: 1.6rem; }
+  .subtitle { color: #94a3b8; margin-top: 0; font-size: 0.9rem; }
 
-  .tabs { display: flex; gap: 4px; margin: 20px 0 0; border-bottom: 2px solid #334155; }
-  .tab {
-    padding: 12px 24px; background: transparent; color: #94a3b8;
-    border: none; cursor: pointer; font-size: 1rem; font-weight: 600;
-    border-bottom: 3px solid transparent; margin-bottom: -2px;
-    font-family: inherit;
+  .banner {
+    background: linear-gradient(135deg, #0c4a6e, #075985);
+    border-radius: 12px; padding: 16px;
+    border: 1px solid #0ea5e9; margin: 16px 0;
   }
-  .tab:hover { color: #cbd5e1; }
-  .tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+  .banner.running { border-color: #4ade80; background: linear-gradient(135deg, #14532d, #166534); }
+  .banner.done { border-color: #fbbf24; background: linear-gradient(135deg, #713f12, #854d0e); }
+  .banner.paused { border-color: #f87171; background: linear-gradient(135deg, #7f1d1d, #991b1b); }
+  .banner h2 { margin: 0 0 6px; font-size: 1.1rem; color: #e2e8f0; }
+  .banner p { margin: 4px 0; font-size: 0.88rem; color: #cbd5e1; }
 
-  .panel {
-    background: #1e293b; border-radius: 12px;
-    padding: 20px; margin: 16px 0;
-    border: 1px solid #334155;
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px; margin: 16px 0;
   }
-  .panel h2 { margin-top: 0; color: #7dd3fc; font-size: 1.1rem; }
+  .stat-card {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 8px; padding: 10px; text-align: center;
+  }
+  .stat-value { font-size: 1.2rem; font-weight: 700; color: #38bdf8; word-break: break-all; }
+  .stat-label { font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  input[type="text"], textarea, select {
+  .progress-wrap {
     background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; padding: 12px 14px;
-    color: #e2e8f0; font-size: 1rem;
-    font-family: inherit; width: 100%;
+    border-radius: 8px; height: 22px; overflow: hidden;
+    margin: 12px 0; position: relative;
   }
-  input:focus, textarea:focus, select:focus {
-    outline: none; border-color: #0ea5e9;
+  .progress-bar {
+    height: 100%; background: linear-gradient(90deg, #0ea5e9, #4ade80);
+    width: 0%; transition: width 0.4s;
   }
-  textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+  .progress-text {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
 
-  button {
-    background: #0ea5e9; color: white; border: none;
-    padding: 12px 24px; border-radius: 8px;
-    font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: background 0.2s; margin: 4px 6px 4px 0;
-    font-family: inherit;
-  }
-  button:hover:not(:disabled) { background: #0284c7; }
-  button:disabled { background: #475569; cursor: not-allowed; }
-  button.secondary { background: #475569; }
-  button.secondary:hover:not(:disabled) { background: #64748b; }
-  button.danger { background: #dc2626; }
-  button.danger:hover:not(:disabled) { background: #b91c1c; }
-  button.small { padding: 8px 16px; font-size: 0.85rem; }
-
-  label.opt {
-    display: flex; align-items: center; gap: 8px;
-    color: #cbd5e1; padding: 6px 0; cursor: pointer;
-  }
-  input[type="checkbox"] { width: 18px; height: 18px; }
-
-  #log {
-    background: #0f172a; border-radius: 8px; padding: 12px;
-    margin-top: 16px; max-height: 300px; overflow-y: auto;
-    font-family: ui-monospace, monospace; font-size: 0.8rem;
+  .logbox {
+    background: #0f172a; border: 1px solid #334155;
+    border-radius: 8px; padding: 12px;
+    max-height: 340px; overflow-y: auto;
+    font-family: ui-monospace, monospace; font-size: 0.76rem;
+    margin-top: 12px;
   }
   .log-info { color: #94a3b8; }
   .log-ok { color: #4ade80; }
   .log-err { color: #f87171; }
   .log-warn { color: #fbbf24; }
   .log-struct { color: #c084fc; }
+  .log-auto { color: #38bdf8; font-weight: 600; }
 
-  /* Resultados de búsqueda */
-  .result-card {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 10px; padding: 16px; margin: 12px 0;
+  button {
+    background: #0ea5e9; color: white; border: none;
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 0.92rem; font-weight: 600; cursor: pointer;
+    margin: 4px 6px 4px 0; font-family: inherit;
+    transition: background 0.2s;
   }
-  .result-card h3 {
-    margin: 0 0 8px; color: #38bdf8; font-size: 1rem;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .result-card .source-badge {
-    font-size: 0.7rem; background: #334155; color: #94a3b8;
-    padding: 2px 8px; border-radius: 10px; font-weight: 400;
-  }
-  .result-card .word-title {
-    font-size: 1.3rem; font-weight: 700; color: #e2e8f0;
-    margin-bottom: 4px;
-  }
-  .result-card .phonetic {
-    color: #94a3b8; font-family: ui-monospace, monospace;
-    font-size: 0.85rem; margin-bottom: 8px;
-  }
-  .meaning-block {
-    margin: 10px 0; padding: 10px;
-    background: #1e293b; border-radius: 6px;
-  }
-  .meaning-block .pos {
-    color: #fbbf24; font-weight: 600; font-size: 0.85rem;
-    text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .meaning-block .def {
-    margin: 4px 0; color: #e2e8f0; font-size: 0.9rem;
-  }
-  .meaning-block .example {
-    color: #94a3b8; font-style: italic; font-size: 0.85rem;
-    margin: 4px 0;
-  }
-  .syn-ant {
-    margin-top: 8px; font-size: 0.85rem;
-  }
-  .syn-ant .label { color: #7dd3fc; font-weight: 600; }
-  .syn-ant .values { color: #cbd5e1; }
-  .translation-box {
-    background: #1e293b; border-left: 3px solid #0ea5e9;
-    padding: 10px 14px; border-radius: 0 6px 6px 0;
-    margin: 8px 0;
-  }
-  .translation-box .from { color: #94a3b8; font-size: 0.8rem; }
-  .translation-box .to { color: #e2e8f0; font-size: 1rem; font-weight: 600; }
-  .wiki-extract {
-    color: #cbd5e1; font-size: 0.9rem; line-height: 1.6;
-  }
-  .empty-state {
-    color: #64748b; text-align: center;
-    padding: 30px 20px; font-style: italic;
-  }
-  .loading {
-    color: #fbbf24; text-align: center; padding: 20px;
-  }
-  .loading::after {
-    content: '...'; animation: dots 1.2s infinite;
-  }
-  @keyframes dots {
-    0%, 20% { content: '.'; }
-    40% { content: '..'; }
-    60%, 100% { content: '...'; }
-  }
+  button:hover:not(:disabled) { background: #0284c7; }
+  button:disabled { background: #475569; cursor: not-allowed; }
+  button.secondary { background: #475569; }
+  button.danger { background: #dc2626; }
+  button.success { background: #16a34a; }
 
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px; margin: 16px 0;
-  }
-  .stat-card {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; padding: 12px; text-align: center;
-  }
-  .stat-value { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
-  .stat-label { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .controls { margin-top: 12px; opacity: 0.7; }
+  .controls:hover { opacity: 1; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: #94a3b8; font-size: 0.85rem; padding: 6px 0; }
+  summary:hover { color: #cbd5e1; }
 
-  .progress-wrap {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; height: 14px; overflow: hidden;
-    margin-top: 12px; display: none;
+  .save-banner {
+    background: #422006; border: 2px solid #f59e0b;
+    border-radius: 10px; padding: 14px; margin: 12px 0;
+    color: #fcd34d; font-size: 0.9rem;
   }
-  .progress-bar {
-    height: 100%; background: linear-gradient(90deg, #0ea5e9, #38bdf8);
-    width: 0%; transition: width 0.2s;
-  }
-
-  .suggestions {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
-  }
-  .sugg {
-    background: #334155; color: #cbd5e1;
-    padding: 4px 10px; border-radius: 12px;
-    font-size: 0.78rem; cursor: pointer;
-    border: none; font-family: inherit;
-  }
-  .sugg:hover { background: #475569; }
-
-  .file-list {
-    max-height: 200px; overflow-y: auto;
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; padding: 8px; margin-top: 8px;
-    font-family: ui-monospace, monospace; font-size: 0.78rem;
-    color: #94a3b8;
-  }
+  .save-banner button { background: #f59e0b; color: #000; font-weight: 700; }
+  .save-banner button:hover { background: #d97706; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🧠 Recolector 4 — Diccionario · Traducción · Conocimiento Universal</h1>
-  <p class="subtitle">Pregunta "¿qué es X?", "¿qué significa X?" o "¿qué sabes de X?" · Español ↔ Inglés · Recolección masiva</p>
+  <h1>🤖 Auto-Cerebro</h1>
+  <p class="subtitle">Cero configuración · Se ejecuta solo · Guarda progreso · Descarga automáticamente</p>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="consulta">🔍 Consulta</button>
-    <button class="tab" data-tab="masiva">📚 Recolección masiva</button>
-    <button class="tab" data-tab="config">⚙️ Configuración</button>
+  <div class="banner" id="banner">
+    <h2 id="bannerTitle">⏳ Iniciando auto-piloto...</h2>
+    <p id="bannerMsg">Espera un momento, no toques nada.</p>
   </div>
 
-  <!-- =================== CONSULTA =================== -->
-  <div class="tab-content active" id="tab-consulta">
-    <div class="panel">
-      <h2>Buscar palabra o tema</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="queryInput" placeholder="Escribe una palabra, frase o tema... ej: fotosíntesis, firewall, dragón, Photoshop, ley cubana" style="flex:1;min-width:280px" />
-        <select id="langSelect" style="width:auto;min-width:180px">
-          <option value="auto">🌐 Detectar idioma</option>
-          <option value="es">🇪🇸 Español</option>
-          <option value="en">🇬🇧 English</option>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value" id="sTotal">0</div><div class="stat-label">Total palabras</div></div>
+    <div class="stat-card"><div class="stat-value" id="sIdx">0</div><div class="stat-label">Procesadas</div></div>
+    <div class="stat-card"><div class="stat-value" id="sOK">0</div><div class="stat-label">Guardadas</div></div>
+    <div class="stat-card"><div class="stat-value" id="sVel">0</div><div class="stat-label">palabras/s</div></div>
+    <div class="stat-card"><div class="stat-value" id="sETA" style="font-size:0.85rem">—</div><div class="stat-label">Restante</div></div>
+    <div class="stat-card"><div class="stat-value" id="sSaved">0</div><div class="stat-label">Descargados</div></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+
+  <div class="controls">
+    <button id="pauseBtn" class="secondary small">⏸ Pausar</button>
+    <button id="resetBtn" class="danger small">🔄 Reiniciar todo</button>
+    <span style="color:#64748b;font-size:0.78rem;margin-left:8px">(no necesitas tocar estos botones)</span>
+  </div>
+
+  <details>
+    <summary>📋 Ver registro de actividad</summary>
+    <div class="logbox" id="log"></div>
+  </details>
+
+  <details>
+    <summary>⚙️ Opciones avanzadas (normalmente no hace falta)</summary>
+    <div style="padding:12px 0">
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        <input type="checkbox" id="optWiki" checked> Wikipedia (obligatorio para que funcione)
+      </label>
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        <input type="checkbox" id="optDict" checked> Diccionario (definiciones)
+      </label>
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        <input type="checkbox" id="optTrans" checked> Traducción ES↔EN
+      </label>
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        Pausa entre palabras (ms):
+        <input type="number" id="optDelay" value="150" min="0" max="2000" style="width:80px;padding:4px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px" />
+      </label>
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        Palabras por archivo descargado:
+        <input type="number" id="optChunk" value="5000" min="500" max="50000" style="width:90px;padding:4px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px" />
+      </label>
+      <label style="display:block;margin:6px 0;color:#cbd5e1">
+        Tamaño de lista:
+        <select id="optList" style="padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px">
+          <option value="10000">Top 10.000 (rápido ~30 min)</option>
+          <option value="20000" selected>Top 20.000 (recomendado ~1-2 h)</option>
+          <option value="50000">Top 50.000 (~4-6 h)</option>
+          <option value="100000">Top 100.000 (~8-12 h)</option>
         </select>
-        <button id="searchBtn">🔍 Buscar</button>
-      </div>
-      <div class="suggestions" id="suggestions">
-        <button class="sugg" data-q="fotosíntesis">fotosíntesis</button>
-        <button class="sugg" data-q="firewall">firewall</button>
-        <button class="sugg" data-q="dragón">dragón</button>
-        <button class="sugg" data-q="Photoshop">Photoshop</button>
-        <button class="sugg" data-q="ley cubana">ley cubana</button>
-        <button class="sugg" data-q="tarot">tarot</button>
-        <button class="sugg" data-q="cmd">cmd</button>
-        <button class="sugg" data-q="código secreto móvil">código secreto móvil</button>
-      </div>
+      </label>
+      <p style="color:#fbbf24;font-size:0.82rem;margin-top:10px">
+        ⚠️ Cambiar estas opciones solo afecta si pulsas "Reiniciar todo".
+      </p>
     </div>
+  </details>
 
-    <div id="searchResults">
-      <div class="empty-state">Escribe algo y pulsa Buscar</div>
-    </div>
-  </div>
-
-  <!-- =================== RECOLECCIÓN MASIVA =================== -->
-  <div class="tab-content" id="tab-masiva">
-    <div class="panel">
-      <h2>1. Lista de palabras</h2>
-      <p style="color:#94a3b8;font-size:0.9rem">Una palabra o frase por línea. Puedes cargar la lista completa de ~636.000 palabras en español o pegar tu propia lista.</p>
-      <textarea id="wordList" placeholder="fotosíntesis&#10;firewall&#10;dragón&#10;Photoshop&#10;ley cubana&#10;tarot&#10;cmd&#10;código secreto móvil"></textarea>
-      <div style="margin-top:8px">
-        <button id="loadSpanishWords" class="secondary small">📥 Cargar lista de palabras españolas (~636k)</button>
-        <button id="clearWordList" class="secondary small">🗑 Limpiar lista</button>
-      </div>
-      <div id="wordListInfo" class="file-list" style="display:none"></div>
-    </div>
-
-    <div class="panel">
-      <h2>2. Opciones de recolección</h2>
-      <label class="opt"><input type="checkbox" id="optDef" checked> Definiciones (Free Dictionary API)</label>
-      <label class="opt"><input type="checkbox" id="optTrans" checked> Traducciones ES↔EN (MyMemory API)</label>
-      <label class="opt"><input type="checkbox" id="optWiki" checked> Resumen Wikipedia</label>
-      <label class="opt"><input type="checkbox" id="optWiktionary" checked> Etimología y pronunciación (Wiktionary)</label>
-      <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
-        <label class="opt" style="gap:4px">🔢 Máx. palabras a procesar:
-          <input type="number" id="maxWords" value="50" min="1" max="5000" style="width:100px" />
-        </label>
-        <label class="opt" style="gap:4px">⏱ Retardo entre consultas (ms):
-          <input type="number" id="delayMs" value="300" min="100" max="5000" style="width:100px" />
-        </label>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>3. Procesar y descargar</h2>
-      <button id="processBtn">🚀 Iniciar recolección masiva</button>
-      <button id="dlBtn" class="secondary" disabled>💾 Descargar conocimiento4.json</button>
-
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="statOk">0</div><div class="stat-label">OK</div></div>
-        <div class="stat-card"><div class="stat-value" id="statErr">0</div><div class="stat-label">Errores</div></div>
-        <div class="stat-card"><div class="stat-value" id="statSkip">0</div><div class="stat-label">Omitidos</div></div>
-        <div class="stat-card"><div class="stat-value" id="statMB">0</div><div class="stat-label">MB</div></div>
-        <div class="stat-card"><div class="stat-value" id="statPct">0%</div><div class="stat-label">Progreso</div></div>
-      </div>
-
-      <div class="progress-wrap" id="progressWrap">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-
-      <div id="massLog"></div>
-    </div>
-  </div>
-
-  <!-- =================== CONFIGURACIÓN =================== -->
-  <div class="tab-content" id="tab-config">
-    <div class="panel">
-      <h2>Fuentes de datos</h2>
-      <label class="opt"><input type="checkbox" id="cfgFreeDict" checked> Free Dictionary API — definiciones, sinónimos, antónimos</label>
-      <label class="opt"><input type="checkbox" id="cfgMyMemory" checked> MyMemory API — traducciones ES↔EN</label>
-      <label class="opt"><input type="checkbox" id="cfgWiki" checked> Wikipedia REST API — resumen enciclopédico</label>
-      <label class="opt"><input type="checkbox" id="cfgWiktionary" checked> Wiktionary API — etimología, pronunciación, definiciones</label>
-      <label class="opt"><input type="checkbox" id="cfgLibreTranslate"> LibreTranslate — alternativa de traducción (puede fallar por límite de tasa)</label>
-    </div>
-    <div class="panel">
-      <h2>API Keys (opcionales)</h2>
-      <p style="color:#94a3b8;font-size:0.85rem">La RAE API requiere una API key gratuita. Si la tienes, pégala aquí. Si no, se usará Wiktionary para español.</p>
-      <input type="text" id="raeApiKey" placeholder="RAE API key (opcional)" style="max-width:400px" />
-      <p style="color:#64748b;font-size:0.8rem;margin-top:8px">Obtén una gratis en <a href="https://rae-api.com" target="_blank" style="color:#38bdf8">rae-api.com</a></p>
-    </div>
-    <div class="panel">
-      <h2>Diagnóstico</h2>
-      <button id="diagBtn" class="secondary">🔬 Probar APIs</button>
-      <div id="diagLog" style="background:#0f172a;border-radius:8px;padding:12px;margin-top:12px;font-family:ui-monospace,monospace;font-size:0.78rem;max-height:300px;overflow-y:auto"></div>
-    </div>
+  <div class="save-banner" id="saveBanner" style="display:none">
+    💾 <b>Los bloques descargados se guardan en tu carpeta de Descargas automáticamente.</b><br>
+    <span style="font-size:0.85rem">Cuando termines, carga todos los <code>auto_cerebro_parte_*.json</code> en el Creador de <code>index.html</code>.</span>
   </div>
 </div>
 
-<!-- ============ BOTÓN FLOTANTE DE NAVEGACIÓN ============ -->
-<div id="navFab" style="position:fixed;bottom:24px;right:24px;z-index:99999;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;">
-  <div id="navFabMenu" style="position:absolute;bottom:64px;right:0;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:8px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:4px;">
-    <div style="color:#64748b;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;padding:6px 10px 2px;">Navegación</div>
-    <a href="index.html" class="nav-fab-item">🧠 Cerebro HDF5 (Creador · Visor · Chat)</a>
-    <a href="recolector.html" class="nav-fab-item">🌐 Recolector 1 (base general)</a>
-    <a href="recolector2.html" class="nav-fab-item">🔬 Recolector 2 (temas complementarios)</a>
-    <a href="recolector3.html" class="nav-fab-item">🛠️ Recolector 3 (informática · Cuba · fantasía)</a>
-    <a href="recolector4.html" class="nav-fab-item">🧠 Recolector 4 (diccionario · traducción)</a>
-    <a href="carpeta-a-json.html" class="nav-fab-item">📂 Carpeta → conocimiento.json</a>
-    <div style="height:1px;background:#334155;margin:6px 4px;"></div>
-    <button id="navFabTop" class="nav-fab-item nav-fab-btn">⬆ Ir arriba</button>
-    <button id="navFabCopy" class="nav-fab-item nav-fab-btn">📋 Copiar URL actual</button>
-  </div>
-  <button id="navFabBtn" title="Navegación rápida" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#38bdf8);border:none;cursor:pointer;color:white;font-size:1.4rem;box-shadow:0 4px 16px rgba(14,165,233,0.5);transition:transform 0.2s,box-shadow 0.2s;display:flex;align-items:center;justify-content:center;">🧭</button>
-</div>
-<style>
-  .nav-fab-item { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:8px; color:#cbd5e1; text-decoration:none; font-size:0.85rem; cursor:pointer; border:none; background:transparent; width:100%; text-align:left; font-family:inherit; transition:background 0.15s; }
-  .nav-fab-item:hover { background:#334155; color:#e2e8f0; }
-  .nav-fab-btn { font-size:0.85rem; }
-  #navFabBtn:hover { transform:scale(1.08); box-shadow:0 6px 24px rgba(14,165,233,0.7); }
-  #navFabMenu.open { display:flex !important; }
-</style>
 <script>
-(function(){
-  const btn=document.getElementById('navFabBtn'),menu=document.getElementById('navFabMenu');
-  btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.toggle('open');});
-  document.addEventListener('click',e=>{if(!document.getElementById('navFab').contains(e.target))menu.classList.remove('open');});
-  document.getElementById('navFabTop').addEventListener('click',()=>{window.scrollTo({top:0,behavior:'smooth'});menu.classList.remove('open');});
-  document.getElementById('navFabCopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(window.location.href);const b=document.getElementById('navFabCopy');const o=b.textContent;b.textContent='✅ Copiada';setTimeout(()=>{b.textContent=o},1200);}catch(e){alert('No se pudo copiar: '+e.message);}menu.classList.remove('open');});
-})();
-</script>
+// ============================================================
+// AUTO-CEREBRO — Cero configuración, todo automático
+// ============================================================
 
-<script>
-// ============================================================
-// ESTADO GLOBAL
-// ============================================================
 const $ = id => document.getElementById(id);
-let resultado = { generado: new Date().toISOString(), fuente: 'recolector4-diccionario-traduccion', datos: {} };
-let ultimoBlob = null;
+const LOG = $('log');
 
-// ============================================================
-// PESTAÑAS
-// ============================================================
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    $('tab-' + tab.dataset.tab).classList.add('active');
-  });
-});
-
-// ============================================================
-// UTILIDADES
-// ============================================================
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function log(msg, type = 'info') {
+  const d = document.createElement('div');
+  d.className = 'log-' + type;
+  d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  LOG.appendChild(d);
+  LOG.scrollTop = LOG.scrollHeight;
+  // Limitar a 500 líneas para no consumir memoria
+  while (LOG.children.length > 500) LOG.removeChild(LOG.firstChild);
 }
-function truncate(s, n) { return s && s.length > n ? s.slice(0, n) + '…' : s; }
 
-async function fetchJSON(url, timeout = 15000) {
+function setBanner(state, title, msg) {
+  const b = $('banner');
+  b.className = 'banner ' + state;
+  $('bannerTitle').textContent = title;
+  $('bannerMsg').textContent = msg;
+}
+
+function fmtBytes(b) {
+  if (b > 1024*1024*1024) return (b/1024/1024/1024).toFixed(2) + ' GB';
+  if (b > 1024*1024) return (b/1024/1024).toFixed(2) + ' MB';
+  if (b > 1024) return (b/1024).toFixed(1) + ' KB';
+  return b + ' B';
+}
+
+function fmtTime(ms) {
+  if (!isFinite(ms) || ms < 0) return '—';
+  const s = Math.floor(ms/1000);
+  if (s < 60) return s + 's';
+  const m = Math.floor(s/60), rs = s%60;
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m/60), rm = m%60;
+  if (h < 24) return h + 'h ' + rm + 'm';
+  const d = Math.floor(h/24), rh = h%24;
+  return d + 'd ' + rh + 'h';
+}
+
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// ============================================================
+// INDEXEDDB — Persistencia total
+// ============================================================
+const DB_NAME = 'auto_cerebro_db';
+const STORE = 'palabras';
+const META = 'meta';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 2);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'word' });
+      }
+      if (!db.objectStoreNames.contains(META)) {
+        db.createObjectStore(META, { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbPutWord(record) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(record);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function dbHasWord(word) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getKey(word);
+    req.onsuccess = () => { db.close(); resolve(req.result !== undefined); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+async function dbCount() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).count();
+    req.onsuccess = () => { db.close(); resolve(req.result); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => { db.close(); resolve(req.result); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+async function dbClear() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([STORE, META], 'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.objectStore(META).clear();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function dbSetMeta(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(META, 'readwrite');
+    tx.objectStore(META).put({ key, value });
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+async function dbGetMeta(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(META, 'readonly');
+    const req = tx.objectStore(META).get(key);
+    req.onsuccess = () => { db.close(); resolve(req.result ? req.result.value : null); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+// ============================================================
+// ESTADO
+// ============================================================
+const state = {
+  words: [],
+  running: false,
+  paused: false,
+  idx: 0,
+  okSession: 0,
+  errSession: 0,
+  chunksSaved: 0,
+  lastTick: Date.now(),
+  tickCount: 0,
+  currentChunk: [],  // palabras procesadas desde el último guardado de chunk
+  totalBytes: 0
+};
+
+// ============================================================
+// DETECCIÓN DE IDIOMA
+// ============================================================
+function detectLang(text) {
+  const enWords = /\b(the|and|of|to|in|is|are|was|were|be|have|has|this|that|with|for|not|you|all|can|will|just|but|from|they|know|like|time|make|use)\b/i;
+  const esWords = /\b(el|la|los|las|de|del|en|es|son|fue|era|ser|tiene|este|esta|con|por|para|no|todo|puede|como|pero|desde|ellos|saber|gusta|tiempo|hacer|usar)\b/i;
+  const en = (text.match(enWords) || []).length;
+  const es = (text.match(esWords) || []).length;
+  if (en > es) return 'en';
+  if (es > en) return 'es';
+  return /[áéíóúñ¿¡]/.test(text) ? 'es' : 'en';
+}
+
+// ============================================================
+// APIS
+// ============================================================
+async function fetchJSONsafe(url, timeout = 12000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeout);
   try {
@@ -375,466 +366,367 @@ async function fetchJSON(url, timeout = 15000) {
   }
 }
 
-async function fetchText(url, timeout = 15000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeout);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.text();
-  } catch (e) {
-    clearTimeout(t);
-    throw e;
-  }
+async function getWiki(word, lang) {
+  const url = 'https://' + lang + '.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(word);
+  const data = await fetchJSONsafe(url);
+  return data.extract || null;
 }
 
-// ============================================================
-// LOG
-// ============================================================
-function logMass(msg, type = 'info') {
-  const el = $('massLog');
-  if (!el) return;
-  const div = document.createElement('div');
-  div.className = 'log-' + type;
-  div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  el.appendChild(div);
-  el.scrollTop = el.scrollHeight;
+async function getDict(word, lang) {
+  const url = 'https://api.dictionaryapi.dev/api/v2/entries/' + lang + '/' + encodeURIComponent(word);
+  const data = await fetchJSONsafe(url);
+  if (!Array.isArray(data) || !data.length) return null;
+  const defs = [];
+  data.forEach(entry => {
+    (entry.meanings || []).forEach(m => {
+      (m.definitions || []).slice(0, 3).forEach(d => {
+        defs.push('[' + m.partOfSpeech + '] ' + d.definition);
+      });
+    });
+  });
+  return defs.length ? defs.join('\n') : null;
 }
 
-function logDiag(msg, type = 'info') {
-  const el = $('diagLog');
-  if (!el) return;
-  const div = document.createElement('div');
-  div.className = 'log-' + type;
-  div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  el.appendChild(div);
-  el.scrollTop = el.scrollHeight;
-}
-
-// ============================================================
-// FUENTES DE CONSULTA
-// ============================================================
-
-// --- Free Dictionary API ---
-async function freeDict(word, lang) {
-  const url = `https://api.dictionaryapi.dev/api/v2/entries/${lang}/${encodeURIComponent(word)}`;
-  const data = await fetchJSON(url);
-  if (!Array.isArray(data) || data.length === 0) return null;
-  return data;
-}
-
-// --- MyMemory Translation ---
-async function translateMyMemory(text, from, to) {
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
-  const data = await fetchJSON(url);
+async function getTrans(word, from, to) {
+  const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(word) + '&langpair=' + from + '|' + to;
+  const data = await fetchJSONsafe(url);
   if (data.responseStatus !== 200) return null;
   return data.responseData?.translatedText || null;
 }
 
-// --- Wikipedia REST API ---
-async function wikiSummary(title, lang) {
-  const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
-  const data = await fetchJSON(url);
-  return data.extract || null;
-}
-
-// --- Wiktionary API ---
-async function wiktionaryExtract(word, lang) {
-  const url = `https://${lang}.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&format=json&explaintext=1&redirects=1`;
-  const data = await fetchJSON(url);
-  const pages = data.query?.pages;
-  if (!pages) return null;
-  const page = Object.values(pages)[0];
-  if (page.missing !== undefined) return null;
-  return page.extract || null;
-}
-
-// --- RAE API (opcional) ---
-async function raeWord(word, apiKey) {
-  if (!apiKey) return null;
-  const url = `https://rae-api.com/api/words/${encodeURIComponent(word)}?api_key=${encodeURIComponent(apiKey)}`;
-  try {
-    const data = await fetchJSON(url);
-    return data;
-  } catch (e) {
-    return null;
-  }
-}
-
 // ============================================================
-// DETECCIÓN DE IDIOMA
+// PROCESAR UNA PALABRA
 // ============================================================
-function detectLang(text) {
-  // Heurística simple: palabras comunes en inglés vs español
-  const enWords = /\b(the|and|of|to|in|is|are|was|were|be|have|has|this|that|with|for|not|you|all|can|will|just|but|from|they|know|like|time|make|use)\b/i;
-  const esWords = /\b(el|la|los|las|de|del|en|es|son|fue|era|ser|tiene|este|esta|con|por|para|no|todo|puede|como|pero|desde|ellos|saber|gusta|tiempo|hacer|usar)\b/i;
-  const en = (text.match(enWords) || []).length;
-  const es = (text.match(esWords) || []).length;
-  if (en > es) return 'en';
-  if (es > en) return 'es';
-  // Fallback: si contiene caracteres no ASCII, probablemente español
-  return /[áéíóúñ¿¡]/.test(text) ? 'es' : 'en';
-}
-
-// ============================================================
-// CONSULTA INTERACTIVA
-// ============================================================
-async function search() {
-  const query = $('queryInput').value.trim();
-  if (!query) return;
-  const resultsEl = $('searchResults');
-  resultsEl.innerHTML = '<div class="loading">Consultando fuentes...</div>';
-
-  const langSel = $('langSelect').value;
-  const lang = langSel === 'auto' ? detectLang(query) : langSel;
-  const otherLang = lang === 'es' ? 'en' : 'es';
-
-  // Ejecutar consultas en paralelo
-  const promises = [];
-
-  // 1. Free Dictionary (idioma detectado y el otro)
-  promises.push(
-    freeDict(query, lang).then(d => d ? { type: 'dict', lang, data: d } : null).catch(() => null)
-  );
-  if (lang !== otherLang) {
-    promises.push(
-      freeDict(query, otherLang).then(d => d ? { type: 'dict', lang: otherLang, data: d } : null).catch(() => null)
-    );
-  }
-
-  // 2. Traducción
-  promises.push(
-    translateMyMemory(query, lang, otherLang)
-      .then(t => t ? { type: 'trans', from: lang, to: otherLang, text: t } : null)
-      .catch(() => null)
-  );
-
-  // 3. Wikipedia
-  promises.push(
-    wikiSummary(query, lang)
-      .then(e => e ? { type: 'wiki', lang, extract: e } : null)
-      .catch(() => null)
-  );
-  if (lang !== otherLang) {
-    promises.push(
-      wikiSummary(query, otherLang)
-        .then(e => e ? { type: 'wiki', lang: otherLang, extract: e } : null)
-        .catch(() => null)
-    );
-  }
-
-  // 4. Wiktionary
-  promises.push(
-    wiktionaryExtract(query, lang)
-      .then(e => e ? { type: 'wikt', lang, extract: e } : null)
-      .catch(() => null)
-  );
-
-  // 5. RAE (si hay API key)
-  const raeKey = $('raeApiKey')?.value.trim();
-  if (raeKey) {
-    promises.push(
-      raeWord(query, raeKey).then(r => r ? { type: 'rae', data: r } : null).catch(() => null)
-    );
-  }
-
-  const results = (await Promise.all(promises)).filter(Boolean);
-
-  // Renderizar
-  if (results.length === 0) {
-    resultsEl.innerHTML = '<div class="empty-state">No se encontraron resultados para "<b>' + esc(query) + '</b>". Prueba con otra palabra o activa más fuentes en Configuración.</div>';
-    return;
-  }
-
-  let html = '';
-  // Título
-  html += '<div class="result-card"><div class="word-title">' + esc(query) + '</div>';
-  html += '<div style="color:#94a3b8;font-size:0.85rem">Idioma detectado: ' + (lang === 'es' ? '🇪🇸 Español' : '🇬🇧 English') + '</div></div>';
-
-  // Traducciones
-  const trans = results.filter(r => r.type === 'trans');
-  trans.forEach(t => {
-    html += '<div class="result-card"><h3>🌐 Traducción <span class="source-badge">MyMemory</span></h3>';
-    html += '<div class="translation-box"><div class="from">' + (t.from === 'es' ? 'Español' : 'English') + '</div>';
-    html += '<div class="to">' + esc(t.text) + '</div></div></div>';
-  });
-
-  // Definiciones
-  const dicts = results.filter(r => r.type === 'dict');
-  dicts.forEach(d => {
-    d.data.forEach(entry => {
-      html += '<div class="result-card"><h3>📖 Definiciones (' + (d.lang === 'es' ? 'Español' : 'English') + ') <span class="source-badge">Free Dictionary</span></h3>';
-      html += '<div class="word-title">' + esc(entry.word || query) + '</div>';
-      if (entry.phonetic) html += '<div class="phonetic">' + esc(entry.phonetic) + '</div>';
-      (entry.meanings || []).forEach(m => {
-        html += '<div class="meaning-block"><div class="pos">' + esc(m.partOfSpeech) + '</div>';
-        (m.definitions || []).forEach((def, i) => {
-          html += '<div class="def">' + (i + 1) + '. ' + esc(def.definition) + '</div>';
-          if (def.example) html += '<div class="example">Ej: ' + esc(def.example) + '</div>';
-        });
-        if (m.synonyms?.length) {
-          html += '<div class="syn-ant"><span class="label">Sinónimos:</span> <span class="values">' + m.synonyms.slice(0, 12).map(esc).join(', ') + '</span></div>';
-        }
-        if (m.antonyms?.length) {
-          html += '<div class="syn-ant"><span class="label">Antónimos:</span> <span class="values">' + m.antonyms.slice(0, 12).map(esc).join(', ') + '</span></div>';
-        }
-        html += '</div>';
-      });
-      html += '</div>';
-    });
-  });
-
-  // Wikipedia
-  const wikis = results.filter(r => r.type === 'wiki');
-  wikis.forEach(w => {
-    html += '<div class="result-card"><h3>📚 Wikipedia (' + (w.lang === 'es' ? 'Español' : 'English') + ') <span class="source-badge">Wikipedia</span></h3>';
-    html += '<div class="wiki-extract">' + esc(w.extract) + '</div></div>';
-  });
-
-  // Wiktionary
-  const wikts = results.filter(r => r.type === 'wikt');
-  wikts.forEach(w => {
-    html += '<div class="result-card"><h3>📜 Wiktionary <span class="source-badge">Wiktionary</span></h3>';
-    html += '<div class="wiki-extract" style="max-height:300px;overflow-y:auto">' + esc(truncate(w.extract, 3000)) + '</div></div>';
-  });
-
-  // RAE
-  const raes = results.filter(r => r.type === 'rae');
-  raes.forEach(r => {
-    html += '<div class="result-card"><h3>🇪🇸 RAE <span class="source-badge">rae-api.com</span></h3>';
-    html += '<pre style="white-space:pre-wrap;font-size:0.8rem;color:#cbd5e1">' + esc(JSON.stringify(r.data, null, 2).slice(0, 3000)) + '</pre></div>';
-  });
-
-  resultsEl.innerHTML = html;
-}
-
-$('searchBtn').addEventListener('click', search);
-$('queryInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
-
-document.querySelectorAll('.sugg').forEach(b => {
-  b.addEventListener('click', () => {
-    $('queryInput').value = b.dataset.q;
-    search();
-  });
-});
-
-// ============================================================
-// RECOLECCIÓN MASIVA
-// ============================================================
-let massRunning = false;
-
-async function processMass() {
-  if (massRunning) return;
-  massRunning = true;
-
-  const raw = $('wordList').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const max = parseInt($('maxWords').value) || 50;
-  const words = raw.slice(0, max);
-  const delay = parseInt($('delayMs').value) || 300;
-  const useDef = $('optDef').checked;
-  const useTrans = $('optTrans').checked;
+async function processOne(word) {
   const useWiki = $('optWiki').checked;
-  const useWikt = $('optWiktionary').checked;
+  const useDict = $('optDict').checked;
+  const useTrans = $('optTrans').checked;
+  const lang = detectLang(word);
+  const other = lang === 'es' ? 'en' : 'es';
 
-  if (words.length === 0) {
-    logMass('Escribe al menos una palabra.', 'warn');
-    massRunning = false;
-    return;
+  const parts = [];
+
+  if (useWiki) {
+    try {
+      const r = await getWiki(word, lang);
+      if (r) parts.push('=== WIKIPEDIA (' + lang.toUpperCase() + ') ===\n' + r);
+    } catch (e) {}
+  }
+  if (useDict) {
+    try {
+      const r = await getDict(word, lang);
+      if (r) parts.push('=== DEFINICIONES ===\n' + r);
+    } catch (e) {}
+  }
+  if (useTrans) {
+    try {
+      const r = await getTrans(word, lang, other);
+      if (r && r.toLowerCase() !== word.toLowerCase()) {
+        parts.push('=== TRADUCCIÓN ===\n' + word + ' (' + lang + ') → ' + r + ' (' + other + ')');
+      }
+    } catch (e) {}
   }
 
-  logMass('🚀 Iniciando recolección de ' + words.length + ' palabras...', 'prog');
-  $('massLog').innerHTML = '';
-  $('progressWrap').style.display = 'block';
-  resultado = { generado: new Date().toISOString(), fuente: 'recolector4-diccionario-traduccion', datos: {} };
+  if (parts.length === 0) return null;
+  return parts.join('\n\n');
+}
 
-  let ok = 0, err = 0, skip = 0, bytes = 0;
+// ============================================================
+// GUARDAR BLOQUE (auto)
+// ============================================================
+async function saveChunk() {
+  if (state.currentChunk.length === 0) return;
+  const chunkNum = String(state.chunksSaved + 1).padStart(3, '0');
+  const datos = {};
+  for (const r of state.currentChunk) {
+    const key = 'dict_' + r.word.replace(/[^a-z0-9áéíóúñ]/gi, '_').toLowerCase();
+    let finalKey = key, n = 1;
+    while (datos[finalKey]) { finalKey = key + '_' + n; n++; }
+    datos[finalKey] = { contenido: r.contenido, palabra: r.word, idioma: r.idioma || 'es' };
+  }
+  const out = {
+    generado: new Date().toISOString(),
+    fuente: 'auto-cerebro-bloque-' + chunkNum,
+    datos
+  };
+  const blob = new Blob([JSON.stringify(out)], { type: 'application/json' });
+  download(blob, 'auto_cerebro_parte_' + chunkNum + '.json');
+  state.chunksSaved++;
+  state.currentChunk = [];
+  $('sSaved').textContent = state.chunksSaved;
+  log('💾 Bloque ' + chunkNum + ' descargado (' + Object.keys(datos).length + ' palabras, ' + fmtBytes(blob.size) + ')', 'struct');
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const lang = detectLang(word);
-    const other = lang === 'es' ? 'en' : 'es';
-    const parts = [];
+  // Mostrar banner informativo una sola vez
+  $('saveBanner').style.display = 'block';
+}
 
-    try {
-      // Definiciones
-      if (useDef) {
-        try {
-          const d = await freeDict(word, lang);
-          if (d) {
-            const defs = [];
-            d.forEach(entry => {
-              (entry.meanings || []).forEach(m => {
-                (m.definitions || []).forEach(def => {
-                  defs.push('[' + m.partOfSpeech + '] ' + def.definition + (def.example ? ' — Ej: ' + def.example : ''));
-                });
-              });
-            });
-            if (defs.length) parts.push('=== DEFINICIONES (' + lang.toUpperCase() + ') ===\n' + defs.join('\n'));
-          }
-        } catch (e) {}
-      }
+// ============================================================
+// LOOP PRINCIPAL
+// ============================================================
+async function runLoop() {
+  if (state.running) return;
+  if (state.words.length === 0) return;
 
-      // Traducción
-      if (useTrans) {
-        try {
-          const t = await translateMyMemory(word, lang, other);
-          if (t) parts.push('=== TRADUCCIÓN ===\n' + word + ' (' + lang + ') → ' + t + ' (' + other + ')');
-        } catch (e) {}
-      }
+  state.running = true;
+  state.paused = false;
+  $('pauseBtn').disabled = false;
+  $('pauseBtn').textContent = '⏸ Pausar';
 
-      // Wikipedia
-      if (useWiki) {
-        try {
-          const e = await wikiSummary(word, lang);
-          if (e) parts.push('=== WIKIPEDIA (' + lang.toUpperCase() + ') ===\n' + e);
-        } catch (e) {}
-      }
+  setBanner('running', '🟢 Auto-cerebro en marcha', 'Procesando automáticamente. Puedes dejar esta pestaña abierta en segundo plano.');
 
-      // Wiktionary
-      if (useWikt) {
-        try {
-          const e = await wiktionaryExtract(word, lang);
-          if (e) parts.push('=== WIKTIONARY ===\n' + truncate(e, 2000));
-        } catch (e) {}
-      }
+  const delay = parseInt($('optDelay').value) || 150;
+  const chunkSize = parseInt($('optChunk').value) || 5000;
+  const total = state.words.length;
+  state.lastTick = Date.now();
+  state.tickCount = 0;
 
-      if (parts.length === 0) {
-        skip++;
-        logMass('  ⏭ ' + word + ' — sin resultados', 'warn');
-      } else {
-        const contenido = parts.join('\n\n');
-        const key = 'dict_' + word.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        let finalKey = key;
-        let n = 1;
-        while (resultado.datos[finalKey]) { finalKey = key + '_' + n; n++; }
-        resultado.datos[finalKey] = { contenido, palabra: word, idioma: lang };
-        bytes += new Blob([contenido]).size;
-        ok++;
-        logMass('  ✓ ' + word + ' (' + contenido.length + ' car.)', 'ok');
-      }
-    } catch (e) {
-      err++;
-      logMass('  ✗ ' + word + ' — ' + e.message, 'err');
+  while (state.idx < total) {
+    if (state.paused) {
+      setBanner('paused', '⏸ Pausado', 'Pulsa "Reanudar" cuando quieras. El progreso está guardado.');
+      break;
     }
 
-    // Actualizar progreso
-    const pct = Math.round(((i + 1) / words.length) * 100);
-    $('progressBar').style.width = pct + '%';
-    $('statOk').textContent = ok;
-    $('statErr').textContent = err;
-    $('statSkip').textContent = skip;
-    $('statMB').textContent = (bytes / 1024 / 1024).toFixed(2);
-    $('statPct').textContent = pct + '%';
+    const word = state.words[state.idx];
 
-    // Retardo
-    if (i < words.length - 1) await new Promise(r => setTimeout(r, delay));
+    // Skip si ya existe
+    let existe = false;
+    try { existe = await dbHasWord(word); } catch (e) {}
+
+    if (existe) {
+      state.idx++;
+      continue;
+    }
+
+    try {
+      const contenido = await processOne(word);
+      const idioma = detectLang(word);
+      await dbPutWord({ word, contenido: contenido || '', idioma, ts: Date.now() });
+
+      if (contenido && contenido.length > 0) {
+        state.okSession++;
+        state.totalBytes += contenido.length;
+        state.currentChunk.push({ word, contenido, idioma });
+      }
+    } catch (e) {
+      state.errSession++;
+    }
+
+    state.idx++;
+    state.tickCount++;
+
+    // Auto-guardar chunk al alcanzar el tamaño
+    if (state.currentChunk.length >= chunkSize) {
+      await saveChunk();
+    }
+
+    // Actualizar UI
+    if (state.tickCount % 3 === 0 || Date.now() - state.lastTick > 800) {
+      updateUI();
+      state.lastTick = Date.now();
+    }
+
+    if (delay > 0) await new Promise(r => setTimeout(r, delay));
+    if (state.tickCount % 15 === 0) await new Promise(r => setTimeout(r, 0));
   }
 
-  logMass('', 'info');
-  logMass('🎉 COMPLETADO: ' + ok + ' OK · ' + err + ' errores · ' + skip + ' omitidos', 'ok');
-  logMass('📦 Tamaño: ' + (bytes / 1024 / 1024).toFixed(2) + ' MB', 'ok');
-  logMass('🔑 Recursos: ' + Object.keys(resultado.datos).length, 'struct');
+  // Guardar chunk final
+  await saveChunk();
 
-  ultimoBlob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
-  $('dlBtn').disabled = false;
-  descargar(ultimoBlob, 'conocimiento4.json');
-  logMass('⬇️ Descarga iniciada automáticamente', 'ok');
+  state.running = false;
+  $('pauseBtn').disabled = true;
 
-  massRunning = false;
+  if (state.idx >= total) {
+    setBanner('done', '✅ ¡TERMINADO!', 'Procesadas ' + total.toLocaleString() + ' palabras. Revisa tu carpeta de Descargas — ahí están los auto_cerebro_parte_*.json.');
+    log('🎉 COMPLETADO: ' + state.okSession + ' guardadas, ' + state.errSession + ' errores, ' + state.chunksSaved + ' bloques descargados', 'ok');
+  } else {
+    setBanner('paused', '⏸ Detenido en ' + state.idx.toLocaleString(), 'Reabre esta página y continuará solo.');
+  }
+
+  updateUI();
 }
 
-$('processBtn').addEventListener('click', processMass);
+function updateUI() {
+  const total = state.words.length || 1;
+  const pct = Math.min(100, Math.round((state.idx / total) * 100));
+  $('progressBar').style.width = pct + '%';
+  $('progressText').textContent = pct + '% — ' + state.idx.toLocaleString() + ' / ' + total.toLocaleString();
+  $('sTotal').textContent = total.toLocaleString();
+  $('sIdx').textContent = state.idx.toLocaleString();
+  $('sOK').textContent = state.okSession.toLocaleString();
+
+  const elapsed = (Date.now() - state.lastTick) / 1000;
+  const vel = elapsed > 0 ? state.tickCount / elapsed : 0;
+  $('sVel').textContent = vel.toFixed(1);
+  const restantes = total - state.idx;
+  $('sETA').textContent = vel > 0 ? fmtTime((restantes / vel) * 1000) : '—';
+}
 
 // ============================================================
-// CARGA DE LISTA DE PALABRAS ESPAÑOLAS
+// CARGA AUTOMÁTICA DE LISTA
 // ============================================================
-$('loadSpanishWords').addEventListener('click', async () => {
-  const btn = $('loadSpanishWords');
-  btn.disabled = true;
-  btn.textContent = '⏳ Cargando...';
+async function loadWordList() {
+  const limit = parseInt($('optList').value) || 20000;
+  log('📥 Cargando lista de ' + limit.toLocaleString() + ' palabras más frecuentes...', 'info');
+
+  // Fuente principal: 50k palabras frecuentes del español (Hermit Dave)
+  const urls = [
+    'https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/es/es_50k.txt',
+    'https://cdn.jsdelivr.net/gh/hermitdave/FrequencyWords@master/content/2018/es/es_50k.txt'
+  ];
+
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const txt = await r.text();
+      const words = txt.split('\n')
+        .map(l => l.split(' ')[0].trim())
+        .filter(w => w.length >= 2 && w.length <= 40 && /^[a-záéíóúñü]+$/i.test(w))
+        .slice(0, limit);
+      if (words.length > 100) {
+        state.words = words;
+        log('✅ Lista cargada: ' + words.length.toLocaleString() + ' palabras', 'ok');
+        return true;
+      }
+    } catch (e) {
+      log('⚠️ Falló ' + url.split('/')[2] + ', intentando alternativa...', 'warn');
+    }
+  }
+
+  // Fallback: 10k en inglés
   try {
-    const url = 'https://cdn.jsdelivr.net/npm/an-array-of-spanish-words/index.json';
-    const data = await fetchJSON(url, 30000);
-    const words = Array.isArray(data) ? data : [];
-    $('wordList').value = words.join('\n');
-    $('wordListInfo').style.display = 'block';
-    $('wordListInfo').textContent = '📊 ' + words.length.toLocaleString() + ' palabras cargadas. Puedes procesar un máximo de ' + ($('maxWords').value || 50) + ' (ajústalo arriba).';
-    btn.textContent = '✅ Lista cargada (' + words.length.toLocaleString() + ')';
+    log('⚠️ Usando lista de respaldo...', 'warn');
+    const r = await fetch('https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english.txt');
+    const txt = await r.text();
+    state.words = txt.split('\n').filter(w => w.trim().length >= 2).slice(0, limit);
+    log('✅ Lista de respaldo cargada: ' + state.words.length.toLocaleString() + ' palabras', 'ok');
+    return true;
   } catch (e) {
-    alert('Error cargando lista: ' + e.message);
-    btn.textContent = '📥 Cargar lista de palabras españolas (~636k)';
+    log('❌ No se pudo cargar ninguna lista: ' + e.message, 'err');
+    return false;
   }
-  btn.disabled = false;
-});
-
-$('clearWordList').addEventListener('click', () => {
-  $('wordList').value = '';
-  $('wordListInfo').style.display = 'none';
-});
-
-// ============================================================
-// DESCARGAR
-// ============================================================
-function descargar(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-$('dlBtn').addEventListener('click', () => {
-  if (ultimoBlob) descargar(ultimoBlob, 'conocimiento4.json');
+// ============================================================
+// ARRANQUE AUTOMÁTICO
+// ============================================================
+window.addEventListener('load', async () => {
+  log('🤖 Auto-Cerebro iniciando...', 'auto');
+
+  // 1) Verificar IndexedDB
+  let count = 0;
+  try {
+    count = await dbCount();
+    log('📦 IndexedDB: ' + count.toLocaleString() + ' palabras ya procesadas', count > 0 ? 'ok' : 'info');
+  } catch (e) {
+    log('⚠️ IndexedDB no disponible: ' + e.message, 'err');
+    setBanner('paused', '⚠️ Error de IndexedDB', 'Tu navegador bloquea el almacenamiento. Prueba en modo normal (no incógnito).');
+    return;
+  }
+
+  // 2) Cargar lista
+  const ok = await loadWordList();
+  if (!ok) {
+    setBanner('paused', '❌ No se pudo cargar la lista', 'Verifica tu conexión a internet y recarga la página.');
+    return;
+  }
+
+  // 3) Ajustar índice al progreso existente
+  // Buscamos la primera palabra no procesada
+  let primerNoProc = 0;
+  for (let i = 0; i < state.words.length; i++) {
+    const existe = await dbHasWord(state.words[i]);
+    if (!existe) { primerNoProc = i; break; }
+    if (i === state.words.length - 1) primerNoProc = state.words.length;
+  }
+  state.idx = primerNoProc;
+
+  if (state.idx > 0) {
+    log('⏩ Reanudando desde el índice ' + state.idx.toLocaleString() + ' (ya hay ' + count.toLocaleString() + ' en IndexedDB)', 'auto');
+    setBanner('running', '🔄 Reanudando automáticamente', 'Ya había progreso previo. Continúa desde donde lo dejaste.');
+  } else {
+    log('🆕 Empezando desde cero', 'auto');
+  }
+
+  if (state.idx >= state.words.length) {
+    setBanner('done', '✅ Ya estaba todo procesado', 'Puedes exportar los bloques con el botón de abajo.');
+    state.okSession = 0;
+    updateUI();
+    return;
+  }
+
+  updateUI();
+
+  // 4) Arrancar automáticamente tras un pequeño delay
+  log('🚀 Arrancando en 2 segundos...', 'auto');
+  setTimeout(() => {
+    runLoop().catch(e => {
+      log('❌ Error en el loop: ' + e.message, 'err');
+      setBanner('paused', '❌ Error inesperado', e.message);
+    });
+  }, 2000);
 });
 
 // ============================================================
-// DIAGNÓSTICO
+// BOTONES MANUALES (por si acaso)
 // ============================================================
-$('diagBtn').addEventListener('click', async () => {
-  $('diagLog').innerHTML = '';
-  logDiag('🔬 Probando APIs...', 'info');
+$('pauseBtn').addEventListener('click', async () => {
+  if (state.running && !state.paused) {
+    state.paused = true;
+    $('pauseBtn').textContent = '▶️ Reanudar';
+    log('⏸ Pausado por el usuario', 'warn');
+  } else if (state.paused) {
+    log('▶️ Reanudando...', 'info');
+    await runLoop();
+    $('pauseBtn').textContent = '⏸ Pausar';
+  }
+});
 
-  // Free Dictionary
-  try {
-    logDiag('⏳ Free Dictionary (es/hola)...', 'info');
-    const d = await freeDict('hola', 'es');
-    logDiag('✅ Free Dictionary: ' + (d ? 'OK (' + d.length + ' entradas)' : 'sin datos'), d ? 'ok' : 'warn');
-  } catch (e) { logDiag('❌ Free Dictionary: ' + e.message, 'err'); }
-
-  // MyMemory
-  try {
-    logDiag('⏳ MyMemory (hola→hello)...', 'info');
-    const t = await translateMyMemory('hola', 'es', 'en');
-    logDiag('✅ MyMemory: ' + (t || 'sin datos'), t ? 'ok' : 'warn');
-  } catch (e) { logDiag('❌ MyMemory: ' + e.message, 'err'); }
-
-  // Wikipedia
-  try {
-    logDiag('⏳ Wikipedia (es/España)...', 'info');
-    const w = await wikiSummary('España', 'es');
-    logDiag('✅ Wikipedia: ' + (w ? 'OK (' + w.length + ' car.)' : 'sin datos'), w ? 'ok' : 'warn');
-  } catch (e) { logDiag('❌ Wikipedia: ' + e.message, 'err'); }
-
-  // Wiktionary
-  try {
-    logDiag('⏳ Wiktionary (es/hola)...', 'info');
-    const w = await wiktionaryExtract('hola', 'es');
-    logDiag('✅ Wiktionary: ' + (w ? 'OK (' + w.length + ' car.)' : 'sin datos'), w ? 'ok' : 'warn');
-  } catch (e) { logDiag('❌ Wiktionary: ' + e.message, 'err'); }
-
-  logDiag('🔬 Diagnóstico completado', 'info');
+$('resetBtn').addEventListener('click', async () => {
+  if (!confirm('¿Borrar TODO el progreso guardado? Esta acción no se puede deshacer.')) return;
+  await dbClear();
+  state.idx = 0;
+  state.okSession = 0;
+  state.errSession = 0;
+  state.chunksSaved = 0;
+  state.currentChunk = [];
+  state.totalBytes = 0;
+  log('🔄 Progreso borrado. Recarga la página para empezar de nuevo.', 'warn');
+  setBanner('paused', '🔄 Reiniciado', 'Recarga la página (F5) para comenzar desde cero.');
 });
 
 // ============================================================
-// INICIALIZACIÓN
+// AUTO-GUARDADO AL CERRAR
 // ============================================================
-window.addEventListener('load', () => {
-  console.log('🧠 Recolector 4 — Diccionario · Traducción · Conocimiento Universal');
-  console.log('Fuentes: Free Dictionary API, MyMemory, Wikipedia, Wiktionary, RAE (opcional)');
-  console.log('Listo para consultas interactivas y recolección masiva.');
+window.addEventListener('beforeunload', e => {
+  if (state.running && state.currentChunk.length > 0) {
+    // Intentar guardar el chunk pendiente antes de cerrar
+    try {
+      const chunkNum = String(state.chunksSaved + 1).padStart(3, '0');
+      const datos = {};
+      for (const r of state.currentChunk) {
+        const key = 'dict_' + r.word.replace(/[^a-z0-9áéíóúñ]/gi, '_').toLowerCase();
+        datos[key] = { contenido: r.contenido, palabra: r.word, idioma: r.idioma || 'es' };
+      }
+      const blob = new Blob([JSON.stringify({ generado: new Date().toISOString(), fuente: 'auto-cerebro-cierre', datos })], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'auto_cerebro_cierre.json';
+      a.click();
+    } catch (err) {}
+  }
 });
+
+// ============================================================
+// RECUPERACIÓN SI SE CIERRA LA PESTAÑA
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && state.running) {
+    log('👁 Pestaña en segundo plano — sigue procesando (algunos navegadores ralentizan el JS en background)', 'warn');
+  }
+});
+
+log('✅ Auto-Cerebro listo. No hace falta que hagas nada.', 'auto');
 </script>
 </body>
 </html>
