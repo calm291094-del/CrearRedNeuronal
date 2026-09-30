@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🌐 Recolector 2 — Temas complementarios</title>
+<style>
+  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:960px; margin:auto; }
+  h1 { color:#38bdf8; }
+  .sub { color:#94a3b8; margin-top:-4px; }
+  button { background:#0ea5e9; color:white; border:none; padding:12px 24px; border-radius:8px;
+    font-size:1rem; font-weight:600; cursor:pointer; margin:4px 4px 4px 0; }
+  button:disabled { background:#475569; cursor:not-allowed; }
+  button.secondary { background:#475569; }
+  #log { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px;
+    margin-top:16px; max-height:520px; overflow-y:auto; font-family:monospace; font-size:0.8rem; }
+  .ok { color:#4ade80; } .err { color:#f87171; } .info { color:#94a3b8; } .warn { color:#fbbf24; }
+  .prog { color:#c084fc; }
+  .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin:16px 0; }
+  .stat { background:#0f172a; border:1px solid #334155; border-radius:6px; padding:10px; text-align:center; }
+  .stat-num { color:#38bdf8; font-size:1.3rem; font-weight:700; }
+  .stat-lbl { color:#94a3b8; font-size:0.7rem; text-transform:uppercase; }
+  .modo { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; margin:12px 0; }
+  .modo label { display:flex; align-items:center; gap:8px; color:#cbd5e1; padding:6px 0; }
+  .modo small { color:#64748b; display:block; margin-left:26px; }
+  input[type="checkbox"] { width:18px; height:18px; }
+  .prog-bar { background:#0f172a; border:1px solid #334155; border-radius:8px; height:12px;
+    overflow:hidden; margin-top:12px; display:none; }
+  .prog-bar > div { height:100%; background:linear-gradient(90deg,#0ea5e9,#38bdf8); width:0%; transition:width .2s; }
+</style>
+</head>
+<body>
+<h1>🌐 Recolector 2 — Temas complementarios</h1>
+<p class="sub">Amplía tu base con categorías que <b>no</b> están en el recolector original · 100% offline vía GitHub Pages</p>
+
+<div class="modo">
+  <strong style="color:#7dd3fc">Fuentes complementarias:</strong>
+
+  <label><input type="checkbox" id="cbWiki2" checked> 📚 Wikipedia ES — Ciencias de la vida, humanidades y oficios</label>
+  <small>Agronomía, derecho, psicología, religiones, transporte, energía, arquitectura, artes escénicas, medicina, química…</small>
+
+  <label><input type="checkbox" id="cbWiki2EN" checked> 🌍 Wikipedia EN — Temas técnicos y científicos avanzados</label>
+  <small>Quantum, robótica, genómica, climatología, nanotecnología, sociología, lingüística…</small>
+
+  <label><input type="checkbox" id="cbInvestigacion" checked> 🔬 Papers académicos (arXiv, PubMed, Crossref, OpenAlex)</label>
+  <small>Resúmenes de física, medicina, IA, biología, matemáticas.</small>
+
+  <label><input type="checkbox" id="cbLibros" checked> 📖 Libros y catálogos (Open Library, Google Books, iTunes)</label>
+  <small>Clásicos, literatura, música, películas.</small>
+
+  <label><input type="checkbox" id="cbDatosGob" checked> 🏛️ Datos abiertos (World Bank, US Census, Data.gov)</label>
+  <small>Indicadores económicos, demografía, censos.</small>
+
+  <label><input type="checkbox" id="cbFinanzas" checked> 💰 Finanzas y cripto (CoinGecko, ExchangeRate, Yahoo)</label>
+  <small>Precios, tipos de cambio, acciones.</small>
+
+  <label><input type="checkbox" id="cbCodigo" checked> 💻 Ecosistema dev (npm, PyPI, crates.io, HN, StackExchange)</label>
+  <small>Paquetes populares, discusiones técnicas, preguntas de Stack Overflow.</small>
+
+  <label><input type="checkbox" id="cbSeguridad" checked> 🛡️ Seguridad y web (HIBP, RDAP, Wayback Machine)</label>
+  <small>Filtraciones, dominios, snapshots históricos.</small>
+
+  <label><input type="checkbox" id="cbRandom2" checked> 🎲 APIs variadas (Quotes, Cat Facts, Bored, RandomUser, Bluesky, Reddit)</label>
+  <small>Datos curiosos, citas, usuarios ficticios, actividad social.</small>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num" id="statOk">0</div><div class="stat-lbl">OK</div></div>
+  <div class="stat"><div class="stat-num" id="statErr">0</div><div class="stat-lbl">Errores</div></div>
+  <div class="stat"><div class="stat-num" id="statMB">0</div><div class="stat-lbl">MB</div></div>
+  <div class="stat"><div class="stat-num" id="statPct">0%</div><div class="stat-lbl">Progreso</div></div>
+</div>
+
+<button id="go">🚀 Iniciar recolección complementaria</button>
+<button id="dl" class="secondary" disabled>💾 Descargar conocimiento2.json</button>
+
+<div class="prog-bar" id="progWrap"><div id="progBar"></div></div>
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+let resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2-complementario', datos: {} };
+let okCount = 0, errCount = 0, totalBytes = 0, totalTareas = 0, hechas = 0;
+
+function log(msg, cls='info') {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function updateStats() {
+  document.getElementById('statOk').textContent = okCount;
+  document.getElementById('statErr').textContent = errCount;
+  document.getElementById('statMB').textContent = (totalBytes/1024/1024).toFixed(2);
+  const pct = totalTareas ? Math.round((hechas/totalTareas)*100) : 0;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('progBar').style.width = pct + '%';
+}
+
+async function fetchT(url, ms=20000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return { ok: true, text: await r.text() };
+  } catch (e) {
+    clearTimeout(t);
+    return { ok: false, error: e.message };
+  }
+}
+
+function guardar(nombre, contenido) {
+  if (!contenido || !String(contenido).trim()) return;
+  const s = String(contenido);
+  if (resultado.datos[nombre]) {
+    let i = 1;
+    while (resultado.datos[nombre + '_' + i]) i++;
+    nombre = nombre + '_' + i;
+  }
+  resultado.datos[nombre] = { contenido: s };
+  totalBytes += new Blob([s]).size;
+  okCount++;
+}
+
+async function tarea(nombre, url, transformar) {
+  try {
+    const r = await fetchT(url);
+    if (!r.ok) { errCount++; return; }
+    let contenido = r.text;
+    if (transformar) contenido = await transformar(r.text);
+    guardar(nombre, contenido);
+    if (okCount % 15 === 0) log('✓ ' + okCount + ' recursos descargados', 'ok');
+  } catch (e) { errCount++; }
+  finally { hechas++; updateStats(); }
+}
+
+async function conLimite(tareas, limite) {
+  const cola = [...tareas];
+  await Promise.all(Array(limite).fill(0).map(async () => {
+    while (cola.length) await cola.shift()();
+  }));
+}
+
+// ============================================================
+// WIKIPEDIA ES — TEMAS COMPLEMENTARIOS
+// (no presentes en el recolector original)
+// ============================================================
+const WIKI_ES_2 = [
+  // Ciencias de la vida
+  'Agronomía','Agricultura','Ganadería','Pesca','Silvicultura','Botánica','Zoología',
+  'Entomología','Ornitología','Herpetología','Ictiología','Micología','Bacteriología',
+  'Virología','Parasitología','Inmunología','Embriología','Histología','Fisiología',
+  'Bioquímica','Biología_molecular','Biotecnología','Ingeniería_genética','Genómica',
+  'Proteómica','Bioinformática','Ecología','Medio_ambiente','Cambio_climático',
+  'Contaminación','Reciclaje','Energía_renovable','Energía_solar','Energía_eólica',
+  'Energía_nuclear','Hidrógeno_verde','Desarrollo_sostenible',
+
+  // Medicina y salud
+  'Medicina','Pediatría','Geriatría','Cardiología','Neurología','Oncología',
+  'Psiquiatría','Dermatología','Oftalmología','Traumatología','Anestesiología',
+  'Radiología','Farmacología','Epidemiología','Salud_pública','Nutrición','Dietética',
+  'Obesidad','Diabetes','Hipertensión','Alzhéimer','Párkinson','Esclerosis_múltiple',
+  'Autismo','TDAH','Vacuna','Antibiótico','Cirugía','Trasplante_de_órganos',
+
+  // Derecho y política
+  'Derecho','Derecho_penal','Derecho_civil','Derecho_constitucional','Derecho_internacional',
+  'Derechos_humanos','Derecho_laboral','Propiedad_intelectual','Derecho_ambiental',
+  'Criminología','Forense','Política','Parlamento','Constitución','Elecciones',
+  'Democracia','Autoritarismo','Populismo','Geopolítica','Diplomacia','ONU',
+  'Unión_Europea','OTAN','BRICS','G20',
+
+  // Psicología y ciencias sociales
+  'Psicología','Psicoanálisis','Conductismo','Cognitivismo','Neurociencia',
+  'Neuropsicología','Inteligencia_emocional','Resiliencia','Motivación','Personalidad',
+  'Sociología','Antropología','Etnografía','Arqueología','Demografía','Migración',
+  'Desigualdad_social','Pobreza','Clase_social','Género','Feminismo','LGBT',
+  'Trabajo_social','Criminología','Urbanismo','Gentrificación',
+
+  // Religión y mitología
+  'Religión','Cristianismo','Catolicismo','Protestantismo','Islam','Judaísmo',
+  'Hinduismo','Budismo','Sintoísmo','Taoísmo','Sijismo','Jainismo','Zoroastrismo',
+  'Mitología_griega','Mitología_nórdica','Mitología_egipcia','Mitología_maya',
+  'Mitología_azteca','Mitología_inca','Teología','Espiritualidad','Ateísmo','Agnosticismo',
+
+  // Educación y lenguaje
+  'Educación','Pedagogía','Didáctica','Andragogía','Educación_a_distancia',
+  'Aprendizaje_automático','Constructivismo','Conductismo','Inteligencias_múltiples',
+  'Lingüística','Fonética','Fonología','Morfología','Sintaxis','Semántica','Pragmática',
+  'Sociolingüística','Psicolingüística','Traducción','Interpretación','Escritura',
+  'Alfabetización','Bilingüismo','Lengua_de_señas',
+
+  // Transporte e infraestructura
+  'Transporte','Ferrocarril','Metro','Autobús','Automóvil','Motocicleta','Bicicleta',
+  'Aviación','Aeropuerto','Puerto','Carretera','Autopista','Puente','Túnel',
+  'Ingeniería_civil','Arquitectura','Urbanismo','Construcción','Hormigón','Acero',
+  'Energía_eléctrica','Red_eléctrica','Telecomunicaciones','Fibra_óptica','5G',
+
+  // Artes escénicas y oficios
+  'Teatro','Ópera','Zarzuela','Danza','Ballet','Flamenco','Tango','Circo','Mimo',
+  'Marionetas','Carpintería','Fontanería','Electricidad','Albañilería','Soldadura',
+  'Mecánica','Jardinería','Cocina','Panadería','Pastelería','Sastrería','Zapatería',
+  'Joyería','Cerámica','Vidriería','Ebanistería','Encuadernación','Restauración',
+
+  // Química y materiales
+  'Química_orgánica','Química_inorgánica','Química_física','Química_analítica',
+  'Electroquímica','Termoquímica','Cinética_química','Catálisis','Polímero','Plástico',
+  'Cerámica_técnica','Aleación','Corrosión','Nanomaterial','Grafeno','Fullereno',
+  'Semiconductor','Superconductor','Cristal_líquido','Coloide','Emulsión',
+
+  // Matemáticas avanzadas
+  'Topología','Geometría_diferencial','Álgebra_abstracta','Teoría_de_números',
+  'Análisis_funcional','Ecuaciones_diferenciales','Cálculo_variacional',
+  'Teoría_de_juegos','Teoría_de_grafos','Combinatoria','Probabilidad','Estadística_inferencial',
+  'Análisis_numérico','Optimización','Criptografía','Teoría_de_la_información',
+  'Lógica_matemática','Teoría_de_conjuntos','Categorías'
+];
+
+// ============================================================
+// WIKIPEDIA EN — TEMAS AVANZADOS COMPLEMENTARIOS
+// ============================================================
+const WIKI_EN_2 = [
+  'Quantum_mechanics','Quantum_field_theory','Particle_physics','String_theory',
+  'General_relativity','Cosmology','Astrophysics','Black_hole','Dark_matter',
+  'Dark_energy','Gravitational_waves','Higgs_boson','Standard_Model',
+  'CRISPR','Genomics','Proteomics','Bioinformatics','Synthetic_biology',
+  'Neuroscience','Cognitive_science','Neuroplasticity','Connectome',
+  'Robotics','Mechatronics','Control_theory','Computer_vision',
+  'Natural_language_processing','Reinforcement_learning','Generative_AI',
+  'Large_language_model','Transformer_(deep_learning)','Graph_neural_network',
+  'Climate_model','Oceanography','Meteorology','Glaciology','Paleoclimatology',
+  'Geophysics','Seismology','Volcanology','Mineralogy','Petrology',
+  'Epidemiology','Immunology','Oncology','Pharmacology','Toxicology',
+  'Nanotechnology','Materials_science','Metamaterial','Superconductivity',
+  'Linguistics','Sociolinguistics','Psycholinguistics','Semiotics',
+  'Anthropology','Archaeology','Ethnography','Cultural_anthropology',
+  'Political_science','International_relations','Public_policy',
+  'Behavioral_economics','Game_theory','Complex_systems','Network_science'
+];
+
+async function recolectarWikiES2() {
+  log('📚 Wikipedia ES complementaria (' + WIKI_ES_2.length + ')...', 'prog');
+  const tareas = WIKI_ES_2.map(titulo => async () => {
+    const url = 'https://es.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(titulo);
+    await tarea('wiki2_es_' + titulo, url, async txt => {
+      try {
+        const j = JSON.parse(txt);
+        return '# ' + j.title + '\n\n' + (j.extract || '') + '\n\n' + (j.content_urls?.desktop?.page || '');
+      } catch (e) { return txt; }
+    });
+  });
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 6);
+  log('📚 Wikipedia ES complementaria terminada', 'ok');
+}
+
+async function recolectarWikiEN2() {
+  log('🌍 Wikipedia EN avanzada (' + WIKI_EN_2.length + ')...', 'prog');
+  const tareas = WIKI_EN_2.map(titulo => async () => {
+    const url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(titulo);
+    await tarea('wiki2_en_' + titulo, url, async txt => {
+      try {
+        const j = JSON.parse(txt);
+        return '# ' + j.title + '\n\n' + (j.extract || '');
+      } catch (e) { return txt; }
+    });
+  });
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 6);
+  log('🌍 Wikipedia EN avanzada terminada', 'ok');
+}
+
+// ============================================================
+// INVESTIGACIÓN ACADÉMICA
+// ============================================================
+async function recolectarInvestigacion() {
+  log('🔬 Papers académicos...', 'prog');
+  const tareas = [
+
+    // arXiv — consultas temáticas
+    async () => tarea('paper_arxiv_quantum',
+      'http://export.arxiv.org/api/query?search_query=all:quantum+computing&max_results=8&sortBy=relevance'),
+    async () => tarea('paper_arxiv_nlp',
+      'http://export.arxiv.org/api/query?search_query=all:natural+language+processing&max_results=8&sortBy=relevance'),
+    async () => tarea('paper_arxiv_robotics',
+      'http://export.arxiv.org/api/query?search_query=all:robotics+autonomous&max_results=8&sortBy=relevance'),
+    async () => tarea('paper_arxiv_crispr',
+      'http://export.arxiv.org/api/query?search_query=all:CRISPR+gene+editing&max_results=6&sortBy=relevance'),
+    async () => tarea('paper_arxiv_climate',
+      'http://export.arxiv.org/api/query?search_query=all:climate+modeling&max_results=6&sortBy=relevance'),
+
+    // PubMed — medicina
+    async () => tarea('paper_pubmed_cancer',
+      'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=cancer+immunotherapy&retmode=json&retmax=8'),
+    async () => tarea('paper_pubmed_alzheimer',
+      'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=alzheimer+biomarker&retmode=json&retmax=8'),
+    async () => tarea('paper_pubmed_diabetes',
+      'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=diabetes+type+2+genetics&retmode=json&retmax=6'),
+
+    // Crossref — metadatos
+    async () => tarea('paper_crossref_machine_learning',
+      'https://api.crossref.org/works?query=machine+learning&rows=6'),
+    async () => tarea('paper_crossref_neuroscience',
+      'https://api.crossref.org/works?query=neuroscience+brain&rows=6'),
+    async () => tarea('paper_crossref_astrophysics',
+      'https://api.crossref.org/works?query=astrophysics+galaxy&rows=5'),
+
+    // OpenAlex — obras académicas
+    async () => tarea('paper_openalex_ai',
+      'https://api.openalex.org/works?search=artificial+intelligence&per_page=6'),
+    async () => tarea('paper_openalex_genomics',
+      'https://api.openalex.org/works?search=genomics&per_page=5'),
+    async () => tarea('paper_openalex_climate',
+      'https://api.openalex.org/works?search=climate+change&per_page=5')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 4);
+  log('🔬 Papers terminados', 'ok');
+}
+
+// ============================================================
+// LIBROS Y MEDIA
+// ============================================================
+async function recolectarLibros() {
+  log('📖 Libros, música y películas...', 'prog');
+  const tareas = [
+
+    // Open Library — búsquedas temáticas
+    async () => tarea('libro_openlibrary_literatura',
+      'https://openlibrary.org/search.json?q=literatura+universal&limit=6'),
+    async () => tarea('libro_openlibrary_filosofia',
+      'https://openlibrary.org/search.json?q=filosofia&limit=6'),
+    async () => tarea('libro_openlibrary_ciencia',
+      'https://openlibrary.org/search.json?q=ciencia+ficcion&limit=6'),
+    async () => tarea('libro_openlibrary_historia',
+      'https://openlibrary.org/search.json?q=historia+mundo&limit=5'),
+
+    // Google Books
+    async () => tarea('libro_googlebooks_poesia',
+      'https://www.googleapis.com/books/v1/volumes?q=poesia&maxResults=5'),
+    async () => tarea('libro_googlebooks_matematicas',
+      'https://www.googleapis.com/books/v1/volumes?q=matematicas+avanzadas&maxResults=5'),
+
+    // iTunes — música, apps, películas
+    async () => tarea('media_itunes_musica_clasica',
+      'https://itunes.apple.com/search?term=classical+music&entity=album&limit=5'),
+    async () => tarea('media_itunes_peliculas',
+      'https://itunes.apple.com/search?term=documentary&entity=movie&limit=5'),
+    async () => tarea('media_itunes_podcast',
+      'https://itunes.apple.com/search?term=science+podcast&entity=podcast&limit=5')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 4);
+  log('📖 Libros y media terminados', 'ok');
+}
+
+// ============================================================
+// DATOS GUBERNAMENTALES Y ABIERTOS
+// ============================================================
+async function recolectarDatosGob() {
+  log('🏛️ Datos abiertos...', 'prog');
+  const tareas = [
+
+    // World Bank — indicadores
+    async () => tarea('gob_worldbank_pib_esp',
+      'https://api.worldbank.org/v2/country/ESP/indicator/NY.GDP.MKTP.CD?format=json&per_page=5'),
+    async () => tarea('gob_worldbank_poblacion_cub',
+      'https://api.worldbank.org/v2/country/CUB/indicator/SP.POP.TOTL?format=json&per_page=5'),
+    async () => tarea('gob_worldbank_alfabetizacion_mex',
+      'https://api.worldbank.org/v2/country/MEX/indicator/SE.ADT.LITR.ZS?format=json&per_page=5'),
+    async () => tarea('gob_worldbank_esperanza_vida_arg',
+      'https://api.worldbank.org/v2/country/ARG/indicator/SP.DYN.LE00.IN?format=json&per_page=5'),
+
+    // US Census — datos demográficos
+    async () => tarea('gob_census_2020',
+      'https://api.census.gov/data/2020/dec/pl?get=P1_001N,NAME&for=state:*'),
+
+    // Data.gov — catálogo
+    async () => tarea('gob_datagov_catalogo',
+      'https://catalog.data.gov/api/3/action/package_search?q=climate&rows=5')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+  log('🏛️ Datos abiertos terminados', 'ok');
+}
+
+// ============================================================
+// FINANZAS Y CRIPTO
+// ============================================================
+async function recolectarFinanzas() {
+  log('💰 Finanzas y cripto...', 'prog');
+  const tareas = [
+
+    // CoinGecko — criptomonedas
+    async () => tarea('fin_coingecko_precios',
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,cardano,polkadot&vs_currencies=usd,eur'),
+    async () => tarea('fin_coingecko_top',
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1'),
+
+    // ExchangeRate
+    async () => tarea('fin_exchangerate_usd',
+      'https://open.er-api.com/v6/latest/USD'),
+    async () => tarea('fin_exchangerate_eur',
+      'https://open.er-api.com/v6/latest/EUR'),
+
+    // Yahoo Finance — acciones (endpoint no documentado)
+    async () => tarea('fin_yahoo_apple',
+      'https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=5d&interval=1d'),
+    async () => tarea('fin_yahoo_tesla',
+      'https://query1.finance.yahoo.com/v8/finance/chart/TSLA?range=5d&interval=1d'),
+    async () => tarea('fin_yahoo_microsoft',
+      'https://query1.finance.yahoo.com/v8/finance/chart/MSFT?range=5d&interval=1d')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+  log('💰 Finanzas terminadas', 'ok');
+}
+
+// ============================================================
+// ECOSISTEMA DEV
+// ============================================================
+async function recolectarCodigo() {
+  log('💻 Ecosistema dev...', 'prog');
+  const tareas = [
+
+    // npm Registry
+    async () => tarea('dev_npm_search',
+      'https://registry.npmjs.org/-/v1/search?text=machine+learning&size=5'),
+    async () => tarea('dev_npm_react',
+      'https://registry.npmjs.org/-/v1/search?text=react&size=5'),
+
+    // PyPI
+    async () => tarea('dev_pypi_pandas',
+      'https://pypi.org/pypi/pandas/json'),
+    async () => tarea('dev_pypi_tensorflow',
+      'https://pypi.org/pypi/tensorflow/json'),
+
+    // crates.io
+    async () => tarea('dev_crates_search',
+      'https://crates.io/api/v1/crates?q=web+framework&per_page=5'),
+
+    // Hacker News
+    async () => tarea('dev_hn_top',
+      'https://hacker-news.firebaseio.com/v0/topstories.json'),
+    async () => tarea('dev_hn_new',
+      'https://hacker-news.firebaseio.com/v0/newstories.json'),
+
+    // StackExchange
+    async () => tarea('dev_stackoverflow_python',
+      'https://api.stackexchange.com/2.3/questions?order=desc&sort=votes&tagged=python&site=stackoverflow&pagesize=5'),
+    async () => tarea('dev_stackoverflow_js',
+      'https://api.stackexchange.com/2.3/questions?order=desc&sort=votes&tagged=javascript&site=stackoverflow&pagesize=5')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 4);
+  log('💻 Ecosistema dev terminado', 'ok');
+}
+
+// ============================================================
+// SEGURIDAD Y WEB
+// ============================================================
+async function recolectarSeguridad() {
+  log('🛡️ Seguridad y web...', 'prog');
+  const tareas = [
+
+    // HIBP — rango de hashes (k-anonymity)
+    async () => tarea('sec_hibp_rango',
+      'https://api.pwnedpasswords.com/range/5BAA6'),
+
+    // RDAP — WHOIS en JSON
+    async () => tarea('sec_rdap_google',
+      'https://rdap.org/domain/google.com'),
+    async () => tarea('sec_rdap_wikipedia',
+      'https://rdap.org/domain/wikipedia.org'),
+
+    // Wayback Machine
+    async () => tarea('sec_wayback_google',
+      'https://archive.org/wayback/available?url=google.com'),
+    async () => tarea('sec_wayback_arxiv',
+      'https://archive.org/wayback/available?url=arxiv.org')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+  log('🛡️ Seguridad terminada', 'ok');
+}
+
+// ============================================================
+// APIS VARIADAS
+// ============================================================
+async function recolectarRandom2() {
+  log('🎲 APIs variadas...', 'prog');
+  const tareas = [
+
+    // Quotes
+    async () => tarea('random_quotes',
+      'https://zenquotes.io/api/random'),
+
+    // Cat Facts
+    async () => tarea('random_catfact',
+      'https://catfact.ninja/fact'),
+
+    // Bored API
+    async () => tarea('random_bored',
+      'https://www.boredapi.com/api/activity'),
+
+    // RandomUser
+    async () => tarea('random_users',
+      'https://randomuser.me/api/?results=5'),
+
+    // Dog CEO
+    async () => tarea('random_dog',
+      'https://dog.ceo/api/breeds/image/random'),
+
+    // JSONPlaceholder
+    async () => tarea('random_jsonplaceholder_posts',
+      'https://jsonplaceholder.typicode.com/posts?_limit=5'),
+    async () => tarea('random_jsonplaceholder_users',
+      'https://jsonplaceholder.typicode.com/users'),
+
+    // Bluesky (red social)
+    async () => tarea('random_bluesky_profile',
+      'https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=bsky.app'),
+
+    // Reddit JSON
+    async () => tarea('random_reddit_programming',
+      'https://www.reddit.com/r/programming/top.json?limit=5&t=week'),
+    async () => tarea('random_reddit_science',
+      'https://www.reddit.com/r/science/top.json?limit=5&t=week')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 4);
+  log('🎲 APIs variadas terminadas', 'ok');
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+document.getElementById('go').addEventListener('click', async () => {
+  document.getElementById('go').disabled = true;
+  logEl.innerHTML = '';
+  resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v2-complementario', datos: {} };
+  okCount = 0; errCount = 0; totalBytes = 0; hechas = 0; totalTareas = 0;
+  document.getElementById('progWrap').style.display = 'block';
+  updateStats();
+
+  log('🚀 Iniciando recolección complementaria...', 'prog');
+
+  // Test de conectividad
+  const test = await fetchT('https://es.wikipedia.org/api/rest_v1/page/summary/Medicina');
+  if (!test.ok) {
+    log('❌ Wikipedia no accesible: ' + test.error, 'err');
+    document.getElementById('go').disabled = false;
+    return;
+  }
+  log('✅ Wikipedia accesible', 'ok');
+
+  if (document.getElementById('cbWiki2').checked)   await recolectarWikiES2();
+  if (document.getElementById('cbWiki2EN').checked) await recolectarWikiEN2();
+  if (document.getElementById('cbInvestigacion').checked) await recolectarInvestigacion();
+  if (document.getElementById('cbLibros').checked)  await recolectarLibros();
+  if (document.getElementById('cbDatosGob').checked) await recolectarDatosGob();
+  if (document.getElementById('cbFinanzas').checked) await recolectarFinanzas();
+  if (document.getElementById('cbCodigo').checked)  await recolectarCodigo();
+  if (document.getElementById('cbSeguridad').checked) await recolectarSeguridad();
+  if (document.getElementById('cbRandom2').checked) await recolectarRandom2();
+
+  log('', 'info');
+  log('✅ COMPLETADO: ' + okCount + ' OK, ' + errCount + ' errores', 'ok');
+  log('📦 Total: ' + (totalBytes/1024/1024).toFixed(2) + ' MB', 'ok');
+  log('🔑 Recursos: ' + Object.keys(resultado.datos).length, 'prog');
+  document.getElementById('dl').disabled = false;
+  document.getElementById('go').disabled = false;
+});
+
+document.getElementById('dl').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'conocimiento2.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log('💾 conocimiento2.json descargado (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
+});
+</script>
+</body>
+</html>
