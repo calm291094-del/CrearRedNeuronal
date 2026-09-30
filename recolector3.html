@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🛠️ Recolector 3 — Informática · Cuba · Fantasía</title>
+<style>
+  body { font-family: system-ui; background:#0f172a; color:#e2e8f0; padding:20px; max-width:1000px; margin:auto; }
+  h1 { color:#38bdf8; }
+  .sub { color:#94a3b8; margin-top:-4px; }
+  button { background:#0ea5e9; color:white; border:none; padding:12px 24px; border-radius:8px;
+    font-size:1rem; font-weight:600; cursor:pointer; margin:4px 4px 4px 0; }
+  button:disabled { background:#475569; cursor:not-allowed; }
+  button.secondary { background:#475569; }
+  #log { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px;
+    margin-top:16px; max-height:520px; overflow-y:auto; font-family:monospace; font-size:0.8rem; }
+  .ok { color:#4ade80; } .err { color:#f87171; } .info { color:#94a3b8; } .warn { color:#fbbf24; }
+  .prog { color:#c084fc; }
+  .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin:16px 0; }
+  .stat { background:#0f172a; border:1px solid #334155; border-radius:6px; padding:10px; text-align:center; }
+  .stat-num { color:#38bdf8; font-size:1.3rem; font-weight:700; }
+  .stat-lbl { color:#94a3b8; font-size:0.7rem; text-transform:uppercase; }
+  .modo { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; margin:12px 0; }
+  .modo label { display:flex; align-items:center; gap:8px; color:#cbd5e1; padding:6px 0; }
+  .modo small { color:#64748b; display:block; margin-left:26px; }
+  input[type="checkbox"] { width:18px; height:18px; }
+  .prog-bar { background:#0f172a; border:1px solid #334155; border-radius:8px; height:12px;
+    overflow:hidden; margin-top:12px; display:none; }
+  .prog-bar > div { height:100%; background:linear-gradient(90deg,#0ea5e9,#38bdf8); width:0%; transition:width .2s; }
+</style>
+</head>
+<body>
+<h1>🛠️ Recolector 3 — Informática · Cuba · Fantasía</h1>
+<p class="sub">Windows · Redes · Seguridad · Leyes cubanas · Mitología · Tarot · Celulares · Photoshop</p>
+
+<div class="modo">
+  <strong style="color:#7dd3fc">Bloques temáticos:</strong>
+
+  <label><input type="checkbox" id="cbCmd" checked> 💻 Windows 10/11 — Comandos CMD y PowerShell (A–Z)</label>
+  <small>dir, cd, ipconfig, sfc, DISM, netsh, robocopy, taskkill, powercfg, chkdsk, systeminfo, wmic, reg, sc, net…</small>
+
+  <label><input type="checkbox" id="cbRedes" checked> 🌐 Redes y administración (Cisco, MikroTik, pfSense, UniFi, OpenWrt)</label>
+  <small>Comandos show, firewall, NAT, VLAN, enrutamiento, SSH, auditoría de seguridad.</small>
+
+  <label><input type="checkbox" id="cbSegInfo" checked> 🛡️ Seguridad informática (HIBP, RDAP, Shodan-style)</label>
+  <small>Filtraciones de contraseñas, WHOIS, dominios, reputación, rango de hashes.</small>
+
+  <label><input type="checkbox" id="cbLeyesCuba" checked> 🇨🇺 Leyes, decretos y resoluciones cubanas (Gaceta Oficial)</label>
+  <small>Gaceta Oficial, FAOLEX Cuba, VLEX Cuba, normativas de seguridad alimentaria, migración, trabajo, medio ambiente…</small>
+
+  <label><input type="checkbox" id="cbPython" checked> 🐍 Python — Comandos, librerías y automatización</label>
+  <small>Requests, pandas, numpy, os, sys, argparse, subprocess, BeautifulSoup, Netmiko, Paramiko.</small>
+
+  <label><input type="checkbox" id="cbMitos" checked> 🐉 Criaturas mitológicas y fantasía (DeityDB, Open5e, myth-monsters)</label>
+  <small>Grifo, hidra, fénix, cíclope, dragón, kitsune, fenrir, sphinx, manticora…</small>
+
+  <label><input type="checkbox" id="cbTarot" checked> 🔮 Tarot — 78 cartas con significados (Rider-Waite-Smith)</label>
+  <small>Arcanos mayores y menores, significados al derecho y al revés, amor, trabajo, sí/no.</small>
+
+  <label><input type="checkbox" id="cbMoviles" checked> 📱 Celulares — Especificaciones, marcas, modelos y códigos secretos</label>
+  <small>GSMArena specs, códigos USSD (*#06#, *#*#4636#*#*, *#0*#), Samsung, iPhone, Android, marcas y gamas.</small>
+
+  <label><input type="checkbox" id="cbFotos" checked> 🎨 Photoshop por versiones + edición de imágenes</label>
+  <small>CS, CS2–CS6, CC 2013–2026, nuevas funciones, IA generativa, Remove Tool, Camera Raw.</small>
+
+  <label><input type="checkbox" id="cbErrores" checked> 🔧 Solución de errores Windows y móviles</label>
+  <small>sfc /scannow, DISM, chkdsk, ipconfig /flushdns, systemreset, recovery, códigos de error.</small>
+
+  <label><input type="checkbox" id="cbWikipedia3" checked> 📚 Wikipedia ES de respaldo (temas sin API específica)</label>
+  <small>Rellena huecos: versiones de Photoshop, leyes cubanas, mitología, edición de imágenes, prompts.</small>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num" id="statOk">0</div><div class="stat-lbl">OK</div></div>
+  <div class="stat"><div class="stat-num" id="statErr">0</div><div class="stat-lbl">Errores</div></div>
+  <div class="stat"><div class="stat-num" id="statMB">0</div><div class="stat-lbl">MB</div></div>
+  <div class="stat"><div class="stat-num" id="statPct">0%</div><div class="stat-lbl">Progreso</div></div>
+</div>
+
+<button id="go">🚀 Iniciar recolección v3</button>
+<button id="dl" class="secondary" disabled>💾 Descargar conocimiento3.json</button>
+
+<div class="prog-bar" id="progWrap"><div id="progBar"></div></div>
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+let resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v3-informatica-cuba-fantasia', datos: {} };
+let okCount = 0, errCount = 0, totalBytes = 0, totalTareas = 0, hechas = 0;
+
+function log(msg, cls='info') {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function updateStats() {
+  document.getElementById('statOk').textContent = okCount;
+  document.getElementById('statErr').textContent = errCount;
+  document.getElementById('statMB').textContent = (totalBytes/1024/1024).toFixed(2);
+  const pct = totalTareas ? Math.round((hechas/totalTareas)*100) : 0;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('progBar').style.width = pct + '%';
+}
+
+async function fetchT(url, ms=20000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return { ok: true, text: await r.text() };
+  } catch (e) {
+    clearTimeout(t);
+    return { ok: false, error: e.message };
+  }
+}
+
+function guardar(nombre, contenido) {
+  if (!contenido || !String(contenido).trim()) return;
+  const s = String(contenido);
+  if (resultado.datos[nombre]) {
+    let i = 1;
+    while (resultado.datos[nombre + '_' + i]) i++;
+    nombre = nombre + '_' + i;
+  }
+  resultado.datos[nombre] = { contenido: s };
+  totalBytes += new Blob([s]).size;
+  okCount++;
+}
+
+async function tarea(nombre, url, transformar) {
+  try {
+    const r = await fetchT(url);
+    if (!r.ok) { errCount++; return; }
+    let contenido = r.text;
+    if (transformar) contenido = await transformar(r.text);
+    guardar(nombre, contenido);
+    if (okCount % 15 === 0) log('✓ ' + okCount + ' recursos descargados', 'ok');
+  } catch (e) { errCount++; }
+  finally { hechas++; updateStats(); }
+}
+
+async function conLimite(tareas, limite) {
+  const cola = [...tareas];
+  await Promise.all(Array(limite).fill(0).map(async () => {
+    while (cola.length) await cola.shift()();
+  }));
+}
+
+// ============================================================
+// 1. WINDOWS 10/11 — COMANDOS CMD Y POWERSHELL
+// ============================================================
+async function recolectarCmd() {
+  log('💻 Windows 10/11 — comandos CMD/PowerShell...', 'prog');
+
+  // Lista A–Z de comandos (referencia offline completa)
+  const cmdLista = `=== AN A-Z INDEX OF THE WINDOWS CMD COMMAND LINE ===
+
+ADDUSERS        Add or list users to/from a CSV file
+ADmodcmd        Active Directory Bulk Modify
+ARP             Address Resolution Protocol
+ASSOC           Change file extension associations
+ATTRIB          Change file attributes
+BCDEDIT         Manage Boot Configuration Data
+BITSADMIN       Background Intelligent Transfer Service
+BOOTREC         Repair or replace boot sectors
+CACLS           Change file permissions
+CALL            Call one batch program from another
+CD              Change Directory
+CHCP            Change the active console code page
+CHDIR           Change Directory
+CHKDSK          Check Disk - repair file system errors
+CHKNTFS         Check NTFS file system
+CIPHER          Encrypt/decrypt files and folders
+CLIP            Copy stdin to the Windows clipboard
+CLS             Clear screen
+CMD             Start a new CMD shell
+COMP            Compare the contents of two files
+COMPACT         Compress files/folders on NTFS
+CONVERT         Convert FAT to NTFS
+COPY            Copy one or more files
+DATE            Display or set the date
+DEFRAG          Defragment a drive
+DEL             Delete one or more files
+DIR             Display a list of files and folders
+DISKPART        Disk Partition management
+DISKPERF        Enable/disable disk performance counters
+DOSKEY          Edit command line, recall commands
+DRIVERQUERY     Display installed device drivers
+ECHO            Display message on screen
+ENDLOCAL        End localisation of environment changes
+ERASE           Delete one or more files
+EVENTCREATE     Create a custom event in an event log
+EXIT            Quit the CMD shell
+EXPAND          Uncompress .CAB files
+FC              Compare two files
+FIND            Search for a text string in a file
+FINDSTR         Search for strings in files
+FOR             Loop command
+FORFILES        Batch process multiple files
+FORMAT          Format a disk
+FSUTIL          File and Volume utilities
+FTP             File Transfer Protocol
+FTYPE           File extension file type associations
+GOTO            Direct a batch program to jump to a labelled line
+GPRESULT        Display Resultant Set of Policy
+GRAFTABL        Enable Windows to display extended characters
+HELP            Online Help
+ICACLS          Change file and folder permissions
+IF              Conditionally perform a command
+IPCONFIG        Configure IP
+LABEL           Edit a disk label
+LOGMAN          Manage Performance Monitor
+MD              Create a directory
+MKDIR           Create a directory
+MKLINK          Create a symbolic link
+MODE            Configure a system device
+MORE            Display output, one screen at a time
+MOVE            Move files from one folder to another
+MSG             Send a message to a user
+NET             Manage network resources
+NETSH           Configure network interfaces, firewall, routing
+NETSTAT         Display networking statistics
+NBTSTAT         Display networking statistics (NetBIOS)
+OPENFILES       Query or display open files
+PATH            Display or set a search path
+PATHPING        Trace route plus network latency
+PAUSE           Suspend processing of a batch file
+POPD            Restore previous directory saved by PUSHD
+POWERCFG        Configure power settings
+PRINT           Print a text file
+PROMPT          Change the command prompt
+PUSHD           Save current directory
+QUSER           Display information about users
+RASDIAL         Manage RAS connections
+RECOVER         Recover a damaged file
+REG             Registry console tool
+REKEYWIZ        Encryption File System (EFS) wizard
+REM             Record comments in a batch file
+REN             Rename files
+RENAME          Rename files
+REPLACE         Replace or update files
+RMDIR           Remove a directory
+ROBOCOPY        Robust File and Folder Copy
+ROUTE           Manipulate network routing tables
+RUNAS           Execute a command as another user
+SC              Service Control
+SCHTASKS        Schedule commands
+SET             Display, set, or remove environment variables
+SETLOCAL        Begin localisation of environment changes
+SHUTDOWN        Shutdown or restart the computer
+SFC             System File Checker
+SORT            Sort input
+START           Start a program, command or batch file
+SUBST           Associate a path with a drive letter
+SYSTEMINFO      Display system configuration
+TASKKILL        Kill or stop a running process
+TASKLIST        List running processes
+TIME            Display or set the system time
+TIMEOUT         Delay processing of a batch file
+TITLE           Set the window title
+TREE            Graphical display of folder structure
+TYPE            Display the contents of a text file
+VER             Display version information
+VERIFY          Verify that files are written correctly
+VOL             Display a disk label
+WMIC            Windows Management Instrumentation Command
+XCOPY           Copy files and folders`;
+
+  guardar('cmd_a_z_index', cmdLista);
+  hechas++; updateStats();
+
+  // Categorías temáticas con comandos explicados
+  const categorias = {
+    'cmd_archivos_y_directorios': `=== COMANDOS DE ARCHIVOS Y DIRECTORIOS ===
+
+dir            Lista archivos y carpetas.
+cd [ruta]      Cambia de directorio.
+md carpeta     Crea una carpeta.
+rd carpeta     Elimina una carpeta vacía.
+copy a b       Copia archivos.
+xcopy /E /I    Copia carpetas con subcarpetas.
+robocopy       Copia robusta con reintentos y logs.
+move a b       Mueve archivos.
+ren a b        Renombra archivos.
+del archivo    Elimina archivos.
+type archivo   Muestra contenido de un texto.
+attrib         Cambia atributos (oculto, solo lectura).
+cipher         Cifra/descifra archivos.
+compact        Comprime archivos en NTFS.
+expand         Descomprime .CAB.
+fc             Compara dos archivos.
+tree           Muestra estructura de carpetas.
+subst          Asocia una ruta a una letra de unidad.
+mklink         Crea enlaces simbólicos/directos.`,
+
+    'cmd_redes': `=== COMANDOS DE RED ===
+
+ipconfig                 Muestra configuración IP.
+ipconfig /all            Muestra toda la configuración.
+ipconfig /flushdns       Limpia la caché DNS.
+ipconfig /release        Libera la IP DHCP.
+ipconfig /renew          Renueva la IP DHCP.
+ping host                Prueba conectividad.
+ping -t host             Ping continuo.
+tracert host             Traza la ruta hasta el destino.
+pathping host            Traza + latencia estadística.
+nslookup dominio         Consulta DNS.
+netstat -ano             Conexiones activas con PID.
+netstat -ab              Conexiones + ejecutable.
+netsh                    Configura red, firewall y WLAN.
+netsh wlan show profiles Lista perfiles WiFi guardados.
+netsh wlan show profile name="X" key=clear  Muestra la contraseña WiFi.
+netsh interface ip show config               Muestra config IP.
+netsh advfirewall show allprofiles           Estado del firewall.
+netsh advfirewall firewall add rule          Añade regla de firewall.
+netsh winsock reset                           Resetea Winsock.
+netsh int ip reset                            Resetea TCP/IP.
+arp -a                   Tabla ARP.
+route print              Tabla de enrutamiento.
+nbtstat -n               Estado NetBIOS.
+getmac                   Muestra la MAC.
+telnet host puerto       Prueba TCP (si está habilitado).
+curl url                 Descarga desde URL.
+ssh usuario@host         Conexión SSH nativa Windows 10/11.`,
+
+    'cmd_sistema_reparacion': `=== COMANDOS DE SISTEMA Y REPARACIÓN ===
+
+sfc /scannow                       Repara archivos de sistema corruptos.
+DISM /Online /Cleanup-Image /CheckHealth   Comprueba salud de imagen.
+DISM /Online /Cleanup-Image /ScanHealth    Escanea corrupción.
+DISM /Online /Cleanup-Image /RestoreHealth Restaura la imagen.
+chkdsk C: /f /r                    Comprueba y repara disco.
+chkdsk /scan                       Solo lectura.
+systeminfo                         Información del sistema.
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+ver                                Versión de Windows.
+powercfg /energy                   Informe de energía (60 s).
+powercfg /batteryreport            Informe de batería HTML.
+perfmon /report                    Informe de rendimiento (60 s).
+eventvwr                           Visor de eventos.
+msinfo32                           Información del sistema GUI.
+resmon                             Monitor de recursos.
+tasklist                           Lista procesos.
+taskkill /PID 1234 /F              Mata proceso por PID.
+taskkill /IM chrome.exe /F         Mata proceso por nombre.
+sc query                           Estado de servicios.
+sc start NombreServicio            Inicia servicio.
+sc stop NombreServicio             Detiene servicio.
+net start                          Lista servicios iniciados.
+net stop NombreServicio            Detiene servicio.
+net user                           Lista usuarios.
+net localgroup administrators      Lista administradores.
+wmic product get name,version      Software instalado.
+wmic logicaldisk get name,size,freespace  Discos y espacio libre.
+shutdown /s /t 0                   Apagar ya.
+shutdown /r /t 0                   Reiniciar ya.
+systemreset -cleanpc               Reset de Windows (desde CMD).
+cleanmgr                           Liberador de espacio.`,
+
+    'cmd_powershell': `=== POWERSHELL — COMANDOS ESENCIALES ===
+
+Get-Process                    Lista procesos.
+Stop-Process -Name chrome      Detiene proceso.
+Get-Service                    Lista servicios.
+Start-Service -Name Nombre     Inicia servicio.
+Stop-Service -Name Nombre      Detiene servicio.
+Get-EventLog -LogName System   Eventos del sistema.
+Get-ChildItem                  Lista archivos (como dir).
+Copy-Item                      Copia (como copy).
+Move-Item                      Mueve (como move).
+Remove-Item                    Borra (como del).
+Get-Content                    Lee archivo (como type).
+Set-Content                    Escribe archivo.
+Test-NetConnection host        Prueba conectividad (como ping).
+Get-NetIPConfiguration         Config IP.
+Get-NetAdapter                 Adaptadores de red.
+Get-NetFirewallRule            Reglas de firewall.
+New-NetFirewallRule            Crea regla de firewall.
+Get-Volume                     Volúmenes y espacio libre.
+Get-Disk                       Discos.
+Get-ComputerInfo               Información del sistema.
+Get-HotFix                     Actualizaciones instaladas.
+Get-LocalUser                  Usuarios locales.
+New-LocalUser                  Crea usuario local.
+Add-LocalGroupMember           Añade usuario a grupo.
+Get-WindowsOptionalFeature     Características de Windows.
+Enable-WindowsOptionalFeature  Habilita característica.
+Get-AppxPackage                Paquetes de apps instaladas.
+Remove-AppxPackage             Desinstala app.
+Get-Command                    Busca comandos disponibles.
+Get-Help                       Ayuda de un comando.
+Invoke-WebRequest              Descarga web (como curl).
+Invoke-RestMethod              Consume API REST.
+ConvertTo-Json                 Objeto a JSON.
+ConvertFrom-Json               JSON a objeto.
+Export-Csv                     Exporta a CSV.
+Import-Csv                     Importa CSV.
+Measure-Object                 Cuenta, suma, media.
+Select-Object                  Selecciona propiedades.
+Where-Object                   Filtra.
+ForEach-Object                 Itera.
+Sort-Object                    Ordena.
+Group-Object                   Agrupa.
+Compare-Object                 Compara objetos.`
+  };
+
+  Object.entries(categorias).forEach(([k, v]) => {
+    guardar(k, v);
+    hechas++; updateStats();
+  });
+
+  log('💻 Comandos Windows listos', 'ok');
+}
+
+// ============================================================
+// 2. REDES Y ADMINISTRACIÓN
+// ============================================================
+async function recolectarRedes() {
+  log('🌐 Redes y administración...', 'prog');
+
+  const contenidoRedes = `=== COMANDOS DE REDES POR FABRICANTE ===
+
+--- CISCO IOS / IOS-XE ---
+show running-config              Muestra configuración activa.
+show startup-config              Muestra configuración guardada.
+show ip interface brief          Estado de interfaces.
+show ip route                    Tabla de enrutamiento.
+show vlan brief                  VLANs configuradas.
+show mac address-table           Tabla MAC.
+show cdp neighbors               Vecinos Cisco Discovery Protocol.
+show lldp neighbors              Vecinos Link Layer Discovery Protocol.
+show spanning-tree               Estado STP.
+show interfaces status           Estado y velocidades.
+show version                     Versión del IOS.
+show arp                         Tabla ARP.
+show bgp all                     Estado BGP.
+show aaa authentication          Configuración AAA.
+show aaa authorization           Autorización AAA.
+show loop-protect                Protección de bucles.
+show power-over-ethernet         Estado PoE.
+show qos dscp-map                Mapa DSCP.
+show qos queue-profile           Perfil de colas.
+show environment temperature     Temperatura del chasis.
+configure terminal               Modo configuración global.
+interface GigabitEthernet0/1     Entra a una interfaz.
+ip address 192.168.1.1 255.255.255.0  Asigna IP.
+no shutdown                      Activa interfaz.
+vlan 10                          Crea VLAN 10.
+switchport mode access           Modo acceso.
+switchport access vlan 10        Asigna VLAN.
+copy running-config startup-config  Guarda configuración.
+write memory                     Guarda configuración.
+reload                           Reinicia.
+
+--- MIKROTIK ROUTEROS ---
+/ip address print                Direcciones IP.
+/ip route print                  Rutas.
+/ip firewall filter print        Reglas de firewall.
+/ip firewall nat print           Reglas NAT.
+/interface print                 Interfaces.
+/interface wireless print        Interfaces inalámbricas.
+/system identity print           Nombre del equipo.
+/system resource print           CPU, RAM, uptime.
+/system reboot                   Reiniciar.
+/ip dhcp-server print            Servidores DHCP.
+/ip dns print                    Configuración DNS.
+/ip pool print                   Pools de IPs.
+/queue simple print              Colas de ancho de banda.
+/log print                       Logs del sistema.
+/user print                      Usuarios.
+/export                          Exporta configuración.
+
+--- PFSENSE (REST API) ---
+GET  /api/v2/auth/jwt            Autenticación JWT.
+POST /api/v2/auth/jwt            Login.
+GET  /api/v2/firewall/rules      Reglas de firewall.
+GET  /api/v2/firewall/aliases    Alias de firewall.
+GET  /api/v2/diagnostics/*       Diagnóstico.
+GET  /api/v2/interface/*         Interfaces.
+GET  /api/v2/system/*            Sistema.
+
+--- UNIFI ---
+unifi_list_devices               Lista dispositivos UniFi.
+unifi_list_events                Eventos recientes.
+unifi_list_alarms                Alarmas activas.
+unifi_list_firewall_rules        Reglas de firewall.
+unifi_list_clients               Clientes conectados.
+unifi_get_device_stats           Estadísticas del dispositivo.
+
+--- OPENWRT / LUCI ---
+router_security_audit            Auditoría de seguridad.
+LuCI web UI                      Interfaz web de administración.
+uci show                         Configuración UCI.
+opkg update && opkg install      Gestión de paquetes.
+
+=== PROTOCOLOS Y PUERTOS ===
+HTTP     80/tcp     Web sin cifrar.
+HTTPS    443/tcp    Web cifrada.
+SSH      22/tcp     Shell seguro.
+Telnet   23/tcp     Shell sin cifrar.
+FTP      21/tcp     Transferencia de archivos.
+SFTP     22/tcp     FTP sobre SSH.
+SMTP     25/tcp     Envío de correo.
+IMAP     143/tcp    Correo entrante.
+POP3     110/tcp    Correo entrante.
+DNS      53/udp/tcp Resolución de nombres.
+DHCP     67-68/udp  Asignación de IP.
+NTP      123/udp    Sincronización de hora.
+SNMP     161/udp    Monitoreo.
+LDAP     389/tcp    Directorio.
+RDP      3389/tcp   Escritorio remoto Windows.
+SMB      445/tcp    Compartición Windows.
+MySQL    3306/tcp   Base de datos MySQL.
+PostgreSQL 5432/tcp Base de datos PostgreSQL.
+RDP      3389/tcp   Escritorio remoto.
+VNC      5900/tcp   Escritorio remoto VNC.`;
+
+  guardar('redes_comandos_y_puertos', contenidoRedes);
+  hechas++; updateStats();
+
+  // API de auditoría de red (ejemplo conceptual)
+  log('🌐 Redes listo', 'ok');
+}
+
+// ============================================================
+// 3. SEGURIDAD INFORMÁTICA
+// ============================================================
+async function recolectarSegInfo() {
+  log('🛡️ Seguridad informática...', 'prog');
+  const tareas = [
+
+    // HIBP — rango de hashes (k-anonymity)
+    async () => tarea('seg_hibp_rango_12345',
+      'https://api.pwnedpasswords.com/range/5BAA6'),
+    async () => tarea('seg_hibp_rango_abcde',
+      'https://api.pwnedpasswords.com/range/ABC01'),
+
+    // RDAP — WHOIS en JSON
+    async () => tarea('seg_rdap_google', 'https://rdap.org/domain/google.com'),
+    async () => tarea('seg_rdap_wikipedia', 'https://rdap.org/domain/wikipedia.org'),
+    async () => tarea('seg_rdap_github', 'https://rdap.org/domain/github.com'),
+
+    // Wayback Machine
+    async () => tarea('seg_wayback_google', 'https://archive.org/wayback/available?url=google.com'),
+    async () => tarea('seg_wayback_arxiv', 'https://archive.org/wayback/available?url=arxiv.org')
+
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+  log('🛡️ Seguridad terminada', 'ok');
+}
+
+// ============================================================
+// 4. LEYES CUBANAS
+// ============================================================
+async function recolectarLeyesCuba() {
+  log('🇨🇺 Leyes cubanas...', 'prog');
+
+  // Contenido de referencia sobre el sistema legal cubano
+  const leyesCuba = `=== SISTEMA LEGAL CUBANO — REFERENCIA ===
+
+--- JERARQUÍA NORMATIVA ---
+1. Constitución de la República (2019)
+2. Leyes de la Asamblea Nacional del Poder Popular
+3. Decretos-Leyes del Consejo de Estado
+4. Decretos Presidenciales
+5. Decretos del Consejo de Ministros
+6. Resoluciones Ministeriales
+7. Instrucciones y Circulares
+
+--- LEYES FUNDAMENTALES ---
+Ley 156/2022   Código de las Familias.
+Ley 171/2024   Ley de Migración.
+Ley 165/2023   Ley de Soberanía Alimentaria y Seguridad Alimentaria y Nutricional.
+Ley 150/2023   Ley del Sistema de los Recursos Naturales y el Medio Ambiente.
+Ley 182/2024   Ley General de Ciencia, Tecnología e Innovación.
+Ley 189       Código de Trabajo.
+Ley 116       Código de Trabajo (anterior).
+Ley 62        Código Penal.
+Ley 5         Código Civil (1987).
+Ley 7         Protección al Consumidor.
+Ley 109/2010  Ley de la Fiscalía General de la República.
+Ley 113/2012  Ley de la Contraloría General de la República.
+
+--- DECRETOS-LEYES RELEVANTES ---
+Decreto-Ley 129/2026   Decomiso de mercancías por violación del registro comercial.
+Decreto-Ley 336/2023   Disposiciones Contractuales de Propiedad Industrial.
+Decreto-Ley 155/1994   Decomiso de mercancías.
+Decreto-Ley 68/1983    Sistema Nacional de Archivos.
+Decreto-Ley 270/2001   Reglamento sobre metrología.
+
+--- RESOLUCIONES ---
+Resolución 143/2025   (GOC-2026-133-O13)
+Resolución 24/2025     Reglamento del Registro de Ciudadanía.
+Resolución 93/2026.
+Resolución 180/2026.
+Resolución 287/1996    Ministerio de la Construcción.
+Resolución 145.
+
+--- DECRETOS PRESIDENCIALES ---
+Decreto Presidencial 1185/2026.
+Decreto Presidencial 150/2026  Procedimiento para otorgar condición migratoria de inversores.
+
+--- REPOSITORIOS OFICIALES ---
+Gaceta Oficial de la República: https://www.gacetaoficial.gob.cu
+FAOLEX Cuba: https://www.fao.org/faolex
+VLEX Cuba: https://cuba.vlex.com
+Parliament of Cuba: https://www.parlamentocubano.gob.cu
+Contraloría General: https://www.contraloria.gob.cu
+
+--- GACETA OFICIAL — EDICIONES RECIENTES ---
+Gaceta No. 69 Ordinaria de 2026.
+Gaceta No. 39 Ordinaria de 2026.
+Gaceta No. 34 Ordinaria de 2025.
+Gaceta No. 7 Extraordinaria Especial de 2026.
+Gaceta No. 4 Ordinaria de 1998.`;
+
+  guardar('leyes_cuba_referencia', leyesCuba);
+  hechas++; updateStats();
+
+  // API FAOLEX (búsqueda de leyes cubanas)
+  const tareas = [
+    async () => tarea('leyes_cuba_faolex_busqueda',
+      'https://www.fao.org/faolex/es/search-results/?query=cuba',
+      async txt => txt.slice(0, 20000))
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 1);
+
+  log('🇨🇺 Leyes cubanas listas', 'ok');
+}
+
+// ============================================================
+// 5. PYTHON — COMANDOS Y LIBRERÍAS
+// ============================================================
+async function recolectarPython() {
+  log('🐍 Python — comandos y librerías...', 'prog');
+
+  const pythonRef = `=== PYTHON — REFERENCIA DE COMANDOS Y LIBRERÍAS ===
+
+--- SISTEMA ---
+import os
+os.getcwd()                 Directorio actual.
+os.chdir('/ruta')           Cambiar directorio.
+os.listdir('.')             Listar archivos.
+os.mkdir('carpeta')         Crear carpeta.
+os.makedirs('a/b/c')        Crear carpetas anidadas.
+os.remove('archivo')        Borrar archivo.
+os.rmdir('carpeta')         Borrar carpeta vacía.
+os.path.exists('x')         Comprobar existencia.
+os.path.join('a','b')       Unir rutas.
+os.environ['VAR']           Variable de entorno.
+os.system('comando')        Ejecutar comando de shell.
+
+import sys
+sys.argv                    Argumentos de línea de comandos.
+sys.exit(0)                 Salir del programa.
+sys.path                    Rutas de búsqueda de módulos.
+sys.version                 Versión de Python.
+sys.platform                Plataforma ('win32', 'linux', 'darwin').
+
+import subprocess
+subprocess.run(['ls','-la'])            Ejecuta comando.
+subprocess.check_output(['ping','-c','1','google.com'])
+subprocess.Popen(['python','script.py'])
+
+import shutil
+shutil.copy('a','b')        Copia archivo.
+shutil.copytree('a','b')    Copia carpeta.
+shutil.move('a','b')        Mueve.
+shutil.rmtree('carpeta')    Borra carpeta con contenido.
+shutil.make_archive('out','zip','carpeta')  Comprime.
+
+import pathlib
+p = pathlib.Path('.')
+p.glob('*.txt')             Busca archivos.
+p.read_text()               Lee texto.
+p.write_text('hola')        Escribe texto.
+p.mkdir(exist_ok=True)      Crea carpeta.
+
+import glob
+glob.glob('*.py')           Lista archivos por patrón.
+glob.glob('**/*.txt', recursive=True)
+
+--- DATOS ---
+import json
+json.load(open('a.json'))   Lee JSON.
+json.dump(obj, open('a.json','w'))  Escribe JSON.
+json.dumps(obj, indent=2)   Objeto a string JSON.
+json.loads('{"a":1}')       String a objeto.
+
+import csv
+csv.reader(open('a.csv'))   Lee CSV.
+csv.writer(open('a.csv','w'))  Escribe CSV.
+csv.DictReader(open('a.csv'))  Lee como diccionarios.
+csv.DictWriter(f, fieldnames=cols)  Escribe desde diccionarios.
+
+import sqlite3
+conn = sqlite3.connect('db.sqlite')
+cur = conn.cursor()
+cur.execute('SELECT * FROM tabla')
+cur.fetchall()
+conn.commit()
+conn.close()
+
+--- WEB Y APIs ---
+import requests
+r = requests.get('https://api.ejemplo.com')
+r = requests.post(url, json={'k':'v'})
+r.status_code
+r.json()
+r.text
+r.headers
+requests.get(url, params={'q':'x'}, headers={'User-Agent':'X'})
+requests.get(url, timeout=10, auth=('user','pass'))
+requests.Session()          Sesión persistente.
+
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(html, 'html.parser')
+soup.title.string
+soup.find_all('a')
+soup.find('div', class_='x')
+soup.select('div.clase > p')
+
+import urllib.request
+urllib.request.urlopen('https://ejemplo.com')
+
+--- MATEMÁTICAS Y DATOS ---
+import math
+math.sqrt(16)               Raíz cuadrada.
+math.pi                     Constante pi.
+math.sin(x), math.cos(x), math.tan(x)
+math.log(x), math.log10(x)
+math.floor(x), math.ceil(x)
+math.factorial(5)
+math.gcd(12, 18)
+
+import random
+random.random()             Float [0,1).
+random.randint(1,10)        Entero [1,10].
+random.choice(['a','b'])    Elemento aleatorio.
+random.shuffle(lista)       Baraja lista.
+random.sample(lista, 3)     3 elementos sin repetición.
+
+import statistics
+statistics.mean([1,2,3])
+statistics.median([1,2,3])
+statistics.mode([1,1,2])
+statistics.stdev([1,2,3])
+
+import numpy as np
+np.array([1,2,3])           Array.
+np.mean(a), np.std(a), np.sum(a)
+np.dot(a, b)                Producto punto.
+np.linspace(0,1,100)        100 puntos entre 0 y 1.
+np.zeros((3,3))             Matriz de ceros.
+np.ones((3,3))              Matriz de unos.
+np.random.rand(3,3)         Aleatorios.
+np.linalg.inv(m)            Inversa.
+np.linalg.det(m)            Determinante.
+
+import pandas as pd
+df = pd.read_csv('a.csv')
+df = pd.read_excel('a.xlsx')
+df = pd.read_json('a.json')
+df.head(), df.tail()
+df.info(), df.describe()
+df.dropna()
+df.fillna(0)
+df.groupby('col').mean()
+df.sort_values('col')
+df.to_csv('out.csv', index=False)
+df.to_excel('out.xlsx')
+
+--- FECHAS Y TIEMPO ---
+from datetime import datetime, date, timedelta
+datetime.now()
+datetime(2025, 12, 31)
+date.today()
+timedelta(days=7)
+datetime.strptime('2025-01-01', '%Y-%m-%d')
+dt.strftime('%d/%m/%Y')
+dt.timestamp()
+
+import time
+time.time()                 Timestamp Unix.
+time.sleep(2)               Espera 2 segundos.
+time.ctime()                Hora legible.
+
+--- AUTOMATIZACIÓN DE REDES ---
+from netmiko import ConnectHandler
+device = {
+    'device_type': 'cisco_ios',
+    'host': '192.168.1.1',
+    'username': 'admin',
+    'password': 'pass',
+    'secret': 'enable'
+}
+with ConnectHandler(**device) as conn:
+    conn.enable()
+    output = conn.send_command('show ip interface brief')
+    conn.send_config_set(['vlan 10', 'name DATOS'])
+    conn.save_config()
+
+import paramiko
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect('host', username='user', password='pass')
+stdin, stdout, stderr = ssh.exec_command('ls -la')
+print(stdout.read().decode())
+ssh.close()
+
+import argparse
+parser = argparse.ArgumentParser(description='Script')
+parser.add_argument('--input', required=True)
+parser.add_argument('--verbose', action='store_true')
+args = parser.parse_args()
+
+--- EXCEL Y ARCHIVOS ---
+import openpyxl
+wb = openpyxl.load_workbook('a.xlsx')
+ws = wb.active
+ws['A1'].value
+ws['A1'] = 'Hola'
+wb.save('out.xlsx')
+
+from PyPDF2 import PdfReader, PdfWriter
+reader = PdfReader('a.pdf')
+len(reader.pages)
+page = reader.pages[0]
+page.extract_text()
+
+import docx
+doc = docx.Document('a.docx')
+for p in doc.paragraphs:
+    print(p.text)`;
+
+  guardar('python_referencia_comandos', pythonRef);
+  hechas++; updateStats();
+
+  // PyPI API para metadatos de paquetes clave
+  const tareas = [
+    async () => tarea('python_pypi_requests', 'https://pypi.org/pypi/requests/json'),
+    async () => tarea('python_pypi_pandas', 'https://pypi.org/pypi/pandas/json'),
+    async () => tarea('python_pypi_numpy', 'https://pypi.org/pypi/numpy/json'),
+    async () => tarea('python_pypi_netmiko', 'https://pypi.org/pypi/netmiko/json'),
+    async () => tarea('python_pypi_paramiko', 'https://pypi.org/pypi/paramiko/json')
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+
+  log('🐍 Python listo', 'ok');
+}
+
+// ============================================================
+// 6. CRIATURAS MITOLÓGICAS Y FANTASÍA
+// ============================================================
+async function recolectarMitos() {
+  log('🐉 Mitología y fantasía...', 'prog');
+  const tareas = [
+
+    // Open5e — criaturas D&D 5e (SRD abierto)
+    async () => tarea('mitos_open5e_criaturas',
+      'https://api.open5e.com/v2/creatures/?limit=50',
+      async txt => {
+        try {
+          const j = JSON.parse(txt);
+          return JSON.stringify(j, null, 2).slice(0, 80000);
+        } catch (e) { return txt; }
+      }),
+
+    // myth-monsters JSON (GitHub raw)
+    async () => tarea('mitos_myth_monsters',
+      'https://raw.githubusercontent.com/Devstone11/myth-monsters/master/monsters.json'),
+
+    // Wikipedia mitología
+    async () => tarea('mitos_wiki_griega',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Mitología_griega',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('mitos_wiki_nordica',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Mitología_nórdica',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('mitos_wiki_egipcia',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Mitología_egipcia',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('mitos_wiki_celta',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Mitología_celta',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('mitos_wiki_japonesa',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Mitología_japonesa',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('mitos_wiki_criaturas',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Criatura_legendaria',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } })
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 4);
+
+  // Lista de criaturas específicas vía Wikipedia
+  const criaturas = [
+    'Grifo','Hidra','Fénix','Cíclope','Dragón','Kitsune','Fenrir','Esfinge',
+    'Mantícora','Quimera','Unicornio','Pegaso','Centauro','Minotauro','Sirena',
+    'Kraken','Leviatán','Behemot','Zombi','Vampiro','Hombre_lobo','Yeti',
+    'Nessie','Chupacabras','Duende','Hada','Elfo','Enano','Troll','Ogro',
+    'Gigante','Titán','Naga','Roc','Simurgh','Anka','Banshee','Selkie'
+  ];
+  const tareas2 = criaturas.map(c => async () => {
+    await tarea('mitos_criatura_' + c,
+      'https://es.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(c),
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } });
+  });
+  totalTareas += tareas2.length; updateStats();
+  await conLimite(tareas2, 5);
+
+  log('🐉 Mitología terminada', 'ok');
+}
+
+// ============================================================
+// 7. TAROT
+// ============================================================
+async function recolectarTarot() {
+  log('🔮 Tarot...', 'prog');
+
+  // Dataset completo de 78 cartas (referencia offline)
+  const tarot78 = `=== TAROT — 78 CARTAS (RIDER-WAITE-SMITH) ===
+
+--- ARCANOS MAYORES (22) ---
+0   El Loco            Inicio, libertad, espontaneidad, fe. Invertido: imprudencia, riesgo.
+I   El Mago            Poder, habilidad, concentración, acción. Invertido: manipulación.
+II  La Sacerdotisa     Intuición, sabiduría, misterio. Invertido: secretos, desconexión.
+III La Emperatriz      Fertilidad, abundancia, creatividad. Invertido: dependencia, bloqueo.
+IV  El Emperador       Autoridad, estructura, estabilidad. Invertido: tiranía, rigidez.
+V   El Sumo Sacerdote  Tradición, guía espiritual, conformidad. Invertido: rebeldía.
+VI  Los Enamorados     Amor, unión, elección. Invertido: desequilibrio, indecisión.
+VII El Carro           Victoria, voluntad, control. Invertido: falta de dirección.
+VIII La Fuerza         Coraje, paciencia, compasión. Invertido: duda, debilidad.
+IX  El Ermitaño        Introspección, soledad, guía. Invertido: aislamiento.
+X   La Rueda de la Fortuna  Ciclo, destino, cambio. Invertido: mala suerte.
+XI  La Justicia        Equilibrio, verdad, ley. Invertido: injusticia.
+XII El Colgado         Sacrificio, pausa, rendición. Invertido: resistencia.
+XIII La Muerte         Fin, transformación, renacimiento. Invertido: estancamiento.
+XIV La Templanza       Balance, moderación, paciencia. Invertido: exceso.
+XV  El Diablo          Ataduras, materialismo, sombra. Invertido: liberación.
+XVI La Torre           Ruptura, revelación, caos. Invertido: desastre evitado.
+XVII La Estrella       Esperanza, inspiración, serenidad. Invertido: desesperanza.
+XVIII La Luna          Ilusión, miedo, subconsciente. Invertido: confusión.
+XIX El Sol             Éxito, alegría, vitalidad. Invertido: arrogancia.
+XX  El Juicio          Renacimiento, llamado, absolución. Invertido: duda.
+XXI El Mundo           Plenitud, realización, viaje. Invertido: falta de cierre.
+
+--- ARCANOS MENORES (56) ---
+Oros / Pentáculos     Tierra — dinero, trabajo, cuerpo, material.
+Copas                 Agua — emociones, amor, relaciones, intuición.
+Espadas               Aire — mente, conflicto, comunicación, verdad.
+Bastos / Varitas      Fuego — acción, creatividad, pasión, voluntad.
+
+Cada palo: As, 2–10, Sota, Caballero, Reina, Rey (14 cartas).
+Total: 4 palos × 14 = 56 cartas.
+
+--- INTERPRETACIONES CLAVE ---
+As de Oros        Nueva oportunidad financiera.
+As de Copas       Nuevo amor o emoción.
+As de Espadas     Claridad mental, verdad.
+As de Bastos      Nueva idea, inspiración.
+
+Diez de Oros      Riqueza familiar, legado.
+Diez de Copas     Felicidad emocional, familia.
+Diez de Espadas   Fin doloroso, traición.
+Diez de Bastos    Carga pesada, responsabilidad.
+
+--- TIRADAS COMUNES ---
+Carta del día    1 carta — mensaje general.
+Pasado-Presente-Futuro  3 cartas.
+Cruz celta       10 cartas — lectura profunda.
+Sí/No            1 carta — respuesta directa.`;
+
+  guardar('tarot_78_cartas_referencia', tarot78);
+  hechas++; updateStats();
+
+  // tarotapi.dev (API gratuita de tarot)
+  const tareas = [
+    async () => tarea('tarot_api_cartas',
+      'https://tarotapi.dev/api/v1/cards'),
+    async () => tarea('tarot_api_carta_loco',
+      'https://tarotapi.dev/api/v1/cards/the-fool'),
+    async () => tarea('tarot_api_carta_mago',
+      'https://tarotapi.dev/api/v1/cards/the-magician'),
+    async () => tarea('tarot_api_carta_muerte',
+      'https://tarotapi.dev/api/v1/cards/death'),
+    async () => tarea('tarot_api_carta_sol',
+      'https://tarotapi.dev/api/v1/cards/the-sun')
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+
+  log('🔮 Tarot listo', 'ok');
+}
+
+// ============================================================
+// 8. CELULARES
+// ============================================================
+async function recolectarMoviles() {
+  log('📱 Celulares...', 'prog');
+
+  // Códigos secretos USSD
+  const codigos = `=== CÓDIGOS SECRETOS DE CELULARES ===
+
+--- ANDROID / GENERAL ---
+*#06#                    Muestra el IMEI.
+*#*#4636#*#*             Panel de pruebas de Android.
+*#*#225#*#*              Información de calendario.
+*#*#426#*#*              Información de Google Play.
+*#*#8255#*#*             Monitor de GTalk.
+*#*#759#*#*              Menú de pruebas.
+*#*#34971539#*#*         Info de cámara.
+*#*#2664#*#*             Prueba táctil.
+*#*#0842#*#*             Prueba de vibración.
+*#*#232339#*#*           Prueba WiFi.
+*#*#232338#*#*           Dirección MAC WiFi.
+*#*#1472365#*#*          Prueba GPS.
+*#*#1575#*#*             Test GPS avanzado.
+*#*#2663#*#*             Versión de pantalla táctil.
+*#*#0283#*#*             Test de loopback de paquetes.
+*#*#0*#*#*               Test de pantalla.
+*#*#0673#*#*             Test de audio.
+*#*#0842#*#*             Test de vibración y backlight.
+*#*#3264#*#*             Versión de RAM.
+*#*#232331#*#*           Test Bluetooth.
+*#*#232337#*#*           Dirección Bluetooth.
+*#*#7262626#*#*          Test de campo.
+*#*#1111#*#*             Versión de software FTA.
+*#*#2222#*#*             Versión de hardware FTA.
+*#*#44336#*#*            Fecha de build.
+*#*#8351#*#*             Modo de registro de voz.
+*#*#8350#*#*             Desactiva registro de voz.
+*#*#273283*255*663282*#*#*  Backup de archivos multimedia.
+*2767*3855#              Reset de fábrica (¡borra todo!).
+*#*#7780#*#*             Reset de fábrica (soft reset).
+
+--- SAMSUNG ---
+*#0*#                    Test completo de hardware.
+*#9900#                  Liberar memoria y borrar logs.
+*#06#                    IMEI.
+*#1234#                  Versión exacta de firmware.
+*#1111#                  Versión de software.
+*#2222#                  Versión de hardware.
+*#0289#                  Test de audio.
+*#0782#                  Reloj en tiempo real.
+*#0673#                  Test de audio.
+*#0228#                  Estado de la batería.
+*#0011#                  Modo de servicio.
+*#9090#                  Configuración de diagnóstico.
+*#7284#                  Configuración de USB.
+*#34971539#              Info de cámara.
+*#7412365#               Test de cámara.
+*#2263#                  Modo de banda.
+*#232331#                Test Bluetooth.
+*#232337#                Dirección Bluetooth.
+*#232338#                Dirección MAC WiFi.
+*#232339#                Test WiFi.
+*#3264#                  Versión de RAM.
+*#528#                    Test de micrófono.
+*#0283#                  Test de loopback.
+*#1575#                  Test GPS.
+*#1472365#               Test GPS rápido.
+*#2663#                  Versión de touch.
+*#0842#                  Test de vibración.
+*#0589#                  Sensor de luz.
+*#0588#                  Sensor de proximidad.
+*#0587#                  Sensor de giroscopio.
+*#0586#                  Sensor de acelerómetro.
+*#0585#                  Sensor de magnetómetro.
+
+--- iPHONE ---
+*#06#                    Muestra el IMEI.
+*3001#12345#*            Field Test Mode.
+*#67#                    Estado de desvío de llamadas.
+*#21#                    Estado de reenvío.
+*#31#                    Activar/desactivar ID de llamada.
+*#43#                    Activar llamada en espera.
+*#33#                    Estado de bloqueo de llamadas.
+*5005*25371#             Estado de bloqueo de llamadas.
+*5005*25370#             Bloqueo de llamadas entrantes.
+*225#                    Saldo prepago (según operador).
+*777#                    Saldo prepago (según operador).
+
+--- CÓDIGOS USSD DE OPERADORES ---
+*133#                    Cuba — ETECSA — saldo.
+*222#                    Cuba — ETECSA — consultas.
+*99#                    India — saldo.
+*111#                    Varios — menú de operador.
+*123#                    Varios — saldo.
+*555#                    Varios — menú.`;
+
+  guardar('moviles_codigos_secretos', codigos);
+  hechas++; updateStats();
+
+  // Especificaciones de marcas y modelos (referencia)
+  const specs = `=== MARCAS, MODELOS Y SISTEMAS OPERATIVOS MÓVILES ===
+
+--- SISTEMAS OPERATIVOS ---
+Android           Google — open source, versiones 1.0 a 15+.
+iOS               Apple — cerrado, iPhone/iPad.
+HarmonyOS         Huawei — alternativa a Android.
+KaiOS             Feature phones.
+Tizen             Samsung (smartwatches).
+Wear OS           Google (smartwatches).
+
+--- MARCAS PRINCIPALES ---
+Samsung           Galaxy S, A, M, Z, Note.
+Apple             iPhone 6–16, SE, Pro, Pro Max.
+Xiaomi            Redmi, POCO, Mi, MIX.
+Huawei            P, Mate, Nova, Y.
+OPPO              Find, Reno, A.
+vivo              X, V, Y.
+OnePlus           9–13, Nord.
+Motorola          Edge, G, Razr.
+Nokia             G, X, C.
+Google            Pixel 1–9, Pro, Fold.
+
+--- GAMAS Y PROCESADORES ---
+Gama alta         Snapdragon 8 Gen 3, Dimensity 9300, Apple A17 Pro.
+Gama media        Snapdragon 7 Gen 3, Dimensity 8000, Exynos 1480.
+Gama baja         Snapdragon 4 Gen 2, Helio G99, Unisoc T606.
+
+--- SOLUCIÓN DE ERRORES MÓVILES ---
+No carga           Limpiar puerto, probar otro cable/cargador.
+WiFi no conecta    Olvidar red, reiniciar router, reset de red.
+Apps se cierran    Borrar caché, actualizar, reinstalar.
+Lento              Liberar espacio, cerrar apps, reiniciar.
+Batería dura poco  Modo oscuro, desactivar ubicación, ahorro energía.
+Pantalla negra     Forzar reinicio (Vol+ y Power 10 s).
+Android sin arranque  Modo recovery: wipe cache.
+iPhone sin arranque   DFU mode + iTunes/Finder restore.
+Almacenamiento lleno  Google Files, analizar y borrar.
+Publicidad          Bloquear con DNS privado (dns.adguard.com).`;
+
+  guardar('moviles_marcas_errores', specs);
+  hechas++; updateStats();
+
+  // API de especificaciones (azharimm phone-specs)
+  const tareas = [
+    async () => tarea('moviles_api_marcas',
+      'https://api-mobilespecs.azharimm.dev/brands'),
+    async () => tarea('moviles_api_iphone_12',
+      'https://api-mobilespecs.azharimm.dev/apple_iphone_12_pro_max-10237'),
+    async () => tarea('moviles_api_galaxy_s21',
+      'https://api-mobilespecs.azharimm.dev/samsung_galaxy_s21-10260'),
+    async () => tarea('moviles_api_xiaomi_poco',
+      'https://api-mobilespecs.azharimm.dev/xiaomi_poco_x3_pro-10802')
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 3);
+
+  log('📱 Celulares listos', 'ok');
+}
+
+// ============================================================
+// 9. PHOTOSHOP Y EDICIÓN DE IMÁGENES
+// ============================================================
+async function recolectarFotos() {
+  log('🎨 Photoshop y edición de imágenes...', 'prog');
+
+  const psRef = `=== PHOTOSHOP — HISTORIA POR VERSIONES ===
+
+--- SERIE CS (CREATIVE SUITE) ---
+Photoshop 1.0 (1990)      Versión inicial.
+Photoshop 2.0 (1991)      Rutas, CMYK.
+Photoshop 2.5 (1992)      Windows.
+Photoshop 3.0 (1994)      Capas (layers).
+Photoshop 4.0 (1996)      Ajustes, acciones.
+Photoshop 5.0 (1998)      Historia, gestión de color.
+Photoshop 6.0 (2000)      Vector shapes, licuar.
+Photoshop 7.0 (2002)      Pincel, healing brush.
+Photoshop CS (8.0)        Oct 2003 — Match Color, Lens Blur.
+Photoshop CS2 (9.0)       Abr 2005 — Smart Objects, Vanishing Point.
+Photoshop CS3 (10.0)      Abr 2007 — UI rediseñada, Refine Edge.
+Photoshop CS4 (11.0)      Oct 2008 — Zoom suave, 3D, máscaras.
+Photoshop CS5 (12.0)      Abr 2010 — Content-Aware Fill, Puppet Warp.
+Photoshop CS6 (13.0)      May 2012 — Content-Aware Move, Blur Gallery.
+
+--- SERIE CC (CREATIVE CLOUD) ---
+CC 2013 (14.0)            Jun 2013 — Suscripción, Camera Raw 8.
+CC 2014 (15.0)            Jun 2014 — Content-Aware, Focus Area.
+CC 2015 (16.0)            Jun 2015 — Artboards, Design Space.
+CC 2015.5 (17.0)          Jun 2016 — Face-Aware Liquify.
+CC 2017 (18.0)            Nov 2016 — Templates, SVG.
+CC 2018 (19.0)            Oct 2017 — Curvature Pen, Lightroom.
+CC 2019 (20.0)            Oct 2018 — Frame Tool, Symmetry.
+CC 2020 (21.0)            Nov 2019 — Object Selection, Cloud Docs.
+CC 2021 (22.0)            Oct 2020 — Neural Filters, Sky Replacement.
+CC 2022 (23.0)            Oct 2021 — Camera Raw, Sky Swap.
+CC 2023 (24.0)            Oct 2022 — Remove Tool, Contextual Task Bar.
+CC 2024 (25.0)            Sep 2023 — Generative Fill (IA), Firefly.
+CC 2025 (26.0)            Oct 2024 — Generative Expand, mejoras IA.
+CC 2026 (27.0)            Oct 2025 — AI Assisted Editor, edición con prompts.
+CC 2026 (27.10)           Ago 2026 — Ajustes de iluminación, formatos personalizados.
+
+--- HERRAMIENTAS CLAVE ---
+Mover (V)                 Mueve capas y selecciones.
+Marco (M)                 Selección rectangular/elíptica.
+Lazo (L)                  Selección libre.
+Varita mágica (W)         Selección por color.
+Recortar (C)              Recorta y endereza.
+Pincel (B)                Pintura.
+Tampón de clonar (S)      Clona píxeles.
+Pincel corrector (J)      Corrige imperfecciones.
+Borrador (E)              Borra píxeles.
+Degradado (G)             Relleno degradado.
+Desenfocar (R)            Desenfoque.
+Sobreexponer (O)          Aclara/oscurece.
+Pluma (P)                 Trazados vectoriales.
+Texto (T)                 Texto.
+Formas (U)                Formas vectoriales.
+Cuentagotas (I)           Toma color.
+Mano (H)                  Desplaza el lienzo.
+Zoom (Z)                  Acerca/aleja.
+
+--- ATAJOS ESENCIALES ---
+Ctrl+Z                    Deshacer.
+Ctrl+Shift+Z              Rehacer.
+Ctrl+T                    Transformación libre.
+Ctrl+J                    Duplicar capa.
+Ctrl+Shift+N              Nueva capa.
+Ctrl+Alt+Shift+N          Nueva capa sin diálogo.
+Ctrl+D                    Deseleccionar.
+Ctrl+Shift+I              Invertir selección.
+Ctrl+Alt+Z                Deshacer múltiple.
+Ctrl+Shift+Alt+E          Combinar capas visibles.
+Ctrl+Alt+Shift+S          Guardar para web.
+Ctrl+Shift+S              Guardar como.
+Ctrl+0                    Ajustar a pantalla.
+Ctrl+1                    Zoom 100%.
+Tab                       Ocultar paneles.
+F                         Modo pantalla completa.
+
+--- EDICIÓN DE IMÁGENES — CONCEPTOS ---
+Resolución                PPP (píxeles por pulgada).
+Espacio de color          sRGB, Adobe RGB, ProPhoto RGB, CMYK.
+Profundidad de bits       8, 16, 32 bits por canal.
+Formatos                  PSD, TIFF, PNG, JPEG, GIF, WebP, HEIC, RAW.
+Máscaras de capa          Ocultar/mostrar partes de una capa.
+Modos de fusión           Normal, Multiplicar, Trama, Superponer, Luz suave.
+Curvas                    Ajuste tonal avanzado.
+Niveles                   Ajuste de luces, medios y sombras.
+Tono/Saturación           Ajuste de color.
+Equilibrio de color       Corrección de dominantes.
+Filtros                   Desenfoque, Enfoque, Distorsionar, Ruido.
+Camera Raw                Procesado de RAW.
+Acciones                  Automatización de tareas.
+Scripts                   Automatización con JavaScript.
+Batch Processing          Procesar lote de imágenes.
+Generative Fill           Relleno generativo con IA.
+Remove Tool               Eliminación de objetos con IA.
+Neural Filters            Filtros neuronales (IA).
+
+--- ALTERNATIVAS A PHOTOSHOP ---
+GIMP                      Open source, gratis.
+Krita                     Pintura digital, gratis.
+Photopea                  Web, gratis, compatible PSD.
+Affinity Photo            Pago único.
+Paint.NET                 Windows, gratis.
+Pixlr                     Web, freemium.
+Canva                     Diseño web, plantillas.`;
+
+  guardar('photoshop_versiones_y_edicion', psRef);
+  hechas++; updateStats();
+
+  // Wikipedia Adobe Photoshop (versión en español)
+  const tareas = [
+    async () => tarea('photoshop_wiki_es',
+      'https://es.wikipedia.org/api/rest_v1/page/summary/Adobe_Photoshop',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } }),
+    async () => tarea('photoshop_wiki_en_versions',
+      'https://en.wikipedia.org/api/rest_v1/page/summary/Adobe_Photoshop_version_history',
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } })
+  ];
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 2);
+
+  log('🎨 Photoshop listo', 'ok');
+}
+
+// ============================================================
+// 10. ERRORES WINDOWS Y MÓVILES
+// ============================================================
+async function recolectarErrores() {
+  log('🔧 Solución de errores...', 'prog');
+
+  const errores = `=== SOLUCIÓN DE ERRORES — WINDOWS Y MÓVILES ===
+
+--- WINDOWS — COMANDOS DE REPARACIÓN ---
+sfc /scannow                      Repara archivos de sistema.
+DISM /Online /Cleanup-Image /CheckHealth   Comprueba salud.
+DISM /Online /Cleanup-Image /ScanHealth    Escanea corrupción.
+DISM /Online /Cleanup-Image /RestoreHealth Restaura imagen.
+chkdsk C: /f /r                   Comprueba y repara disco.
+chkdsk C: /scan                   Solo lectura.
+bootrec /fixmbr                   Repara MBR.
+bootrec /fixboot                  Repara sector de arranque.
+bootrec /rebuildbcd               Reconstruye BCD.
+bootrec /scanos                   Escanea sistemas operativos.
+ipconfig /flushdns                Limpia caché DNS.
+ipconfig /release && ipconfig /renew  Renueva IP.
+netsh winsock reset               Resetea Winsock.
+netsh int ip reset                Resetea TCP/IP.
+netsh advfirewall reset           Resetea firewall.
+systemreset -cleanpc              Reset de Windows.
+perfmon /report                   Informe de rendimiento.
+powercfg /energy                  Informe de energía.
+powercfg /batteryreport           Informe de batería.
+eventvwr                          Visor de eventos.
+msinfo32                          Información del sistema.
+cleanmgr                          Liberador de espacio.
+%temp%                            Carpeta temporal (borrar).
+prefetch                          Carpeta de prefetch.
+chkdsk /spotfix                   Reparación puntual.
+chkdsk /sdcleanup                 Limpia descriptores.
+chkdsk /perf                      Optimiza.
+
+--- CÓDIGOS DE ERROR COMUNES WINDOWS ---
+0x80070005      Acceso denegado — permisos.
+0x8007000E      Sin memoria.
+0x80070002      Archivo no encontrado.
+0x8007007E      DLL no encontrada.
+0x800f081f      Corrupción de componentes — DISM.
+0xC000000F      Error de arranque — BCD.
+0xC00000E9      Error de E/S — disco.
+0x80004005      Error no especificado.
+0x80070057      Parámetro incorrecto.
+0x80240034      Fallo de actualización.
+0x80070424      Servicio no existe.
+0x8007045D      Error de E/S de dispositivo.
+0x80070BC9      Error de política de reinicio.
+0x80010108      Error COM.
+
+--- MÓVILES — SOLUCIÓN DE ERRORES ---
+Android no arranca       Recovery → wipe cache.
+Android bootloop         Recovery → wipe data/factory reset.
+App se cierra            Ajustes → Apps → Forzar detención → Borrar caché.
+App no instala           Liberar espacio, permitir orígenes desconocidos.
+WiFi no conecta          Olvidar red, reiniciar router, reset de red.
+Datos móviles no funcionan  Verificar APN, modo avión, reiniciar.
+Batería dura poco        Modo oscuro, ahorro energía, cerrar apps.
+Pantalla negra           Forzar reinicio (Vol+ y Power 10 s).
+iPhone no arranca        DFU mode + restauración.
+iPhone lento             Cerrar apps, liberar espacio, actualizar.
+Almacenamiento lleno     Google Files, analizar y borrar.
+Publicidad               DNS privado (dns.adguard.com).
+Overheating              Cerrar apps, quitar funda, evitar sol.
+Carga lenta              Limpiar puerto, otro cable/cargador.
+Pantalla táctil no responde  Limpiar, reiniciar, calibrar.`;
+
+  guardar('errores_windows_y_moviles', errores);
+  hechas++; updateStats();
+  log('🔧 Errores listos', 'ok');
+}
+
+// ============================================================
+// 11. WIKIPEDIA DE RESPALDO
+// ============================================================
+async function recolectarWikipedia3() {
+  log('📚 Wikipedia de respaldo...', 'prog');
+
+  const temas = [
+    // Informática y redes
+    'Administración_de_redes','Seguridad_informática','Ciberseguridad',
+    'Cortafuegos','Enrutador','Conmutador_de_red','Dirección_IP',
+    'Protocolo_de_control_de_transmisión','Modelo_OSI',
+    // Leyes cubanas
+    'Constitución_de_Cuba','Derecho_cubano','Gaceta_Oficial_de_la_República_de_Cuba',
+    'Asamblea_Nacional_del_Poder_Popular',
+    // Windows
+    'Microsoft_Windows','Windows_10','Windows_11','Símbolo_del_sistema',
+    'PowerShell','Sistema_de_archivos_NTFS',
+    // Mitología
+    'Mitología','Criatura_legendaria','Dragón','Fénix','Grifo','Unicornio',
+    'Tarot','Arcanos_mayores','Arcanos_menores',
+    // Móviles
+    'Teléfono_inteligente','Android','IOS','Sistema_operativo_móvil',
+    // Edición de imágenes
+    'Adobe_Photoshop','GIMP','Edición_de_imágenes','Retoque_fotográfico',
+    'Formato_de_archivo_de_imagen',
+    // Prompts e IA
+    'Ingeniería_de_prompts','Inteligencia_artificial_generativa'
+  ];
+
+  const tareas = temas.map(t => async () => {
+    await tarea('wiki3_' + t,
+      'https://es.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(t),
+      async txt => { try { const j=JSON.parse(txt); return '# '+j.title+'\n\n'+(j.extract||''); } catch(e){ return txt; } });
+  });
+  totalTareas += tareas.length; updateStats();
+  await conLimite(tareas, 6);
+  log('📚 Wikipedia de respaldo terminada', 'ok');
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+document.getElementById('go').addEventListener('click', async () => {
+  document.getElementById('go').disabled = true;
+  logEl.innerHTML = '';
+  resultado = { generado: new Date().toISOString(), fuente: 'github-pages-v3-informatica-cuba-fantasia', datos: {} };
+  okCount = 0; errCount = 0; totalBytes = 0; hechas = 0; totalTareas = 0;
+  document.getElementById('progWrap').style.display = 'block';
+  updateStats();
+
+  log('🚀 Iniciando recolección v3...', 'prog');
+
+  const test = await fetchT('https://es.wikipedia.org/api/rest_v1/page/summary/Windows_11');
+  if (!test.ok) {
+    log('❌ Wikipedia no accesible: ' + test.error, 'err');
+    document.getElementById('go').disabled = false;
+    return;
+  }
+  log('✅ Wikipedia accesible', 'ok');
+
+  if (document.getElementById('cbCmd').checked)       await recolectarCmd();
+  if (document.getElementById('cbRedes').checked)     await recolectarRedes();
+  if (document.getElementById('cbSegInfo').checked)   await recolectarSegInfo();
+  if (document.getElementById('cbLeyesCuba').checked) await recolectarLeyesCuba();
+  if (document.getElementById('cbPython').checked)    await recolectarPython();
+  if (document.getElementById('cbMitos').checked)     await recolectarMitos();
+  if (document.getElementById('cbTarot').checked)     await recolectarTarot();
+  if (document.getElementById('cbMoviles').checked)   await recolectarMoviles();
+  if (document.getElementById('cbFotos').checked)     await recolectarFotos();
+  if (document.getElementById('cbErrores').checked)   await recolectarErrores();
+  if (document.getElementById('cbWikipedia3').checked) await recolectarWikipedia3();
+
+  log('', 'info');
+  log('✅ COMPLETADO: ' + okCount + ' OK, ' + errCount + ' errores', 'ok');
+  log('📦 Total: ' + (totalBytes/1024/1024).toFixed(2) + ' MB', 'ok');
+  log('🔑 Recursos: ' + Object.keys(resultado.datos).length, 'prog');
+  document.getElementById('dl').disabled = false;
+  document.getElementById('go').disabled = false;
+});
+
+document.getElementById('dl').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'conocimiento3.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log('💾 conocimiento3.json descargado (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
+});
+</script>
+</body>
+</html>
