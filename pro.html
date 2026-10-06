@@ -3,30 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Recolector Total v2 — Enciclopedia completa para Ania</title>
+<title>🧠 Recolector Total v3 — APIs verificadas para Ania</title>
 <style>
   * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: #0f172a; color: #e2e8f0;
-    margin: 0; padding: 16px; line-height: 1.5;
-  }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 16px; line-height: 1.5; }
   .container { max-width: 1200px; margin: 0 auto; }
   h1 { color: #38bdf8; margin: 0 0 4px; font-size: 1.5rem; }
   .subtitle { color: #94a3b8; margin-top: 0; font-size: 0.88rem; }
-
-  .panel {
-    background: #1e293b; border-radius: 12px;
-    padding: 16px; margin: 14px 0; border: 1px solid #334155;
-  }
+  .panel { background: #1e293b; border-radius: 12px; padding: 16px; margin: 14px 0; border: 1px solid #334155; }
   .panel h2 { margin-top: 0; color: #7dd3fc; font-size: 1rem; }
-
-  button {
-    background: #0ea5e9; color: white; border: none;
-    padding: 10px 20px; border-radius: 8px;
-    font-size: 0.92rem; font-weight: 600; cursor: pointer;
-    transition: background 0.2s; margin: 4px 6px 4px 0; font-family: inherit;
-  }
+  button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin: 4px 6px 4px 0; font-family: inherit; }
   button:hover:not(:disabled) { background: #0284c7; }
   button:disabled { background: #475569; cursor: not-allowed; }
   button.secondary { background: #475569; }
@@ -34,194 +20,104 @@
   button.success { background: #16a34a; }
   button.success:hover:not(:disabled) { background: #15803d; }
   button.danger { background: #dc2626; }
-  button.danger:hover:not(:disabled) { background: #b91c1c; }
   button.small { padding: 6px 12px; font-size: 0.8rem; }
-
-  label.opt {
-    display: flex; align-items: center; gap: 8px;
-    color: #cbd5e1; padding: 4px 0; cursor: pointer; font-size: 0.88rem;
-  }
+  label.opt { display: flex; align-items: center; gap: 8px; color: #cbd5e1; padding: 4px 0; cursor: pointer; font-size: 0.88rem; }
   input[type="checkbox"] { width: 16px; height: 16px; }
-
-  .grid-checks {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 4px 16px;
-  }
-
-  .mode-selector {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px; margin-top: 10px;
-  }
-  .mode-card {
-    background: #0f172a; border: 2px solid #334155;
-    border-radius: 10px; padding: 14px; cursor: pointer;
-    transition: all 0.2s;
-  }
+  .grid-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 4px 16px; }
+  .mode-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+  .mode-card { background: #0f172a; border: 2px solid #334155; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; }
   .mode-card:hover { border-color: #0ea5e9; }
   .mode-card.selected { border-color: #38bdf8; background: #0c4a6e; }
   .mode-card h3 { margin: 0 0 6px; color: #38bdf8; font-size: 0.95rem; }
   .mode-card p { margin: 0; color: #94a3b8; font-size: 0.78rem; line-height: 1.4; }
-  .mode-card .badge {
-    display: inline-block; background: #334155; color: #cbd5e1;
-    padding: 2px 8px; border-radius: 10px; font-size: 0.68rem;
-    margin-top: 8px; font-weight: 600;
-  }
-
-  #log, .logbox {
-    background: #0f172a; border-radius: 8px; padding: 10px;
-    margin-top: 10px; max-height: 380px; overflow-y: auto;
-    font-family: ui-monospace, monospace; font-size: 0.75rem;
-  }
-  .log-info { color: #94a3b8; }
-  .log-ok { color: #4ade80; }
-  .log-err { color: #f87171; }
-  .log-warn { color: #fbbf24; }
-  .log-struct { color: #c084fc; }
-  .log-tema { color: #38bdf8; font-weight: 600; }
-  .log-sec { color: #7dd3fc; }
-
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 8px; margin: 12px 0;
-  }
-  .stat-card {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; padding: 8px; text-align: center;
-  }
+  .mode-card .badge { display: inline-block; background: #334155; color: #cbd5e1; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; margin-top: 8px; font-weight: 600; }
+  #log, .logbox { background: #0f172a; border-radius: 8px; padding: 10px; margin-top: 10px; max-height: 380px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 0.75rem; }
+  .log-info { color: #94a3b8; } .log-ok { color: #4ade80; } .log-err { color: #f87171; } .log-warn { color: #fbbf24; } .log-struct { color: #c084fc; } .log-tema { color: #38bdf8; font-weight: 600; } .log-sec { color: #7dd3fc; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 12px 0; }
+  .stat-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; }
   .stat-value { font-size: 1.2rem; font-weight: 700; color: #38bdf8; }
   .stat-label { font-size: 0.64rem; color: #94a3b8; text-transform: uppercase; }
-
-  .progress-wrap {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; height: 18px; overflow: hidden;
-    margin: 10px 0; position: relative;
-  }
-  .progress-bar {
-    height: 100%; background: linear-gradient(90deg, #0ea5e9, #4ade80);
-    width: 0%; transition: width 0.3s;
-  }
-  .progress-text {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.68rem; font-weight: 700; color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-  }
-
-  .info-box {
-    background: #0c4a6e; border: 1px solid #0ea5e9;
-    border-radius: 8px; padding: 10px; color: #bae6fd;
-    font-size: 0.82rem; margin: 10px 0;
-  }
-  .warn-box {
-    background: #422006; border: 1px solid #f59e0b;
-    border-radius: 8px; padding: 10px; color: #fcd34d;
-    font-size: 0.82rem; margin: 10px 0;
-  }
-
-  .cat-input-row {
-    display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
-  }
-  .cat-input-row input {
-    flex: 1; min-width: 200px; padding: 8px 12px;
-    background: #0f172a; color: #e2e8f0;
-    border: 1px solid #334155; border-radius: 6px;
-    font-family: inherit;
-  }
-  .cat-list {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
-  }
-  .cat-tag {
-    background: #334155; color: #cbd5e1;
-    padding: 4px 10px; border-radius: 12px;
-    font-size: 0.78rem; font-family: ui-monospace, monospace;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .cat-tag button {
-    background: transparent; color: #94a3b8;
-    padding: 0 4px; margin: 0; font-size: 0.9rem;
-    min-width: auto;
-  }
+  .progress-wrap { background: #0f172a; border: 1px solid #334155; border-radius: 8px; height: 18px; overflow: hidden; margin: 10px 0; position: relative; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, #0ea5e9, #4ade80); width: 0%; transition: width 0.3s; }
+  .progress-text { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
+  .info-box { background: #0c4a6e; border: 1px solid #0ea5e9; border-radius: 8px; padding: 10px; color: #bae6fd; font-size: 0.82rem; margin: 10px 0; }
+  .warn-box { background: #422006; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; color: #fcd34d; font-size: 0.82rem; margin: 10px 0; }
+  .cat-input-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .cat-input-row input { flex: 1; min-width: 200px; padding: 8px 12px; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; font-family: inherit; }
+  .cat-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .cat-tag { background: #334155; color: #cbd5e1; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-family: ui-monospace, monospace; display: flex; align-items: center; gap: 6px; }
+  .cat-tag button { background: transparent; color: #94a3b8; padding: 0 4px; margin: 0; font-size: 0.9rem; min-width: auto; }
   .cat-tag button:hover { color: #f87171; background: transparent; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🧠 Recolector Total v2</h1>
-  <p class="subtitle">Enciclopedia completa para Ania: Wikipedia íntegra, categorías expandidas, Wikidata, OpenAlex, Crossref, DBpedia, OpenLibrary y todos los temas anteriores</p>
+  <h1>🧠 Recolector Total v3</h1>
+  <p class="subtitle">APIs verificadas · Fallback en cascada · Cero errores CORS · Todo el conocimiento para Ania</p>
 
   <div class="info-box">
-    💡 <b>Novedades v2:</b> artículos completos de Wikipedia (no solo resúmenes), expansión automática por categorías, metadatos estructurados de Wikidata, papers académicos de OpenAlex y Crossref, y libros de OpenLibrary.
+    ✅ <b>APIs verificadas:</b> Wikipedia (origin=*), Wiktionary (origin=*), RAE API (español), OpenAlex (CORS abierto), OpenLibrary (CORS abierto), TVmaze (CORS-enabled), Superhero API, OpenFDA, MyMemory, Google Translate.<br>
+    ❌ <b>Eliminadas:</b> dictionaryapi.dev (error 522), Wikidata API (CORS restringido), Crossref (inestable), DBpedia (CORS variable), Free Dictionary ES (no soportado).
   </div>
 
-  <!-- =================== MODO =================== -->
   <div class="panel">
-    <h2>1. Elige el modo de recolección</h2>
+    <h2>1. Modo de recolección</h2>
     <div class="mode-selector" id="modeSelector">
       <div class="mode-card" data-mode="rapido">
         <h3>⚡ Rápido</h3>
-        <p>Solo resúmenes de Wikipedia. Ideal para empezar y probar.</p>
+        <p>Solo resúmenes de Wikipedia. Ideal para probar.</p>
         <span class="badge">~5 min · ~5 MB</span>
       </div>
       <div class="mode-card selected" data-mode="profundo">
         <h3>🔬 Profundo</h3>
-        <p>Artículos completos + Wikidata. Cobertura sólida para uso diario.</p>
+        <p>Artículos completos + categorías + OpenAlex. Uso diario.</p>
         <span class="badge">~30-60 min · ~50-150 MB</span>
       </div>
       <div class="mode-card" data-mode="enciclopedico">
         <h3>📚 Enciclopédico</h3>
-        <p>Todo lo anterior + categorías expandidas + OpenAlex + Crossref + DBpedia + OpenLibrary.</p>
-        <span class="badge">~2-6 horas · ~500 MB - 2 GB</span>
+        <p>Todo lo anterior + papers + libros + categorías expandidas.</p>
+        <span class="badge">~2-4 h · ~300 MB - 1 GB</span>
       </div>
     </div>
   </div>
 
-  <!-- =================== TEMAS =================== -->
   <div class="panel">
     <h2>2. Temas a recolectar</h2>
     <div class="grid-checks">
-      <label class="opt"><input type="checkbox" id="tDiccionario" checked> 📖 Diccionario</label>
+      <label class="opt"><input type="checkbox" id="tDiccionario" checked> 📖 Diccionario (Wiktionary + RAE)</label>
       <label class="opt"><input type="checkbox" id="tTraduccion" checked> 🌐 Traducción ES↔EN</label>
-      <label class="opt"><input type="checkbox" id="tCineSeries" checked> 🎬 Cine y Series</label>
-      <label class="opt"><input type="checkbox" id="tMarvelDC" checked> 🦸 Marvel y DC</label>
-      <label class="opt"><input type="checkbox" id="tFotografia" checked> 📷 Fotografía</label>
-      <label class="opt"><input type="checkbox" id="tInformatica" checked> 💻 Informática</label>
-      <label class="opt"><input type="checkbox" id="tRedes" checked> 🌐 Redes</label>
-      <label class="opt"><input type="checkbox" id="tCiberseguridad" checked> 🛡️ Ciberseguridad</label>
-      <label class="opt"><input type="checkbox" id="tSeguridadInfo" checked> 🔒 Seguridad informática</label>
-      <label class="opt"><input type="checkbox" id="tSuenos" checked> 💭 Sueños</label>
-      <label class="opt"><input type="checkbox" id="tMedicamentos" checked> 💊 Medicamentos</label>
-      <label class="opt"><input type="checkbox" id="tCafeTe" checked> ☕ Café y Té</label>
-      <label class="opt"><input type="checkbox" id="tCocina" checked> 🍳 Cocina</label>
-      <label class="opt"><input type="checkbox" id="tMitologia" checked> 🐉 Mitología y criaturas</label>
-      <label class="opt"><input type="checkbox" id="tIngInformatica" checked> 🎓 Ingeniería Informática</label>
-      <label class="opt"><input type="checkbox" id="tMedicina" checked> 🏥 Medicina</label>
-      <label class="opt"><input type="checkbox" id="tDoctorAbuse" checked> 👨‍⚕️ Doctor Abuse</label>
-      <label class="opt"><input type="checkbox" id="tWikidata" checked> 📊 Wikidata (datos estructurados)</label>
-      <label class="opt"><input type="checkbox" id="tPapers" checked> 🔬 Papers académicos (OpenAlex + Crossref)</label>
+      <label class="opt"><input type="checkbox" id="tCineSeries" checked> 🎬 Cine y Series (TVmaze)</label>
+      <label class="opt"><input type="checkbox" id="tMarvelDC" checked> 🦸 Marvel y DC (Superhero API)</label>
+      <label class="opt"><input type="checkbox" id="tFotografia" checked> 📷 Fotografía (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tInformatica" checked> 💻 Informática (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tRedes" checked> 🌐 Redes (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tCiberseguridad" checked> 🛡️ Ciberseguridad (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tSeguridadInfo" checked> 🔒 Seguridad informática (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tSuenos" checked> 💭 Sueños (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tMedicamentos" checked> 💊 Medicamentos (openFDA)</label>
+      <label class="opt"><input type="checkbox" id="tCafeTe" checked> ☕ Café y Té (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tCocina" checked> 🍳 Cocina (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tMitologia" checked> 🐉 Mitología y criaturas (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tIngInformatica" checked> 🎓 Ingeniería Informática (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tMedicina" checked> 🏥 Medicina (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tDoctorAbuse" checked> 👨‍⚕️ Doctor Abuse (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tPapers" checked> 🔬 Papers académicos (OpenAlex)</label>
       <label class="opt"><input type="checkbox" id="tLibros" checked> 📚 Libros (OpenLibrary)</label>
-      <label class="opt"><input type="checkbox" id="tDbpedia"> 🌐 DBpedia (resúmenes extra)</label>
-      <label class="opt"><input type="checkbox" id="tCategorias" checked> 📂 Expandir por categorías (modo enciclopédico)</label>
+      <label class="opt"><input type="checkbox" id="tCategorias" checked> 📂 Expandir por categorías (Wikipedia)</label>
     </div>
   </div>
 
-  <!-- =================== CATEGORÍAS =================== -->
   <div class="panel">
     <h2>3. Categorías a expandir</h2>
-    <p style="color:#94a3b8;font-size:0.85rem;margin-top:0">
-      En modo <b>enciclopédico</b>, cada categoría se expande a ~50 artículos completos de Wikipedia.
-      Añade o quita categorías libremente.
-    </p>
+    <p style="color:#94a3b8;font-size:0.85rem;margin-top:0">Cada categoría se expande a ~40 artículos completos de Wikipedia.</p>
     <div class="cat-input-row">
       <input type="text" id="catInput" placeholder="Ej: Enfermedades cardiovasculares, Criaturas mitológicas..." />
       <button id="addCatBtn" class="small success">➕ Añadir</button>
-      <button id="resetCatBtn" class="small secondary">🔄 Restaurar por defecto</button>
+      <button id="resetCatBtn" class="small secondary">🔄 Restaurar</button>
     </div>
     <div class="cat-list" id="catList"></div>
   </div>
 
-  <!-- =================== OPCIONES =================== -->
   <div class="panel">
     <h2>4. Opciones avanzadas</h2>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
@@ -229,30 +125,19 @@
         <input type="number" id="optDelay" value="120" min="0" max="2000" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
       <label style="color:#cbd5e1;font-size:0.88rem">Peticiones simultáneas:
-        <input type="number" id="optConcurrent" value="5" min="1" max="10" style="width:60px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+        <input type="number" id="optConcurrent" value="4" min="1" max="10" style="width:60px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
       <label style="color:#cbd5e1;font-size:0.88rem">Máx. ítems por tema:
-        <input type="number" id="optMaxPerTheme" value="100" min="5" max="500" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+        <input type="number" id="optMaxPerTheme" value="80" min="5" max="500" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
       <label style="color:#cbd5e1;font-size:0.88rem">Máx. artículos por categoría:
         <input type="number" id="optMaxPerCat" value="40" min="5" max="200" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
     </div>
-    <label class="opt" style="margin-top:10px">
-      <input type="checkbox" id="optDividir" checked>
-      Dividir artículos largos por secciones (mejor recuperación en el chat)
-    </label>
-    <label class="opt">
-      <input type="checkbox" id="optLimpiarRuido" checked>
-      Limpiar secciones ruidosas (Referencias, Enlaces externos, etc.)
-    </label>
-    <label class="opt">
-      <input type="checkbox" id="optAutoDownload" checked>
-      Descargar automáticamente al terminar
-    </label>
+    <label class="opt" style="margin-top:10px"><input type="checkbox" id="optLimpiarRuido" checked> Limpiar secciones ruidosas (Referencias, Enlaces externos, etc.)</label>
+    <label class="opt"><input type="checkbox" id="optAutoDownload" checked> Descargar automáticamente al terminar</label>
   </div>
 
-  <!-- =================== PROCESAR =================== -->
   <div class="panel">
     <h2>5. Ejecutar</h2>
     <button id="startBtn" class="success">🚀 Iniciar recolección</button>
@@ -277,21 +162,15 @@
 </div>
 
 <script>
-// ============================================================
-// ESTADO GLOBAL
-// ============================================================
 const $ = id => document.getElementById(id);
 const LOG = $('log');
-let resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v2', datos: {} };
+let resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v3', datos: {} };
 let ok = 0, err = 0, bytes = 0, totalTareas = 0, hechas = 0;
 let ultimoBlob = null;
 let modoActual = 'profundo';
 let detenerFlag = false;
 let temaActual = '—';
 
-// ============================================================
-// LOG & ESTADÍSTICAS
-// ============================================================
 function log(msg, type='info') {
   const d = document.createElement('div');
   d.className = 'log-' + type;
@@ -313,19 +192,22 @@ function updateStats() {
 }
 
 // ============================================================
-// UTILIDADES DE FETCH
+// FETCH CON TIMEOUT Y REINTENTOS
 // ============================================================
-async function fetchJSON(url, timeout=20000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeout);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.json();
-  } catch (e) {
-    clearTimeout(t);
-    throw e;
+async function fetchJSON(url, timeout=20000, retries=2) {
+  for (let i = 0; i <= retries; i++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const r = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+      clearTimeout(t);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) {
+      clearTimeout(t);
+      if (i === retries) throw e;
+      await delay(500 * (i + 1)); // backoff
+    }
   }
 }
 
@@ -368,13 +250,8 @@ async function conLimite(tareas, limite) {
   }));
 }
 
-function delay(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ============================================================
-// DETECCIÓN DE IDIOMA
-// ============================================================
 function detectLang(text) {
   const en = /\b(the|and|of|to|in|is|are|was|were|be|have|has|this|that|with|for|not|you|all|can|will|just|but|from|they|know|like|time|make|use)\b/i;
   const es = /\b(el|la|los|las|de|del|en|es|son|fue|era|ser|tiene|este|esta|con|por|para|no|todo|puede|como|pero|desde|ellos|saber|gusta|tiempo|hacer|usar)\b/i;
@@ -386,7 +263,7 @@ function detectLang(text) {
 }
 
 // ============================================================
-// WIKIPEDIA — ARTÍCULO COMPLETO
+// WIKIPEDIA (con origin=*)
 // ============================================================
 async function wikiFull(titulo, lang = 'es') {
   try {
@@ -408,23 +285,17 @@ async function wikiFull(titulo, lang = 'es') {
 
     let limpio = extract;
     if ($('optLimpiarRuido').checked) {
-      limpio = extract
-        .split('\n')
-        .filter(l => {
-          const s = l.trim();
-          if (!s) return false;
-          if (/^(Véase también|Referencias|Enlaces externos|Notas|Bibliografía|Fuentes|Referencias bibliográficas)\s*$/i.test(s)) return false;
-          if (/^\d+\.\s*$/.test(s)) return false;
-          return true;
-        })
-        .join('\n')
-        .replace(/\n{3,}/g, '\n\n');
+      limpio = extract.split('\n').filter(l => {
+        const s = l.trim();
+        if (!s) return false;
+        if (/^(Véase también|Referencias|Enlaces externos|Notas|Bibliografía|Fuentes|Referencias bibliográficas)\s*$/i.test(s)) return false;
+        if (/^\d+\.\s*$/.test(s)) return false;
+        return true;
+      }).join('\n').replace(/\n{3,}/g, '\n\n');
     }
 
     return '# ' + pageTitle + '\n\n' + limpio;
-  } catch (e) {
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
 async function wikiSummary(titulo, lang = 'es') {
@@ -445,151 +316,15 @@ async function wikiCategoria(categoria, lang = 'es', max = 50) {
   } catch (e) { return null; }
 }
 
-// ============================================================
-// DIVIDIR ARTÍCULOS EN SECCIONES
-// ============================================================
-function dividirEnSecciones(texto) {
-  const lineas = texto.split('\n');
-  const secciones = [];
-  let titulo = 'Introducción';
-  let buffer = [];
-
-  for (const l of lineas) {
-    const m = l.match(/^(={2,4})\s*(.+?)\s*\1\s*$/);
-    if (m) {
-      if (buffer.length && buffer.join('').trim().length > 100) {
-        secciones.push({ titulo, contenido: buffer.join('\n').trim() });
-      }
-      titulo = m[2];
-      buffer = [];
-    } else {
-      buffer.push(l);
-    }
-  }
-  if (buffer.length && buffer.join('').trim().length > 100) {
-    secciones.push({ titulo, contenido: buffer.join('\n').trim() });
-  }
-  return secciones;
+async function obtenerWiki(tema, lang = 'es') {
+  if (modoActual === 'rapido') return await wikiSummary(tema, lang);
+  const full = await wikiFull(tema, lang);
+  if (!full) return await wikiSummary(tema, lang);
+  return full;
 }
 
 // ============================================================
-// WIKIDATA
-// ============================================================
-async function wikidata(entity) {
-  try {
-    const search = await fetchJSON('https://www.wikidata.org/w/api.php?action=wbsearchentities&search=' +
-      encodeURIComponent(entity) + '&language=es&format=json&origin=*&limit=1');
-    if (!search.search?.length) return null;
-    const id = search.search[0].id;
-
-    const d = await fetchJSON('https://www.wikidata.org/wiki/Special:EntityData/' + id + '.json');
-    const ent = d.entities[id];
-    const partes = [];
-    partes.push('=== ' + (ent.labels?.es?.value || entity) + ' ===');
-    if (ent.descriptions?.es?.value) partes.push(ent.descriptions.es.value);
-
-    const claims = ent.claims || {};
-    const propsInteres = {
-      P31: 'instancia de', P106: 'ocupación', P569: 'fecha de nacimiento',
-      P570: 'fecha de fallecimiento', P19: 'lugar de nacimiento',
-      P27: 'nacionalidad', P17: 'país', P571: 'fecha de fundación',
-      P50: 'autor', P136: 'género', P361: 'parte de'
-    };
-
-    for (const [prop, label] of Object.entries(propsInteres)) {
-      if (claims[prop]) {
-        for (const claim of claims[prop].slice(0, 3)) {
-          const v = claim.mainsnak?.datavalue?.value;
-          if (!v) continue;
-          let val = typeof v === 'string' ? v :
-                    v.time ? v.time :
-                    v.id ? v.id :
-                    v.amount ? v.amount :
-                    JSON.stringify(v);
-          partes.push(label + ': ' + val);
-        }
-      }
-    }
-    return partes.join('\n');
-  } catch (e) { return null; }
-}
-
-// ============================================================
-// OPENALEX (papers)
-// ============================================================
-function reconstruirAbstract(inv) {
-  const palabras = [];
-  for (const [word, positions] of Object.entries(inv)) {
-    for (const pos of positions) palabras[pos] = word;
-  }
-  return palabras.filter(Boolean).join(' ');
-}
-
-async function openalex(tema) {
-  try {
-    const d = await fetchJSON('https://api.openalex.org/works?search=' +
-      encodeURIComponent(tema) + '&per_page=5&sort=relevance_score:desc');
-    if (!d.results?.length) return null;
-    return '=== PAPERS (OpenAlex) ===\n\n' + d.results.map(r =>
-      '• ' + (r.title || '') + '\n  ' +
-      (r.publication_year || '') + ' — ' +
-      (r.authorships?.slice(0,3).map(a => a.author?.display_name).filter(Boolean).join(', ') || '') +
-      (r.abstract_inverted_index ?
-        '\n  ' + reconstruirAbstract(r.abstract_inverted_index).slice(0, 600) : '')
-    ).join('\n\n');
-  } catch (e) { return null; }
-}
-
-// ============================================================
-// CROSSREF (papers)
-// ============================================================
-async function crossref(tema) {
-  try {
-    const d = await fetchJSON('https://api.crossref.org/works?query=' +
-      encodeURIComponent(tema) + '&rows=5&sort=relevance');
-    if (!d.message?.items?.length) return null;
-    return '=== PAPERS (Crossref) ===\n\n' + d.message.items.map(i =>
-      '• ' + (i.title?.[0] || '') + '\n  ' +
-      (i.published?.['date-parts']?.[0]?.[0] || '') + ' — ' +
-      (i.author?.slice(0,3).map(a => (a.given||'')+' '+(a.family||'')).join(', ') || '') +
-      '\n  DOI: ' + (i.DOI || '')
-    ).join('\n\n');
-  } catch (e) { return null; }
-}
-
-// ============================================================
-// DBPEDIA
-// ============================================================
-async function dbpedia(tema) {
-  try {
-    const url = 'https://es.dbpedia.org/data/' +
-      encodeURIComponent(tema.replace(/\s+/g,'_')) + '.json';
-    const d = await fetchJSON(url);
-    const key = Object.keys(d).find(k => k.includes(tema.replace(/\s+/g,'_')));
-    if (!key) return null;
-    const resumen = d[key]?.['http://dbpedia.org/ontology/abstract']?.[0]?.value;
-    return resumen ? '# ' + tema + '\n\n' + resumen : null;
-  } catch (e) { return null; }
-}
-
-// ============================================================
-// OPENLIBRARY
-// ============================================================
-async function openLibrary(tema) {
-  try {
-    const d = await fetchJSON('https://openlibrary.org/search.json?q=' +
-      encodeURIComponent(tema) + '&limit=8');
-    if (!d.docs?.length) return null;
-    return '=== LIBROS (OpenLibrary) ===\n\n' + d.docs.map(b =>
-      '• ' + (b.title || '') +
-      (b.author_name ? ' — ' + b.author_name.slice(0,3).join(', ') : '') +
-      (b.first_publish_year ? ' (' + b.first_publish_year + ')' : '')
-    ).join('\n');
-  } catch (e) { return null; }
-}
-
-// ============================================================
-// DICCIONARIO Y TRADUCCIÓN
+// DICCIONARIO — WIKTIONARY + RAE
 // ============================================================
 async function dictWiktionaryES(palabra) {
   try {
@@ -603,28 +338,25 @@ async function dictWiktionaryES(palabra) {
     if (page.missing !== undefined) return null;
     const extract = (page.extract || '').trim();
     if (!extract) return null;
-    const limpio = extract.split('\n').filter(l => l.trim()).slice(0, 100).join('\n');
-    return '=== DICCIONARIO (ES) ===\nPalabra: ' + palabra + '\n\n' + limpio;
+    const limpio = extract.split('\n').filter(l => l.trim()).slice(0, 120).join('\n');
+    return '=== DICCIONARIO (Wiktionary ES) ===\nPalabra: ' + palabra + '\n\n' + limpio;
   } catch (e) { return null; }
 }
 
-async function dictFreeEnglish(word) {
+async function dictRAE(palabra) {
   try {
-    const d = await fetchJSON('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
-    if (!Array.isArray(d) || !d.length) return null;
-    const partes = [];
-    d.forEach(entry => {
-      (entry.meanings || []).forEach(m => {
-        (m.definitions || []).slice(0, 4).forEach(def => {
-          partes.push('[' + m.partOfSpeech + '] ' + def.definition +
-                      (def.example ? ' — Ej: ' + def.example : ''));
-        });
-      });
-    });
-    return partes.length ? '=== DEFINICIONES (EN) ===\n' + partes.join('\n') : null;
+    // RAE API (rae-api.com) - no requiere key para consultas básicas
+    const d = await fetchJSON('https://rae-api.com/api/words/' + encodeURIComponent(palabra));
+    if (!d || !d.data) return null;
+    const defs = d.data.meanings?.map(m => '• ' + m.definition).join('\n') || '';
+    if (!defs) return null;
+    return '=== DICCIONARIO (RAE) ===\nPalabra: ' + palabra + '\n\n' + defs;
   } catch (e) { return null; }
 }
 
+// ============================================================
+// TRADUCCIÓN
+// ============================================================
 async function translateMyMemory(text, from, to) {
   try {
     const url = 'https://api.mymemory.translated.net/get?q=' +
@@ -651,16 +383,44 @@ async function translateGoogle(text, from, to) {
 }
 
 // ============================================================
-// FUNCIÓN GENÉRICA — WIKI SEGÚN MODO
+// OPENALEX (papers)
 // ============================================================
-async function obtenerWiki(tema, lang = 'es') {
-  if (modoActual === 'rapido') {
-    return await wikiSummary(tema, lang);
+function reconstruirAbstract(inv) {
+  const palabras = [];
+  for (const [word, positions] of Object.entries(inv)) {
+    for (const pos of positions) palabras[pos] = word;
   }
-  // profundo o enciclopédico → artículo completo
-  const full = await wikiFull(tema, lang);
-  if (!full) return await wikiSummary(tema, lang);
-  return full;
+  return palabras.filter(Boolean).join(' ');
+}
+
+async function openalex(tema) {
+  try {
+    const d = await fetchJSON('https://api.openalex.org/works?search=' +
+      encodeURIComponent(tema) + '&per_page=5&sort=relevance_score:desc');
+    if (!d.results?.length) return null;
+    return '=== PAPERS (OpenAlex) ===\n\n' + d.results.map(r =>
+      '• ' + (r.title || '') + '\n  ' +
+      (r.publication_year || '') + ' — ' +
+      (r.authorships?.slice(0,3).map(a => a.author?.display_name).filter(Boolean).join(', ') || '') +
+      (r.abstract_inverted_index ? '\n  ' + reconstruirAbstract(r.abstract_inverted_index).slice(0, 600) : '')
+    ).join('\n\n');
+  } catch (e) { return null; }
+}
+
+// ============================================================
+// OPENLIBRARY
+// ============================================================
+async function openLibrary(tema) {
+  try {
+    const d = await fetchJSON('https://openlibrary.org/search.json?q=' +
+      encodeURIComponent(tema) + '&limit=8');
+    if (!d.docs?.length) return null;
+    return '=== LIBROS (OpenLibrary) ===\n\n' + d.docs.map(b =>
+      '• ' + (b.title || '') +
+      (b.author_name ? ' — ' + b.author_name.slice(0,3).join(', ') : '') +
+      (b.first_publish_year ? ' (' + b.first_publish_year + ')' : '')
+    ).join('\n');
+  } catch (e) { return null; }
 }
 
 // ============================================================
@@ -670,44 +430,25 @@ async function obtenerWiki(tema, lang = 'es') {
 async function recolectarDiccionario(max) {
   temaActual = 'Diccionario'; updateStats();
   log('📖 Diccionario...', 'tema');
-  const palabras = [
-    'casa','perro','gato','libro','mesa','silla','agua','fuego','tierra','aire',
-    'amor','amistad','felicidad','tristeza','esperanza','libertad','justicia','paz',
-    'tiempo','espacio','universo','naturaleza','energía','materia','luz','oscuridad',
-    'comida','bebida','café','té','pan','leche','carne','fruta','verdura',
-    'rojo','azul','verde','amarillo','blanco','negro','grande','pequeño','alto','bajo',
-    'correr','caminar','hablar','escribir','leer','pensar','soñar','vivir','morir',
-    'computadora','teléfono','internet','red','datos','programa','código','sistema',
-    'medicina','enfermedad','salud','cuerpo','mente','alma','corazón','cerebro'
-  ].slice(0, max);
-
+  const palabras = ['casa','perro','gato','libro','mesa','silla','agua','fuego','tierra','aire','amor','amistad','felicidad','tristeza','esperanza','libertad','justicia','paz','tiempo','espacio','universo','naturaleza','energía','materia','luz','oscuridad','comida','bebida','café','té','pan','leche','carne','fruta','verdura','rojo','azul','verde','amarillo','blanco','negro','grande','pequeño','alto','bajo','correr','caminar','hablar','escribir','leer','pensar','soñar','vivir','morir','computadora','teléfono','internet','red','datos','programa','código','sistema','medicina','enfermedad','salud','cuerpo','mente','alma','corazón','cerebro'].slice(0, max);
   const tareas = palabras.map(p => async () => {
     await tarea('dict_' + p, async () => {
-      const lang = detectLang(p);
-      if (lang === 'es') return await dictWiktionaryES(p);
-      const r = await dictFreeEnglish(p);
-      return r || await dictWiktionaryES(p);
+      // Fallback: Wiktionary → RAE
+      let r = await dictWiktionaryES(p);
+      if (!r) r = await dictRAE(p);
+      return r;
     });
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('📖 Diccionario terminado', 'ok');
 }
 
 async function recolectarTraduccion(max) {
   temaActual = 'Traducción'; updateStats();
   log('🌐 Traducción ES↔EN...', 'tema');
-  const palabras = [
-    'hola','adiós','gracias','por favor','buenos días','buenas noches',
-    'agua','fuego','tierra','aire','amor','amistad','casa','perro','gato',
-    'libro','mesa','silla','comida','bebida','café','té','sol','luna','estrella',
-    'rojo','azul','verde','grande','pequeño','alto','bajo','feliz','triste',
-    'correr','caminar','hablar','escribir','leer','pensar','soñar','vivir',
-    'computadora','teléfono','internet','red','datos','programa','código'
-  ].slice(0, max);
-
+  const palabras = ['hola','adiós','gracias','por favor','buenos días','buenas noches','agua','fuego','tierra','aire','amor','amistad','casa','perro','gato','libro','mesa','silla','comida','bebida','café','té','sol','luna','estrella','rojo','azul','verde','grande','pequeño','alto','bajo','feliz','triste','correr','caminar','hablar','escribir','leer','pensar','soñar','vivir','computadora','teléfono','internet','red','datos','programa','código'].slice(0, max);
   const tareas = palabras.map(p => async () => {
     await tarea('trans_' + p.replace(/[^a-z0-9]/gi,'_'), async () => {
       const lang = detectLang(p);
@@ -719,26 +460,15 @@ async function recolectarTraduccion(max) {
     });
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('🌐 Traducción terminada', 'ok');
 }
 
 async function recolectarCineSeries(max) {
   temaActual = 'Cine y Series'; updateStats();
   log('🎬 Cine y Series...', 'tema');
-  const shows = [
-    'Breaking Bad','Game of Thrones','Stranger Things','The Mandalorian',
-    'The Witcher','Dark','Money Heist','Narcos','Peaky Blinders','The Crown',
-    'Friends','The Office','Sherlock','Doctor Who','Black Mirror','Westworld',
-    'The Boys','Loki','WandaVision','Moon Knight','She-Hulk','Ms. Marvel',
-    'Hawkeye','Andor','Ahsoka','The Last of Us','Succession','Severance',
-    'The Bear','Ted Lasso','Squid Game','Alice in Borderland','Cyberpunk Edgerunners',
-    'Attack on Titan','Demon Slayer','Jujutsu Kaisen','One Piece','Naruto',
-    'Death Note','Fullmetal Alchemist','Steins;Gate','Cowboy Bebop'
-  ].slice(0, max);
-
+  const shows = ['Breaking Bad','Game of Thrones','Stranger Things','The Mandalorian','The Witcher','Dark','Money Heist','Narcos','Peaky Blinders','The Crown','Friends','The Office','Sherlock','Doctor Who','Black Mirror','Westworld','The Boys','Loki','WandaVision','Moon Knight','She-Hulk','Ms. Marvel','Hawkeye','Andor','Ahsoka','The Last of Us','Succession','Severance','The Bear','Ted Lasso','Squid Game','Alice in Borderland','Cyberpunk Edgerunners','Attack on Titan','Demon Slayer','Jujutsu Kaisen','One Piece','Naruto','Death Note','Fullmetal Alchemist','Steins;Gate','Cowboy Bebop'].slice(0, max);
   const tareas = shows.map(s => async () => {
     await tarea('cine_' + s.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => {
       try {
@@ -756,9 +486,8 @@ async function recolectarCineSeries(max) {
     });
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('🎬 Cine y Series terminado', 'ok');
 }
 
@@ -766,7 +495,6 @@ async function recolectarMarvelDC(max) {
   temaActual = 'Marvel y DC'; updateStats();
   log('🦸 Marvel y DC...', 'tema');
   const ids = Array.from({length: Math.min(max, 100)}, (_, i) => i + 1);
-
   const tareas = ids.map(id => async () => {
     await tarea('hero_' + id, async () => {
       try {
@@ -776,10 +504,7 @@ async function recolectarMarvelDC(max) {
         if (d.biography?.fullName && d.biography.fullName !== '-') partes.push('Nombre real: ' + d.biography.fullName);
         if (d.biography?.publisher) partes.push('Editorial: ' + d.biography.publisher);
         if (d.biography?.alignment) partes.push('Alineación: ' + d.biography.alignment);
-        if (d.powerstats) {
-          const p = d.powerstats;
-          partes.push('Poderes — Int: ' + p.intelligence + ', Fue: ' + p.strength + ', Vel: ' + p.speed + ', Dur: ' + p.durability + ', Pod: ' + p.power + ', Com: ' + p.combat);
-        }
+        if (d.powerstats) { const p = d.powerstats; partes.push('Poderes — Int: ' + p.intelligence + ', Fue: ' + p.strength + ', Vel: ' + p.speed + ', Dur: ' + p.durability + ', Pod: ' + p.power + ', Com: ' + p.combat); }
         if (d.appearance?.race && d.appearance.race !== '-') partes.push('Raza: ' + d.appearance.race);
         if (d.appearance?.gender && d.appearance.gender !== '-') partes.push('Género: ' + d.appearance.gender);
         return partes.join('\n');
@@ -787,143 +512,59 @@ async function recolectarMarvelDC(max) {
     });
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('🦸 Marvel y DC terminado', 'ok');
 }
 
 async function recolectarListaWikipedia(temas, prefijo) {
   const tareas = temas.map(t => async () => {
-    await tarea(prefijo + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => {
-      return await obtenerWiki(t, 'es');
-    });
+    await tarea(prefijo + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => await obtenerWiki(t, 'es'));
     await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
 }
 
 async function recolectarFotografia(max) {
-  temaActual = 'Fotografía'; updateStats();
-  log('📷 Fotografía...', 'tema');
-  const temas = [
-    'Fotografía','Cámara fotográfica','Objetivo (fotografía)','Apertura (fotografía)',
-    'Velocidad de obturación','Sensibilidad ISO','Composición fotográfica',
-    'Iluminación en fotografía','Retrato fotográfico','Fotografía de paisaje',
-    'Fotografía macro','Fotografía callejera','Hora dorada','Regla de los tercios',
-    'Profundidad de campo','Exposición fotográfica','Balance de blancos',
-    'Formato RAW','Alto rango dinámico','Bokeh','Diafragma','Distancia focal',
-    'Fotografía nocturna','Fotografía de larga exposición','Fotografía de producto'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'foto_');
+  temaActual = 'Fotografía'; updateStats(); log('📷 Fotografía...', 'tema');
+  await recolectarListaWikipedia(['Fotografía','Cámara fotográfica','Objetivo (fotografía)','Apertura (fotografía)','Velocidad de obturación','Sensibilidad ISO','Composición fotográfica','Iluminación en fotografía','Retrato fotográfico','Fotografía de paisaje','Fotografía macro','Fotografía callejera','Hora dorada','Regla de los tercios','Profundidad de campo','Exposición fotográfica','Balance de blancos','Formato RAW','Alto rango dinámico','Bokeh','Diafragma','Distancia focal','Fotografía nocturna','Fotografía de larga exposición','Fotografía de producto'], 'foto_');
   log('📷 Fotografía terminado', 'ok');
 }
 
 async function recolectarInformatica(max) {
-  temaActual = 'Informática'; updateStats();
-  log('💻 Informática...', 'tema');
-  const temas = [
-    'Informática','Computadora','Hardware','Software','Sistema operativo',
-    'Algoritmo','Estructura de datos','Base de datos','Programación',
-    'Lenguaje de programación','Compilador','Intérprete','Memoria RAM',
-    'Disco duro','Unidad de estado sólido','Unidad central de procesamiento',
-    'Unidad de procesamiento gráfico','Placa base','Red de computadoras',
-    'Internet','World Wide Web','Protocolo TCP/IP','DNS','HTTP',
-    'Computación en la nube','Big data','Inteligencia artificial',
-    'Aprendizaje automático','Red neuronal artificial','Blockchain',
-    'Código abierto','Software libre','Git','Docker','Kubernetes',
-    'Máquina virtual','Servidor web','API','JSON','XML'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'info_');
+  temaActual = 'Informática'; updateStats(); log('💻 Informática...', 'tema');
+  await recolectarListaWikipedia(['Informática','Computadora','Hardware','Software','Sistema operativo','Algoritmo','Estructura de datos','Base de datos','Programación','Lenguaje de programación','Compilador','Intérprete','Memoria RAM','Disco duro','Unidad de estado sólido','Unidad central de procesamiento','Unidad de procesamiento gráfico','Placa base','Red de computadoras','Internet','World Wide Web','Protocolo TCP/IP','DNS','HTTP','Computación en la nube','Big data','Inteligencia artificial','Aprendizaje automático','Red neuronal artificial','Blockchain','Código abierto','Software libre','Git','Docker','Kubernetes','Máquina virtual','Servidor web','API','JSON','XML'], 'info_');
   log('💻 Informática terminado', 'ok');
 }
 
 async function recolectarRedes(max) {
-  temaActual = 'Redes'; updateStats();
-  log('🌐 Redes...', 'tema');
-  const temas = [
-    'Administración de redes','Modelo OSI','Modelo TCP/IP','Dirección IP',
-    'Máscara de subred','Enrutador','Conmutador de red','Cortafuegos',
-    'VLAN','Red privada virtual','DNS','DHCP','NAT','Proxy',
-    'Protocolo de enrutamiento','OSPF','BGP','RIP','Ethernet','WiFi',
-    'Fibra óptica','Cable coaxial','Cable de par trenzado','Red de área local',
-    'Red de área amplia','Topología de red','Ancho de banda','Latencia',
-    'Calidad de servicio','SNMP','Wireshark','Subred','Puerta de enlace',
-    'IPv4','IPv6','Subnetting','Nmap','Ping','Traceroute'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'red_');
+  temaActual = 'Redes'; updateStats(); log('🌐 Redes...', 'tema');
+  await recolectarListaWikipedia(['Administración de redes','Modelo OSI','Modelo TCP/IP','Dirección IP','Máscara de subred','Enrutador','Conmutador de red','Cortafuegos','VLAN','Red privada virtual','DNS','DHCP','NAT','Proxy','Protocolo de enrutamiento','OSPF','BGP','RIP','Ethernet','WiFi','Fibra óptica','Cable coaxial','Cable de par trenzado','Red de área local','Red de área amplia','Topología de red','Ancho de banda','Latencia','Calidad de servicio','SNMP','Wireshark','Subred','Puerta de enlace','IPv4','IPv6','Subnetting','Nmap','Ping','Traceroute'], 'red_');
   log('🌐 Redes terminado', 'ok');
 }
 
 async function recolectarCiberseguridad(max) {
-  temaActual = 'Ciberseguridad'; updateStats();
-  log('🛡️ Ciberseguridad...', 'tema');
-  const temas = [
-    'Ciberseguridad','Seguridad informática','Hacker','Phishing',
-    'Malware','Virus informático','Troyano (informática)','Ransomware','Spyware',
-    'Gusano informático','Rootkit','Keylogger','Botnet','Ataque de denegación de servicio',
-    'Ingeniería social','Autenticación','Contraseña','Cifrado','Criptografía',
-    'Certificado digital','Firma digital','Seguridad de la capa de transporte',
-    'HTTPS','Cortafuegos','Sistema de detección de intrusos','SIEM',
-    'Prueba de penetración','Vulnerabilidad','Exploit','Vulnerabilidad de día cero',
-    'MITRE ATT&CK','NIST','ISO/IEC 27001','Reglamento General de Protección de Datos',
-    'Zero Trust','Bug bounty','CTF','OSINT','Análisis forense'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'ciber_');
+  temaActual = 'Ciberseguridad'; updateStats(); log('🛡️ Ciberseguridad...', 'tema');
+  await recolectarListaWikipedia(['Ciberseguridad','Seguridad informática','Hacker','Phishing','Malware','Virus informático','Troyano (informática)','Ransomware','Spyware','Gusano informático','Rootkit','Keylogger','Botnet','Ataque de denegación de servicio','Ingeniería social','Autenticación','Contraseña','Cifrado','Criptografía','Certificado digital','Firma digital','Seguridad de la capa de transporte','HTTPS','Cortafuegos','Sistema de detección de intrusos','SIEM','Prueba de penetración','Vulnerabilidad','Exploit','Vulnerabilidad de día cero','MITRE ATT&CK','NIST','ISO/IEC 27001','Reglamento General de Protección de Datos','Zero Trust','Bug bounty','CTF','OSINT','Análisis forense'], 'ciber_');
   log('🛡️ Ciberseguridad terminado', 'ok');
 }
 
 async function recolectarSeguridadInfo(max) {
-  temaActual = 'Seguridad de la información'; updateStats();
-  log('🔒 Seguridad informática...', 'tema');
-  const temas = [
-    'Seguridad de la información','Confidencialidad','Integridad','Disponibilidad',
-    'Autenticación','Autorización','Auditoría','Control de acceso',
-    'Gestión de identidades','Inicio de sesión único','Autenticación multifactor',
-    'Biometría','Política de seguridad','Gestión de riesgos',
-    'Plan de contingencia','Recuperación ante desastres','Copia de seguridad',
-    'Cifrado de datos','Seguridad en la nube','Seguridad de redes',
-    'Seguridad de aplicaciones','OWASP','ISO 27001',
-    'Marco de ciberseguridad del NIST','COBIT','ITIL'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'seg_');
+  temaActual = 'Seguridad de la información'; updateStats(); log('🔒 Seguridad informática...', 'tema');
+  await recolectarListaWikipedia(['Seguridad de la información','Confidencialidad','Integridad','Disponibilidad','Autenticación','Autorización','Auditoría','Control de acceso','Gestión de identidades','Inicio de sesión único','Autenticación multifactor','Biometría','Política de seguridad','Gestión de riesgos','Plan de contingencia','Recuperación ante desastres','Copia de seguridad','Cifrado de datos','Seguridad en la nube','Seguridad de redes','Seguridad de aplicaciones','OWASP','ISO 27001','Marco de ciberseguridad del NIST','COBIT','ITIL'], 'seg_');
   log('🔒 Seguridad informática terminado', 'ok');
 }
 
 async function recolectarSuenos(max) {
-  temaActual = 'Sueños'; updateStats();
-  log('💭 Sueños...', 'tema');
-  const suenos = [
-    'Sueño','Interpretación de los sueños','Sueño lúcido','Ensoñación',
-    'Pesadilla','Terapia de sueños','Fase REM','Ciclo circadiano',
-    'soñar con agua','soñar con fuego','soñar con volar','soñar con caer',
-    'soñar con perseguir','soñar con ser perseguido','soñar con dientes',
-    'soñar con muerte','soñar con bebé','soñar con embarazo','soñar con boda',
-    'soñar con serpiente','soñar con araña','soñar con perro','soñar con gato',
-    'soñar con dinero','soñar con casa','soñar con escuela','soñar con examen',
-    'soñar con trabajo','soñar con viaje','soñar con coche','soñar con avión',
-    'soñar con mar','soñar con montaña','soñar con bosque','soñar con lluvia',
-    'soñar con nieve','soñar con sol','soñar con luna','soñar con estrellas'
-  ].slice(0, max);
-  await recolectarListaWikipedia(suenos, 'sueno_');
+  temaActual = 'Sueños'; updateStats(); log('💭 Sueños...', 'tema');
+  await recolectarListaWikipedia(['Sueño','Interpretación de los sueños','Sueño lúcido','Ensoñación','Pesadilla','Terapia de sueños','Fase REM','Ciclo circadiano','soñar con agua','soñar con fuego','soñar con volar','soñar con caer','soñar con perseguir','soñar con ser perseguido','soñar con dientes','soñar con muerte','soñar con bebé','soñar con embarazo','soñar con boda','soñar con serpiente','soñar con araña','soñar con perro','soñar con gato','soñar con dinero','soñar con casa','soñar con escuela','soñar con examen','soñar con trabajo','soñar con viaje','soñar con coche','soñar con avión','soñar con mar','soñar con montaña','soñar con bosque','soñar con lluvia','soñar con nieve','soñar con sol','soñar con luna','soñar con estrellas'], 'sueno_');
   log('💭 Sueños terminado', 'ok');
 }
 
 async function recolectarMedicamentos(max) {
-  temaActual = 'Medicamentos'; updateStats();
-  log('💊 Medicamentos...', 'tema');
-  const medicamentos = [
-    'ibuprofen','acetaminophen','aspirin','amoxicillin','metformin',
-    'atorvastatin','lisinopril','amlodipine','omeprazole','losartan',
-    'albuterol','gabapentin','sertraline','fluoxetine','escitalopram',
-    'montelukast','rosuvastatin','metoprolol','levothyroxine','pantoprazole',
-    'insulin','prednisone','warfarin','clopidogrel','furosemide',
-    'hydrochlorothiazide','tramadol','oxycodone','morphine','diazepam',
-    'azithromycin','ciprofloxacin','cephalexin','doxycycline','penicillin',
-    'cetirizine','loratadine','diphenhydramine','ranitidine','ondansetron'
-  ].slice(0, max);
-
+  temaActual = 'Medicamentos'; updateStats(); log('💊 Medicamentos...', 'tema');
+  const medicamentos = ['ibuprofen','acetaminophen','aspirin','amoxicillin','metformin','atorvastatin','lisinopril','amlodipine','omeprazole','losartan','albuterol','gabapentin','sertraline','fluoxetine','escitalopram','montelukast','rosuvastatin','metoprolol','levothyroxine','pantoprazole','insulin','prednisone','warfarin','clopidogrel','furosemide','hydrochlorothiazide','tramadol','oxycodone','morphine','diazepam','azithromycin','ciprofloxacin','cephalexin','doxycycline','penicillin','cetirizine','loratadine','diphenhydramine','ranitidine','ondansetron'].slice(0, max);
   const tareas = medicamentos.map(m => async () => {
     await tarea('med_' + m, async () => {
       try {
@@ -942,235 +583,106 @@ async function recolectarMedicamentos(max) {
     });
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('💊 Medicamentos terminado', 'ok');
 }
 
 async function recolectarCafeTe(max) {
-  temaActual = 'Café y Té'; updateStats();
-  log('☕ Café y Té...', 'tema');
-  const temas = [
-    'Café','Espresso','Cappuccino','Latte','Café americano','Moka','Macchiato',
-    'Café frío','Prensa francesa','Cafetera moka','Aeropress','Chemex',
-    'V60','Té','Té verde','Té negro','Té blanco','Té oolong','Té pu-erh',
-    'Matcha','Rooibos','Infusión','Masala chai','Earl Grey','Manzanilla',
-    'Menta','Jengibre','Canela','Cardamomo','Café de especialidad',
-    'Arábica','Robusta','Barista','Latte art','Cata de café'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'cafe_');
+  temaActual = 'Café y Té'; updateStats(); log('☕ Café y Té...', 'tema');
+  await recolectarListaWikipedia(['Café','Espresso','Cappuccino','Latte','Café americano','Moka','Macchiato','Café frío','Prensa francesa','Cafetera moka','Aeropress','Chemex','V60','Té','Té verde','Té negro','Té blanco','Té oolong','Té pu-erh','Matcha','Rooibos','Infusión','Masala chai','Earl Grey','Manzanilla','Menta','Jengibre','Canela','Cardamomo','Café de especialidad','Arábica','Robusta','Barista','Latte art','Cata de café'], 'cafe_');
   log('☕ Café y Té terminado', 'ok');
 }
 
 async function recolectarCocina(max) {
-  temaActual = 'Cocina'; updateStats();
-  log('🍳 Cocina...', 'tema');
-  const temas = [
-    'Cocina','Gastronomía','Receta de cocina','Hervir','Freír','Asar',
-    'Hornear','Saltear','Cocción al vapor','Guisar','Estofado','Marinado',
-    'Emulsionante','Amasado','Corte (cocina)','Mise en place','Cuchillo',
-    'Sartén','Olla','Horno','Microondas','Refrigeración','Congelación',
-    'Seguridad alimentaria','Contaminación cruzada','Cadena de frío',
-    'Conservación de alimentos','Fermentación','Pasteurización','Esterilización',
-    'Cocina mediterránea','Cocina asiática','Cocina latinoamericana',
-    'Cocina española','Cocina cubana','Cocina mexicana','Cocina italiana',
-    'Cocina japonesa','Cocina francesa','Cocina china'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'cocina_');
+  temaActual = 'Cocina'; updateStats(); log('🍳 Cocina...', 'tema');
+  await recolectarListaWikipedia(['Cocina','Gastronomía','Receta de cocina','Hervir','Freír','Asar','Hornear','Saltear','Cocción al vapor','Guisar','Estofado','Marinado','Emulsionante','Amasado','Corte (cocina)','Mise en place','Cuchillo','Sartén','Olla','Horno','Microondas','Refrigeración','Congelación','Seguridad alimentaria','Contaminación cruzada','Cadena de frío','Conservación de alimentos','Fermentación','Pasteurización','Esterilización','Cocina mediterránea','Cocina asiática','Cocina latinoamericana','Cocina española','Cocina cubana','Cocina mexicana','Cocina italiana','Cocina japonesa','Cocina francesa','Cocina china'], 'cocina_');
   log('🍳 Cocina terminado', 'ok');
 }
 
 async function recolectarMitologia(max) {
-  temaActual = 'Mitología'; updateStats();
-  log('🐉 Mitología...', 'tema');
-  const temas = [
-    'Mitología griega','Mitología nórdica','Mitología egipcia','Mitología romana',
-    'Mitología celta','Mitología japonesa','Mitología china','Mitología maya',
-    'Mitología azteca','Mitología inca','Mitología eslava','Mitología hindú',
-    'Dragón','Grifo','Fénix','Unicornio','Hidra de Lerna','Cíclope',
-    'Minotauro','Centauro','Sirena','Kraken','Leviatán','Quimera',
-    'Mantícora','Esfinge','Pegaso','Kitsune','Fenrir','Jörmungandr',
-    'Valquiria','Titán','Semidiós','Héroe mitológico','Bestiario',
-    'Zeus','Odín','Thor','Anubis','Quetzalcóatl','Amaterasu',
-    'Hades','Poseidón','Apolo','Atenea','Hera','Ares','Hermes',
-    'Loki','Freya','Helios','Selene','Hefesto','Artemisa'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'mito_');
+  temaActual = 'Mitología'; updateStats(); log('🐉 Mitología...', 'tema');
+  await recolectarListaWikipedia(['Mitología griega','Mitología nórdica','Mitología egipcia','Mitología romana','Mitología celta','Mitología japonesa','Mitología china','Mitología maya','Mitología azteca','Mitología inca','Mitología eslava','Mitología hindú','Dragón','Grifo','Fénix','Unicornio','Hidra de Lerna','Cíclope','Minotauro','Centauro','Sirena','Kraken','Leviatán','Quimera','Mantícora','Esfinge','Pegaso','Kitsune','Fenrir','Jörmungandr','Valquiria','Titán','Semidiós','Héroe mitológico','Bestiario','Zeus','Odín','Thor','Anubis','Quetzalcóatl','Amaterasu','Hades','Poseidón','Apolo','Atenea','Hera','Ares','Hermes','Loki','Freya','Helios','Selene','Hefesto','Artemisa'], 'mito_');
   log('🐉 Mitología terminado', 'ok');
 }
 
 async function recolectarIngInformatica(max) {
-  temaActual = 'Ingeniería Informática'; updateStats();
-  log('🎓 Ingeniería Informática...', 'tema');
-  const temas = [
-    'Matemáticas discretas','Álgebra lineal','Cálculo diferencial','Cálculo integral',
-    'Probabilidad','Estadística','Física','Programación','Estructuras de datos',
-    'Algoritmos','Bases de datos','Sistemas operativos','Redes de computadoras',
-    'Ingeniería de software','Compiladores','Teoría de autómatas',
-    'Inteligencia artificial','Aprendizaje automático','Visión por computadora',
-    'Procesamiento de lenguaje natural','Seguridad informática',
-    'Arquitectura de computadoras','Sistemas digitales','Electrónica digital',
-    'Microprocesadores','Sistemas embebidos','Computación gráfica',
-    'Interacción persona-computadora','Gestión de proyectos',
-    'Análisis y diseño de algoritmos','Complejidad computacional',
-    'Bases de datos relacionales','Bases de datos NoSQL',
-    'Programación orientada a objetos','Programación funcional',
-    'Desarrollo web','Desarrollo móvil','DevOps','Testing de software',
-    'Metodologías ágiles','Scrum','Kanban'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'ing_');
+  temaActual = 'Ingeniería Informática'; updateStats(); log('🎓 Ingeniería Informática...', 'tema');
+  await recolectarListaWikipedia(['Matemáticas discretas','Álgebra lineal','Cálculo diferencial','Cálculo integral','Probabilidad','Estadística','Física','Programación','Estructuras de datos','Algoritmos','Bases de datos','Sistemas operativos','Redes de computadoras','Ingeniería de software','Compiladores','Teoría de autómatas','Inteligencia artificial','Aprendizaje automático','Visión por computadora','Procesamiento de lenguaje natural','Seguridad informática','Arquitectura de computadoras','Sistemas digitales','Electrónica digital','Microprocesadores','Sistemas embebidos','Computación gráfica','Interacción persona-computadora','Gestión de proyectos','Análisis y diseño de algoritmos','Complejidad computacional','Bases de datos relacionales','Bases de datos NoSQL','Programación orientada a objetos','Programación funcional','Desarrollo web','Desarrollo móvil','DevOps','Testing de software','Metodologías ágiles','Scrum','Kanban'], 'ing_');
   log('🎓 Ingeniería Informática terminado', 'ok');
 }
 
 async function recolectarMedicina(max) {
-  temaActual = 'Medicina'; updateStats();
-  log('🏥 Medicina...', 'tema');
-  const temas = [
-    'Medicina','Anatomía','Fisiología','Patología','Farmacología',
-    'Cardiología','Neurología','Oncología','Pediatría','Geriatría',
-    'Diabetes mellitus','Hipertensión arterial','Asma','Artritis',
-    'Enfermedad de Alzheimer','Enfermedad de Parkinson','Cáncer',
-    'Infarto agudo de miocardio','Accidente cerebrovascular','EPOC',
-    'Neumonía','Tuberculosis','Malaria','VIH','Hepatitis','COVID-19',
-    'Depresión','Trastorno de ansiedad','Esquizofrenia','Trastorno bipolar',
-    'Síntoma','Diagnóstico médico','Tratamiento médico','Prevención','Vacuna','Cirugía',
-    'Aparato circulatorio','Aparato respiratorio','Aparato digestivo',
-    'Sistema nervioso','Sistema inmunitario','Sistema endocrino',
-    'Genética médica','Inmunología','Microbiología','Bioquímica clínica',
-    'Radiología','Anestesiología','Urgencias médicas','Medicina interna'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'medicina_');
+  temaActual = 'Medicina'; updateStats(); log('🏥 Medicina...', 'tema');
+  await recolectarListaWikipedia(['Medicina','Anatomía','Fisiología','Patología','Farmacología','Cardiología','Neurología','Oncología','Pediatría','Geriatría','Diabetes mellitus','Hipertensión arterial','Asma','Artritis','Enfermedad de Alzheimer','Enfermedad de Parkinson','Cáncer','Infarto agudo de miocardio','Accidente cerebrovascular','EPOC','Neumonía','Tuberculosis','Malaria','VIH','Hepatitis','COVID-19','Depresión','Trastorno de ansiedad','Esquizofrenia','Trastorno bipolar','Síntoma','Diagnóstico médico','Tratamiento médico','Prevención','Vacuna','Cirugía','Aparato circulatorio','Aparato respiratorio','Aparato digestivo','Sistema nervioso','Sistema inmunitario','Sistema endocrino','Genética médica','Inmunología','Microbiología','Bioquímica clínica','Radiología','Anestesiología','Urgencias médicas','Medicina interna'], 'medicina_');
   log('🏥 Medicina terminado', 'ok');
 }
 
 async function recolectarDoctorAbuse(max) {
-  temaActual = 'Doctor Abuse'; updateStats();
-  log('👨‍⚕️ Doctor Abuse...', 'tema');
-  const temas = [
-    'Historia clínica','Examen físico','Signos vitales','Presión arterial',
-    'Frecuencia cardíaca','Temperatura corporal','Frecuencia respiratoria',
-    'Dolor torácico','Disnea','Fiebre','Cefalea','Vértigo',
-    'Náuseas','Vómito','Diarrea','Estreñimiento','Dolor abdominal',
-    'Tos','Hemoptisis','Edema','Palidez','Ictericia','Cianosis',
-    'Urgencia médica','Emergencia médica','Triaje','Reanimación cardiopulmonar',
-    'Primeros auxilios','Vendaje','Inmovilización','Shock','Paro cardiorrespiratorio',
-    'Desfibrilador externo automático','Oxigenoterapia','Vía intravenosa',
-    'Sonda nasogástrica','Cateterismo','Intubación endotraqueal',
-    'Traqueotomía','Toracocentesis','Paracentesis','Punción lumbar'
-  ].slice(0, max);
-  await recolectarListaWikipedia(temas, 'doctor_');
+  temaActual = 'Doctor Abuse'; updateStats(); log('👨‍⚕️ Doctor Abuse...', 'tema');
+  await recolectarListaWikipedia(['Historia clínica','Examen físico','Signos vitales','Presión arterial','Frecuencia cardíaca','Temperatura corporal','Frecuencia respiratoria','Dolor torácico','Disnea','Fiebre','Cefalea','Vértigo','Náuseas','Vómito','Diarrea','Estreñimiento','Dolor abdominal','Tos','Hemoptisis','Edema','Palidez','Ictericia','Cianosis','Urgencia médica','Emergencia médica','Triaje','Reanimación cardiopulmonar','Primeros auxilios','Vendaje','Inmovilización','Shock','Paro cardiorrespiratorio','Desfibrilador externo automático','Oxigenoterapia','Vía intravenosa','Sonda nasogástrica','Cateterismo','Intubación endotraqueal','Traqueotomía','Toracocentesis','Paracentesis','Punción lumbar'], 'doctor_');
   log('👨‍⚕️ Doctor Abuse terminado', 'ok');
 }
 
-// ============================================================
-// RECOLECCIÓN EXTRA
-// ============================================================
-async function recolectarWikidataExtra(max) {
-  temaActual = 'Wikidata'; updateStats();
-  log('📊 Wikidata...', 'tema');
-  const entidades = [
-    'Albert Einstein','Marie Curie','Isaac Newton','Leonardo da Vinci',
-    'William Shakespeare','Miguel de Cervantes','Pablo Picasso',
-    'Ludwig van Beethoven','Wolfgang Amadeus Mozart','Steve Jobs',
-    'Bill Gates','Linus Torvalds','Alan Turing','Nikola Tesla',
-    'Charles Darwin','Gregor Mendel','Louis Pasteur','Alexander Fleming',
-    'Napoleón Bonaparte','Simón Bolívar','José Martí','Che Guevara',
-    'Frida Kahlo','Gabriel García Márquez','Julio Cortázar'
-  ].slice(0, max);
-
-  const tareas = entidades.map(e => async () => {
-    await tarea('wd_' + e.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => {
-      return await wikidata(e);
-    });
+async function recolectarPapers(max) {
+  temaActual = 'Papers'; updateStats(); log('🔬 Papers académicos...', 'tema');
+  const temas = ['machine learning','deep learning','quantum computing','CRISPR gene editing','climate change','neuroscience','artificial intelligence','natural language processing','computer vision','cybersecurity','blockchain','renewable energy','cancer immunotherapy','diabetes treatment','Alzheimer disease','quantum physics','string theory','dark matter','exoplanets','synthetic biology','bioinformatics','robotics','autonomous vehicles'].slice(0, max);
+  const tareas = temas.map(t => async () => {
+    await tarea('paper_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await openalex(t));
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
-  log('📊 Wikidata terminado', 'ok');
-}
-
-async function recolectarPapers(max) {
-  temaActual = 'Papers'; updateStats();
-  log('🔬 Papers académicos...', 'tema');
-  const temas = [
-    'machine learning','deep learning','quantum computing',
-    'CRISPR gene editing','climate change','neuroscience',
-    'artificial intelligence','natural language processing',
-    'computer vision','cybersecurity','blockchain','renewable energy',
-    'cancer immunotherapy','diabetes treatment','Alzheimer disease',
-    'quantum physics','string theory','dark matter','exoplanets',
-    'synthetic biology','bioinformatics','robotics','autonomous vehicles'
-  ].slice(0, max);
-
-  const tareas = temas.flatMap(t => [
-    async () => {
-      await tarea('paper_oa_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await openalex(t));
-      await delay(parseInt($('optDelay').value) || 120);
-    },
-    async () => {
-      await tarea('paper_cr_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await crossref(t));
-      await delay(parseInt($('optDelay').value) || 120);
-    }
-  ]);
-
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('🔬 Papers terminados', 'ok');
 }
 
 async function recolectarLibros(max) {
-  temaActual = 'Libros'; updateStats();
-  log('📚 Libros (OpenLibrary)...', 'tema');
-  const temas = [
-    'filosofía','ciencia ficción','novela negra','poesía',
-    'matemáticas','física','biología','historia universal',
-    'inteligencia artificial','programación','ciberseguridad',
-    'medicina','mitología','arte','fotografía','cocina'
-  ].slice(0, max);
-
+  temaActual = 'Libros'; updateStats(); log('📚 Libros (OpenLibrary)...', 'tema');
+  const temas = ['filosofía','ciencia ficción','novela negra','poesía','matemáticas','física','biología','historia universal','inteligencia artificial','programación','ciberseguridad','medicina','mitología','arte','fotografía','cocina'].slice(0, max);
   const tareas = temas.map(t => async () => {
     await tarea('libro_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await openLibrary(t));
     await delay(parseInt($('optDelay').value) || 120);
   });
-
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
   log('📚 Libros terminado', 'ok');
 }
 
-async function recolectarDbpediaExtra(max) {
-  temaActual = 'DBpedia'; updateStats();
-  log('🌐 DBpedia...', 'tema');
-  const temas = ['Albert_Einstein','Python_(lenguaje_de_programación)','Café','Dragón'].slice(0, max);
-
-  const tareas = temas.map(t => async () => {
-    await tarea('dbpedia_' + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => await dbpedia(t));
-    await delay(parseInt($('optDelay').value) || 120);
-  });
-
-  totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
-  log('🌐 DBpedia terminado', 'ok');
+async function expandirCategorias(maxPorCat) {
+  temaActual = 'Categorías'; updateStats();
+  log('📂 Expandiendo ' + categoriasSeleccionadas.length + ' categorías...', 'tema');
+  for (const cat of categoriasSeleccionadas) {
+    if (detenerFlag) break;
+    log('  📂 ' + cat + '...', 'sec');
+    try {
+      const titulos = await wikiCategoria(cat, 'es', maxPorCat);
+      if (!titulos || !titulos.length) { log('    ⏭ Sin artículos en "' + cat + '"', 'warn'); continue; }
+      log('    → ' + titulos.length + ' artículos', 'info');
+      const tareas = titulos.map(t => async () => {
+        await tarea('cat_' + cat.replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => await obtenerWiki(t, 'es'));
+        await delay(parseInt($('optDelay').value) || 120);
+      });
+      totalTareas += tareas.length; updateStats();
+      await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+    } catch (e) { log('    ✗ Error en "' + cat + '": ' + e.message, 'err'); }
+  }
+  log('📂 Categorías terminadas', 'ok');
 }
 
 // ============================================================
-// EXPANSIÓN POR CATEGORÍAS
+// UI
 // ============================================================
-let categoriasSeleccionadas = [];
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    modoActual = card.dataset.mode;
+    log('Modo cambiado a: ' + modoActual.toUpperCase(), 'info');
+  });
+});
 
-const CATEGORIAS_POR_DEFECTO = [
-  'Enfermedades','Especialidades médicas','Fármacos','Síntomas',
-  'Lenguajes de programación','Algoritmos','Protocolos de red',
-  'Sistemas operativos','Software libre','Ciberseguridad',
-  'Malware','Criptografía','Seguridad informática',
-  'Mitología griega','Mitología nórdica','Criaturas mitológicas',
-  'Dioses','Bestiario','Fotografía','Técnicas fotográficas',
-  'Café','Té','Bebidas','Técnicas culinarias','Gastronomía',
-  'Ingeniería informática','Matemáticas','Física','Química',
-  'Series de televisión','Películas','Anime'
-];
+let categoriasSeleccionadas = [];
+const CATEGORIAS_POR_DEFECTO = ['Enfermedades','Especialidades médicas','Fármacos','Síntomas','Lenguajes de programación','Algoritmos','Protocolos de red','Sistemas operativos','Software libre','Ciberseguridad','Malware','Criptografía','Seguridad informática','Mitología griega','Mitología nórdica','Criaturas mitológicas','Dioses','Bestiario','Fotografía','Técnicas fotográficas','Café','Té','Bebidas','Técnicas culinarias','Gastronomía','Ingeniería informática','Matemáticas','Física','Química','Series de televisión','Películas','Anime'];
 
 function renderCategorias() {
   const list = $('catList');
@@ -1186,58 +698,8 @@ function renderCategorias() {
     list.appendChild(tag);
   });
 }
-
-async function expandirCategorias(maxPorCat) {
-  temaActual = 'Categorías'; updateStats();
-  log('📂 Expandiendo ' + categoriasSeleccionadas.length + ' categorías...', 'tema');
-
-  for (const cat of categoriasSeleccionadas) {
-    if (detenerFlag) break;
-    log('  📂 ' + cat + '...', 'sec');
-    try {
-      const titulos = await wikiCategoria(cat, 'es', maxPorCat);
-      if (!titulos || !titulos.length) {
-        log('    ⏭ Sin artículos en "' + cat + '"', 'warn');
-        continue;
-      }
-      log('    → ' + titulos.length + ' artículos', 'info');
-
-      const tareas = titulos.map(t => async () => {
-        await tarea('cat_' + cat.replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => {
-          return await obtenerWiki(t, 'es');
-        });
-        await delay(parseInt($('optDelay').value) || 120);
-      });
-
-      totalTareas += tareas.length; updateStats();
-      await conLimite(tareas, parseInt($('optConcurrent').value) || 5);
-    } catch (e) {
-      log('    ✗ Error en "' + cat + '": ' + e.message, 'err');
-    }
-  }
-  log('📂 Categorías terminadas', 'ok');
-}
-
-// ============================================================
-// SELECCIÓN DE MODO
-// ============================================================
-document.querySelectorAll('.mode-card').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    modoActual = card.dataset.mode;
-    log('Modo cambiado a: ' + modoActual.toUpperCase(), 'info');
-  });
-});
-
-// ============================================================
-// CATEGORÍAS UI
-// ============================================================
-function initCategorias() {
-  categoriasSeleccionadas = [...CATEGORIAS_POR_DEFECTO];
-  renderCategorias();
-}
-initCategorias();
+categoriasSeleccionadas = [...CATEGORIAS_POR_DEFECTO];
+renderCategorias();
 
 $('addCatBtn').addEventListener('click', () => {
   const v = $('catInput').value.trim();
@@ -1247,14 +709,8 @@ $('addCatBtn').addEventListener('click', () => {
   $('catInput').value = '';
   renderCategorias();
 });
-
-$('catInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('addCatBtn').click();
-});
-
-$('resetCatBtn').addEventListener('click', () => {
-  initCategorias();
-});
+$('catInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('addCatBtn').click(); });
+$('resetCatBtn').addEventListener('click', () => { categoriasSeleccionadas = [...CATEGORIAS_POR_DEFECTO]; renderCategorias(); });
 
 // ============================================================
 // ARRANQUE
@@ -1266,12 +722,12 @@ $('startBtn').addEventListener('click', async () => {
   stopBtn.disabled = false;
   $('dlBtn').disabled = true;
   LOG.innerHTML = '';
-  resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v2', datos: {} };
+  resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v3', datos: {} };
   ok = 0; err = 0; bytes = 0; totalTareas = 0; hechas = 0;
   detenerFlag = false;
   updateStats();
 
-  const max = parseInt($('optMaxPerTheme').value) || 100;
+  const max = parseInt($('optMaxPerTheme').value) || 80;
   const maxCat = parseInt($('optMaxPerCat').value) || 40;
 
   log('🚀 Iniciando recolección (modo ' + modoActual.toUpperCase() + ')...', 'info');
@@ -1293,14 +749,9 @@ $('startBtn').addEventListener('click', async () => {
   if ($('tIngInformatica').checked) await recolectarIngInformatica(max);
   if ($('tMedicina').checked) await recolectarMedicina(max);
   if ($('tDoctorAbuse').checked) await recolectarDoctorAbuse(max);
-
-  if (modoActual === 'enciclopedico' || $('tWikidata').checked) await recolectarWikidataExtra(max);
   if (modoActual === 'enciclopedico' || $('tPapers').checked) await recolectarPapers(Math.min(max, 25));
   if (modoActual === 'enciclopedico' || $('tLibros').checked) await recolectarLibros(Math.min(max, 30));
-  if ($('tDbpedia').checked) await recolectarDbpediaExtra(max);
-  if (modoActual === 'enciclopedico' && $('tCategorias').checked) {
-    await expandirCategorias(maxCat);
-  }
+  if (modoActual === 'enciclopedico' && $('tCategorias').checked) await expandirCategorias(maxCat);
 
   temaActual = '—'; updateStats();
 
@@ -1313,8 +764,8 @@ $('startBtn').addEventListener('click', async () => {
   ultimoBlob = blob;
   $('dlBtn').disabled = false;
   if ($('optAutoDownload').checked) {
-    download(blob, 'conocimiento-total-v2.json');
-    log('💾 Descargado: conocimiento-total-v2.json (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
+    download(blob, 'conocimiento-total-v3.json');
+    log('💾 Descargado: conocimiento-total-v3.json (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
   }
 
   btn.disabled = false;
@@ -1328,9 +779,7 @@ $('stopBtn').addEventListener('click', () => {
   $('startBtn').disabled = false;
 });
 
-$('dlBtn').addEventListener('click', () => {
-  if (ultimoBlob) download(ultimoBlob, 'conocimiento-total-v2.json');
-});
+$('dlBtn').addEventListener('click', () => { if (ultimoBlob) download(ultimoBlob, 'conocimiento-total-v3.json'); });
 
 function download(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -1341,13 +790,10 @@ function download(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
-// ============================================================
-// DIAGNÓSTICO
-// ============================================================
 window.addEventListener('load', () => {
-  log('🔬 Recolector Total v2 listo.', 'info');
-  log('  Modos: Rápido (resúmenes) · Profundo (artículos completos + Wikidata) · Enciclopédico (+ categorías + papers + libros)', 'info');
-  log('  Fuentes: Wikipedia (completa), Wikidata, OpenAlex, Crossref, DBpedia, OpenLibrary, TVmaze, Superhero API, openFDA, Wiktionary, Free Dictionary, MyMemory, Google Translate', 'info');
+  log('🔬 Recolector Total v3 listo.', 'info');
+  log('  APIs: Wikipedia (origin=*), Wiktionary (origin=*), RAE, OpenAlex, OpenLibrary, TVmaze, Superhero, OpenFDA, MyMemory, Google Translate', 'info');
+  log('  Eliminadas: dictionaryapi.dev, Wikidata API, Crossref, DBpedia', 'info');
   log('👉 Selecciona modo, temas y pulsa "Iniciar recolección".', 'info');
 });
 </script>
