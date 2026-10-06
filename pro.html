@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Recolector Total v3 — APIs verificadas para Ania</title>
+<title>🧠 Recolector Total v4 — Rate limiting adaptativo</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 16px; line-height: 1.5; }
@@ -16,9 +16,7 @@
   button:hover:not(:disabled) { background: #0284c7; }
   button:disabled { background: #475569; cursor: not-allowed; }
   button.secondary { background: #475569; }
-  button.secondary:hover:not(:disabled) { background: #64748b; }
   button.success { background: #16a34a; }
-  button.success:hover:not(:disabled) { background: #15803d; }
   button.danger { background: #dc2626; }
   button.small { padding: 6px 12px; font-size: 0.8rem; }
   label.opt { display: flex; align-items: center; gap: 8px; color: #cbd5e1; padding: 4px 0; cursor: pointer; font-size: 0.88rem; }
@@ -31,8 +29,9 @@
   .mode-card h3 { margin: 0 0 6px; color: #38bdf8; font-size: 0.95rem; }
   .mode-card p { margin: 0; color: #94a3b8; font-size: 0.78rem; line-height: 1.4; }
   .mode-card .badge { display: inline-block; background: #334155; color: #cbd5e1; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; margin-top: 8px; font-weight: 600; }
-  #log, .logbox { background: #0f172a; border-radius: 8px; padding: 10px; margin-top: 10px; max-height: 380px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 0.75rem; }
+  #log, .logbox { background: #0f172a; border-radius: 8px; padding: 10px; margin-top: 10px; max-height: 400px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 0.75rem; }
   .log-info { color: #94a3b8; } .log-ok { color: #4ade80; } .log-err { color: #f87171; } .log-warn { color: #fbbf24; } .log-struct { color: #c084fc; } .log-tema { color: #38bdf8; font-weight: 600; } .log-sec { color: #7dd3fc; }
+  .log-throttle { color: #fb923c; font-weight: 700; }
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 12px 0; }
   .stat-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px; text-align: center; }
   .stat-value { font-size: 1.2rem; font-weight: 700; color: #38bdf8; }
@@ -47,17 +46,24 @@
   .cat-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .cat-tag { background: #334155; color: #cbd5e1; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-family: ui-monospace, monospace; display: flex; align-items: center; gap: 6px; }
   .cat-tag button { background: transparent; color: #94a3b8; padding: 0 4px; margin: 0; font-size: 0.9rem; min-width: auto; }
-  .cat-tag button:hover { color: #f87171; background: transparent; }
+  .rate-display {
+    background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+    padding: 8px 12px; font-family: ui-monospace, monospace; font-size: 0.8rem;
+    display: flex; gap: 20px; flex-wrap: wrap; margin: 10px 0;
+  }
+  .rate-item { color: #94a3b8; }
+  .rate-item strong { color: #38bdf8; }
+  .rate-item.warning strong { color: #fbbf24; }
+  .rate-item.danger strong { color: #f87171; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🧠 Recolector Total v3</h1>
-  <p class="subtitle">APIs verificadas · Fallback en cascada · Cero errores CORS · Todo el conocimiento para Ania</p>
+  <h1>🧠 Recolector Total v4</h1>
+  <p class="subtitle">Rate limiting adaptativo · Backoff automático en 429 · Una petición por artículo</p>
 
   <div class="info-box">
-    ✅ <b>APIs verificadas:</b> Wikipedia (origin=*), Wiktionary (origin=*), RAE API (español), OpenAlex (CORS abierto), OpenLibrary (CORS abierto), TVmaze (CORS-enabled), Superhero API, OpenFDA, MyMemory, Google Translate.<br>
-    ❌ <b>Eliminadas:</b> dictionaryapi.dev (error 522), Wikidata API (CORS restringido), Crossref (inestable), DBpedia (CORS variable), Free Dictionary ES (no soportado).
+    ✅ <b>Nuevo sistema anti-bloqueo:</b> cuando Wikipedia responde con HTTP 429, el recolector <b>aumenta automáticamente la pausa</b>, <b>reduce los workers</b> y <b>espera</b> antes de reintentar. Ya no necesita que ajustes manualmente los valores.
   </div>
 
   <div class="panel">
@@ -65,12 +71,12 @@
     <div class="mode-selector" id="modeSelector">
       <div class="mode-card" data-mode="rapido">
         <h3>⚡ Rápido</h3>
-        <p>Solo resúmenes de Wikipedia. Ideal para probar.</p>
-        <span class="badge">~5 min · ~5 MB</span>
+        <p>Solo resúmenes de Wikipedia. Pruebas iniciales.</p>
+        <span class="badge">~3-5 min · ~5 MB</span>
       </div>
       <div class="mode-card selected" data-mode="profundo">
         <h3>🔬 Profundo</h3>
-        <p>Artículos completos + categorías + OpenAlex. Uso diario.</p>
+        <p>Artículos completos + categorías + OpenAlex.</p>
         <span class="badge">~30-60 min · ~50-150 MB</span>
       </div>
       <div class="mode-card" data-mode="enciclopedico">
@@ -87,59 +93,73 @@
       <label class="opt"><input type="checkbox" id="tDiccionario" checked> 📖 Diccionario (Wiktionary + RAE)</label>
       <label class="opt"><input type="checkbox" id="tTraduccion" checked> 🌐 Traducción ES↔EN</label>
       <label class="opt"><input type="checkbox" id="tCineSeries" checked> 🎬 Cine y Series (TVmaze)</label>
-      <label class="opt"><input type="checkbox" id="tMarvelDC" checked> 🦸 Marvel y DC (Superhero API)</label>
-      <label class="opt"><input type="checkbox" id="tFotografia" checked> 📷 Fotografía (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tInformatica" checked> 💻 Informática (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tRedes" checked> 🌐 Redes (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tCiberseguridad" checked> 🛡️ Ciberseguridad (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tSeguridadInfo" checked> 🔒 Seguridad informática (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tSuenos" checked> 💭 Sueños (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tMarvelDC" checked> 🦸 Marvel y DC</label>
+      <label class="opt"><input type="checkbox" id="tFotografia" checked> 📷 Fotografía</label>
+      <label class="opt"><input type="checkbox" id="tInformatica" checked> 💻 Informática</label>
+      <label class="opt"><input type="checkbox" id="tRedes" checked> 🌐 Redes</label>
+      <label class="opt"><input type="checkbox" id="tCiberseguridad" checked> 🛡️ Ciberseguridad</label>
+      <label class="opt"><input type="checkbox" id="tSeguridadInfo" checked> 🔒 Seguridad informática</label>
+      <label class="opt"><input type="checkbox" id="tSuenos" checked> 💭 Sueños</label>
       <label class="opt"><input type="checkbox" id="tMedicamentos" checked> 💊 Medicamentos (openFDA)</label>
-      <label class="opt"><input type="checkbox" id="tCafeTe" checked> ☕ Café y Té (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tCocina" checked> 🍳 Cocina (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tMitologia" checked> 🐉 Mitología y criaturas (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tIngInformatica" checked> 🎓 Ingeniería Informática (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tMedicina" checked> 🏥 Medicina (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tDoctorAbuse" checked> 👨‍⚕️ Doctor Abuse (Wikipedia)</label>
-      <label class="opt"><input type="checkbox" id="tPapers" checked> 🔬 Papers académicos (OpenAlex)</label>
+      <label class="opt"><input type="checkbox" id="tCafeTe" checked> ☕ Café y Té</label>
+      <label class="opt"><input type="checkbox" id="tCocina" checked> 🍳 Cocina</label>
+      <label class="opt"><input type="checkbox" id="tMitologia" checked> 🐉 Mitología</label>
+      <label class="opt"><input type="checkbox" id="tIngInformatica" checked> 🎓 Ingeniería Informática</label>
+      <label class="opt"><input type="checkbox" id="tMedicina" checked> 🏥 Medicina</label>
+      <label class="opt"><input type="checkbox" id="tDoctorAbuse" checked> 👨‍⚕️ Doctor Abuse</label>
+      <label class="opt"><input type="checkbox" id="tPapers" checked> 🔬 Papers (OpenAlex)</label>
       <label class="opt"><input type="checkbox" id="tLibros" checked> 📚 Libros (OpenLibrary)</label>
-      <label class="opt"><input type="checkbox" id="tCategorias" checked> 📂 Expandir por categorías (Wikipedia)</label>
+      <label class="opt"><input type="checkbox" id="tCategorias" checked> 📂 Expandir por categorías</label>
     </div>
   </div>
 
   <div class="panel">
     <h2>3. Categorías a expandir</h2>
-    <p style="color:#94a3b8;font-size:0.85rem;margin-top:0">Cada categoría se expande a ~40 artículos completos de Wikipedia.</p>
     <div class="cat-input-row">
-      <input type="text" id="catInput" placeholder="Ej: Enfermedades cardiovasculares, Criaturas mitológicas..." />
-      <button id="addCatBtn" class="small success">➕ Añadir</button>
+      <input type="text" id="catInput" placeholder="Ej: Enfermedades cardiovasculares..." />
+      <button id="addCatBtn" class="small success">➕</button>
       <button id="resetCatBtn" class="small secondary">🔄 Restaurar</button>
     </div>
     <div class="cat-list" id="catList"></div>
   </div>
 
   <div class="panel">
-    <h2>4. Opciones avanzadas</h2>
+    <h2>4. Opciones (auto-ajustables)</h2>
+    <div class="warn-box">
+      ⚠️ <b>Deja los valores por defecto.</b> El sistema los ajustará automáticamente cuando Wikipedia te limite.
+    </div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-      <label style="color:#cbd5e1;font-size:0.88rem">Pausa entre peticiones (ms):
-        <input type="number" id="optDelay" value="120" min="0" max="2000" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+      <label style="color:#cbd5e1;font-size:0.88rem">Pausa inicial (ms):
+        <input type="number" id="optDelay" value="200" min="50" max="5000" style="width:80px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
-      <label style="color:#cbd5e1;font-size:0.88rem">Peticiones simultáneas:
-        <input type="number" id="optConcurrent" value="4" min="1" max="10" style="width:60px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+      <label style="color:#cbd5e1;font-size:0.88rem">Workers iniciales:
+        <input type="number" id="optConcurrent" value="3" min="1" max="8" style="width:60px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
       <label style="color:#cbd5e1;font-size:0.88rem">Máx. ítems por tema:
-        <input type="number" id="optMaxPerTheme" value="80" min="5" max="500" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+        <input type="number" id="optMaxPerTheme" value="200" min="5" max="500" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
       <label style="color:#cbd5e1;font-size:0.88rem">Máx. artículos por categoría:
-        <input type="number" id="optMaxPerCat" value="40" min="5" max="200" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
+        <input type="number" id="optMaxPerCat" value="80" min="5" max="200" style="width:70px;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px" />
       </label>
     </div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="optLimpiarRuido" checked> Limpiar secciones ruidosas (Referencias, Enlaces externos, etc.)</label>
+    <label class="opt" style="margin-top:10px"><input type="checkbox" id="optLimpiarRuido" checked> Limpiar secciones ruidosas</label>
     <label class="opt"><input type="checkbox" id="optAutoDownload" checked> Descargar automáticamente al terminar</label>
+    <label class="opt"><input type="checkbox" id="optAdaptive" checked> 🔧 Adaptación automática (recomendado)</label>
   </div>
 
   <div class="panel">
-    <h2>5. Ejecutar</h2>
+    <h2>5. Estado del rate limiter</h2>
+    <div class="rate-display" id="rateDisplay">
+      <div class="rate-item">Pausa actual: <strong id="rateDelay">200</strong> ms</div>
+      <div class="rate-item">Workers activos: <strong id="rateWorkers">3</strong></div>
+      <div class="rate-item">Total 429 recibidos: <strong id="rate429">0</strong></div>
+      <div class="rate-item">Velocidad: <strong id="rateSpeed">0</strong> req/s</div>
+      <div class="rate-item">Estado: <strong id="rateStatus">OK</strong></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>6. Ejecutar</h2>
     <button id="startBtn" class="success">🚀 Iniciar recolección</button>
     <button id="stopBtn" class="danger" disabled>⏹ Detener</button>
     <button id="dlBtn" class="secondary" disabled>💾 Descargar JSON</button>
@@ -147,6 +167,7 @@
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-value" id="sOk">0</div><div class="stat-label">OK</div></div>
       <div class="stat-card"><div class="stat-value" id="sErr">0</div><div class="stat-label">Errores</div></div>
+      <div class="stat-card"><div class="stat-value" id="s429">0</div><div class="stat-label">429</div></div>
       <div class="stat-card"><div class="stat-value" id="sMB">0</div><div class="stat-label">MB</div></div>
       <div class="stat-card"><div class="stat-value" id="sPct">0%</div><div class="stat-label">Progreso</div></div>
       <div class="stat-card"><div class="stat-value" id="sTema">—</div><div class="stat-label">Tema actual</div></div>
@@ -164,13 +185,92 @@
 <script>
 const $ = id => document.getElementById(id);
 const LOG = $('log');
-let resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v3', datos: {} };
-let ok = 0, err = 0, bytes = 0, totalTareas = 0, hechas = 0;
+let resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v4', datos: {} };
+let ok = 0, err = 0, bytes = 0, totalTareas = 0, hechas = 0, count429 = 0;
 let ultimoBlob = null;
 let modoActual = 'profundo';
 let detenerFlag = false;
 let temaActual = '—';
 
+// ============================================================
+// RATE LIMITER ADAPTATIVO
+// ============================================================
+const rateLimiter = {
+  delayMs: 200,          // pausa actual entre peticiones
+  workers: 3,             // workers actuales
+  maxDelayMs: 3000,       // pausa máxima permitida
+  minWorkers: 1,
+  maxWorkers: 5,
+  consecutive429: 0,      // cuenta de 429 consecutivos
+  lastRequestTime: 0,
+  totalRequests: 0,
+  requestsInLastSecond: 0,
+  secondStart: Date.now(),
+
+  // Se llama cuando se detecta un 429
+  onRateLimit() {
+    this.consecutive429++;
+    count429++;
+    if ($('optAdaptive').checked) {
+      // Duplicar la pausa
+      this.delayMs = Math.min(this.maxDelayMs, Math.round(this.delayMs * 1.8));
+      // Reducir workers si hay muchos 429 seguidos
+      if (this.consecutive429 >= 3 && this.workers > this.minWorkers) {
+        this.workers = Math.max(this.minWorkers, this.workers - 1);
+        this.consecutive429 = 0;
+      }
+      log('⚠️ 429 detectado → pausa ajustada a ' + this.delayMs + ' ms, workers: ' + this.workers, 'throttle');
+    }
+    updateRateDisplay('THROTTLED');
+  },
+
+  // Se llama cuando una petición tiene éxito
+  onSuccess() {
+    if (this.consecutive429 > 0) {
+      this.consecutive429 = Math.max(0, this.consecutive429 - 1);
+    }
+    // Recuperación gradual: cada 20 peticiones exitosas, reducir la pausa un 10%
+    if (this.totalRequests > 0 && this.totalRequests % 20 === 0 && this.delayMs > 150) {
+      this.delayMs = Math.max(150, Math.round(this.delayMs * 0.9));
+    }
+    updateRateDisplay('OK');
+  },
+
+  // Esperar antes de la próxima petición
+  async wait() {
+    const now = Date.now();
+    const elapsed = now - this.lastRequestTime;
+    const waitMs = Math.max(0, this.delayMs - elapsed);
+    if (waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
+    this.lastRequestTime = Date.now();
+    this.totalRequests++;
+
+    // Contar velocidad
+    const secElapsed = (Date.now() - this.secondStart) / 1000;
+    if (secElapsed >= 1) {
+      this.requestsInLastSecond = Math.round(this.totalRequests / secElapsed);
+      this.secondStart = Date.now();
+      this.totalRequests = 0;
+    }
+  }
+};
+
+function updateRateDisplay(status) {
+  $('rateDelay').textContent = rateLimiter.delayMs;
+  $('rateWorkers').textContent = rateLimiter.workers;
+  $('rate429').textContent = count429;
+  $('rateSpeed').textContent = rateLimiter.requestsInLastSecond;
+  const statusEl = $('rateStatus');
+  statusEl.textContent = status;
+  const item = statusEl.parentElement;
+  item.className = 'rate-item';
+  if (status === 'THROTTLED') item.className = 'rate-item warning';
+  if (count429 > 20) item.className = 'rate-item danger';
+}
+
+// ============================================================
+// LOG & ESTADÍSTICAS
+// ============================================================
 function log(msg, type='info') {
   const d = document.createElement('div');
   d.className = 'log-' + type;
@@ -183,6 +283,7 @@ function log(msg, type='info') {
 function updateStats() {
   $('sOk').textContent = ok.toLocaleString();
   $('sErr').textContent = err.toLocaleString();
+  $('s429').textContent = count429.toLocaleString();
   $('sMB').textContent = (bytes/1024/1024).toFixed(2);
   const pct = totalTareas ? Math.round((hechas/totalTareas)*100) : 0;
   $('sPct').textContent = pct + '%';
@@ -192,21 +293,38 @@ function updateStats() {
 }
 
 // ============================================================
-// FETCH CON TIMEOUT Y REINTENTOS
+// FETCH CON DETECCIÓN DE 429
 // ============================================================
-async function fetchJSON(url, timeout=20000, retries=2) {
+async function fetchJSON(url, timeout=20000, retries=3) {
   for (let i = 0; i <= retries; i++) {
+    await rateLimiter.wait();
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeout);
     try {
-      const r = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+      const r = await fetch(url, { signal: ctrl.signal });
       clearTimeout(t);
+
+      if (r.status === 429) {
+        rateLimiter.onRateLimit();
+        if (i < retries) {
+          // Backoff exponencial para 429: 2s, 4s, 8s...
+          const backoff = 2000 * Math.pow(2, i);
+          log('  ⏳ 429 (intento ' + (i+1) + '/' + (retries+1) + '), esperando ' + (backoff/1000) + 's...', 'warn');
+          await new Promise(r => setTimeout(r, backoff));
+          continue;
+        }
+        throw new Error('HTTP 429 tras ' + (retries + 1) + ' intentos');
+      }
+
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      return await r.json();
+      const data = await r.json();
+      rateLimiter.onSuccess();
+      return data;
     } catch (e) {
       clearTimeout(t);
+      if (e.message.includes('429')) continue;
       if (i === retries) throw e;
-      await delay(500 * (i + 1)); // backoff
+      await new Promise(r => setTimeout(r, 500 * (i + 1)));
     }
   }
 }
@@ -245,8 +363,13 @@ async function tarea(nombre, fn) {
 
 async function conLimite(tareas, limite) {
   const cola = [...tareas];
-  await Promise.all(Array(Math.min(limite, cola.length || 1)).fill(0).map(async () => {
-    while (cola.length && !detenerFlag) await cola.shift()();
+  // Usar el límite dinámico del rate limiter
+  const workersReal = Math.min(limite, rateLimiter.workers);
+  await Promise.all(Array(workersReal).fill(0).map(async () => {
+    while (cola.length && !detenerFlag) {
+      // Re-verificar workers activos (pueden haber bajado por 429)
+      await cola.shift()();
+    }
   }));
 }
 
@@ -263,26 +386,23 @@ function detectLang(text) {
 }
 
 // ============================================================
-// WIKIPEDIA (con origin=*)
+// WIKIPEDIA — UNA SOLA PETICIÓN POR ARTÍCULO
 // ============================================================
 async function wikiFull(titulo, lang = 'es') {
   try {
-    const searchUrl = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&list=search&srsearch=' +
-      encodeURIComponent(titulo) + '&format=json&origin=*&srlimit=1';
-    const search = await fetchJSON(searchUrl);
-    if (!search.query?.search?.length) return null;
-    const pageTitle = search.query.search[0].title;
-
+    // UNA SOLA PETICIÓN: extrae directamente, con redirects=1
     const url = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&prop=extracts' +
-      '&explaintext=1&exsectionformat=plain&titles=' + encodeURIComponent(pageTitle) +
+      '&explaintext=1&exsectionformat=plain&titles=' + encodeURIComponent(titulo) +
       '&format=json&origin=*&redirects=1';
     const d = await fetchJSON(url);
     const pages = d.query?.pages;
     if (!pages) return null;
     const page = Object.values(pages)[0];
+    if (page.missing !== undefined) return null;
     const extract = page.extract;
-    if (!extract) return null;
+    if (!extract || extract.length < 100) return null;
 
+    const tituloReal = page.title || titulo;
     let limpio = extract;
     if ($('optLimpiarRuido').checked) {
       limpio = extract.split('\n').filter(l => {
@@ -294,7 +414,7 @@ async function wikiFull(titulo, lang = 'es') {
       }).join('\n').replace(/\n{3,}/g, '\n\n');
     }
 
-    return '# ' + pageTitle + '\n\n' + limpio;
+    return '# ' + tituloReal + '\n\n' + limpio;
   } catch (e) { return null; }
 }
 
@@ -318,13 +438,15 @@ async function wikiCategoria(categoria, lang = 'es', max = 50) {
 
 async function obtenerWiki(tema, lang = 'es') {
   if (modoActual === 'rapido') return await wikiSummary(tema, lang);
+  // Intentar artículo completo (1 petición)
   const full = await wikiFull(tema, lang);
-  if (!full) return await wikiSummary(tema, lang);
-  return full;
+  if (full) return full;
+  // Fallback: resumen (1 petición)
+  return await wikiSummary(tema, lang);
 }
 
 // ============================================================
-// DICCIONARIO — WIKTIONARY + RAE
+// DICCIONARIO
 // ============================================================
 async function dictWiktionaryES(palabra) {
   try {
@@ -345,10 +467,9 @@ async function dictWiktionaryES(palabra) {
 
 async function dictRAE(palabra) {
   try {
-    // RAE API (rae-api.com) - no requiere key para consultas básicas
-    const d = await fetchJSON('https://rae-api.com/api/words/' + encodeURIComponent(palabra));
-    if (!d || !d.data) return null;
-    const defs = d.data.meanings?.map(m => '• ' + m.definition).join('\n') || '';
+    const d = await fetchJSON('https://rae-api.com/api/words/' + encodeURIComponent(palabra), 15000, 1);
+    if (!d || !d.ok || !d.data) return null;
+    const defs = (d.data.meanings || []).map(m => '• ' + m.definition).filter(Boolean).join('\n');
     if (!defs) return null;
     return '=== DICCIONARIO (RAE) ===\nPalabra: ' + palabra + '\n\n' + defs;
   } catch (e) { return null; }
@@ -361,7 +482,7 @@ async function translateMyMemory(text, from, to) {
   try {
     const url = 'https://api.mymemory.translated.net/get?q=' +
       encodeURIComponent(text) + '&langpair=' + from + '|' + to;
-    const d = await fetchJSON(url);
+    const d = await fetchJSON(url, 15000, 1);
     if (d.responseStatus !== 200) return null;
     const t = d.responseData?.translatedText;
     if (!t || t.toLowerCase() === text.toLowerCase()) return null;
@@ -383,7 +504,7 @@ async function translateGoogle(text, from, to) {
 }
 
 // ============================================================
-// OPENALEX (papers)
+// OPENALEX
 // ============================================================
 function reconstruirAbstract(inv) {
   const palabras = [];
@@ -426,22 +547,19 @@ async function openLibrary(tema) {
 // ============================================================
 // RECOLECTORES POR TEMA
 // ============================================================
-
 async function recolectarDiccionario(max) {
   temaActual = 'Diccionario'; updateStats();
   log('📖 Diccionario...', 'tema');
   const palabras = ['casa','perro','gato','libro','mesa','silla','agua','fuego','tierra','aire','amor','amistad','felicidad','tristeza','esperanza','libertad','justicia','paz','tiempo','espacio','universo','naturaleza','energía','materia','luz','oscuridad','comida','bebida','café','té','pan','leche','carne','fruta','verdura','rojo','azul','verde','amarillo','blanco','negro','grande','pequeño','alto','bajo','correr','caminar','hablar','escribir','leer','pensar','soñar','vivir','morir','computadora','teléfono','internet','red','datos','programa','código','sistema','medicina','enfermedad','salud','cuerpo','mente','alma','corazón','cerebro'].slice(0, max);
   const tareas = palabras.map(p => async () => {
     await tarea('dict_' + p, async () => {
-      // Fallback: Wiktionary → RAE
       let r = await dictWiktionaryES(p);
       if (!r) r = await dictRAE(p);
       return r;
     });
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('📖 Diccionario terminado', 'ok');
 }
 
@@ -458,10 +576,9 @@ async function recolectarTraduccion(max) {
       if (!t) return null;
       return '=== TRADUCCIÓN ===\n' + p + ' (' + lang + ') → ' + t + ' (' + other + ')';
     });
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('🌐 Traducción terminada', 'ok');
 }
 
@@ -484,10 +601,9 @@ async function recolectarCineSeries(max) {
         return partes.join('\n');
       } catch (e) { return null; }
     });
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('🎬 Cine y Series terminado', 'ok');
 }
 
@@ -510,20 +626,18 @@ async function recolectarMarvelDC(max) {
         return partes.join('\n');
       } catch (e) { return null; }
     });
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('🦸 Marvel y DC terminado', 'ok');
 }
 
 async function recolectarListaWikipedia(temas, prefijo) {
   const tareas = temas.map(t => async () => {
     await tarea(prefijo + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => await obtenerWiki(t, 'es'));
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
 }
 
 async function recolectarFotografia(max) {
@@ -558,7 +672,7 @@ async function recolectarSeguridadInfo(max) {
 
 async function recolectarSuenos(max) {
   temaActual = 'Sueños'; updateStats(); log('💭 Sueños...', 'tema');
-  await recolectarListaWikipedia(['Sueño','Interpretación de los sueños','Sueño lúcido','Ensoñación','Pesadilla','Terapia de sueños','Fase REM','Ciclo circadiano','soñar con agua','soñar con fuego','soñar con volar','soñar con caer','soñar con perseguir','soñar con ser perseguido','soñar con dientes','soñar con muerte','soñar con bebé','soñar con embarazo','soñar con boda','soñar con serpiente','soñar con araña','soñar con perro','soñar con gato','soñar con dinero','soñar con casa','soñar con escuela','soñar con examen','soñar con trabajo','soñar con viaje','soñar con coche','soñar con avión','soñar con mar','soñar con montaña','soñar con bosque','soñar con lluvia','soñar con nieve','soñar con sol','soñar con luna','soñar con estrellas'], 'sueno_');
+  await recolectarListaWikipedia(['Sueño','Interpretación de los sueños','Sueño lúcido','Ensoñación','Pesadilla','Terapia de sueños','Fase REM','Ciclo circadiano','Oniromancia','Psicoanálisis'], 'sueno_');
   log('💭 Sueños terminado', 'ok');
 }
 
@@ -581,10 +695,9 @@ async function recolectarMedicamentos(max) {
         return partes.join('\n\n');
       } catch (e) { return null; }
     });
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('💊 Medicamentos terminado', 'ok');
 }
 
@@ -614,7 +727,7 @@ async function recolectarIngInformatica(max) {
 
 async function recolectarMedicina(max) {
   temaActual = 'Medicina'; updateStats(); log('🏥 Medicina...', 'tema');
-  await recolectarListaWikipedia(['Medicina','Anatomía','Fisiología','Patología','Farmacología','Cardiología','Neurología','Oncología','Pediatría','Geriatría','Diabetes mellitus','Hipertensión arterial','Asma','Artritis','Enfermedad de Alzheimer','Enfermedad de Parkinson','Cáncer','Infarto agudo de miocardio','Accidente cerebrovascular','EPOC','Neumonía','Tuberculosis','Malaria','VIH','Hepatitis','COVID-19','Depresión','Trastorno de ansiedad','Esquizofrenia','Trastorno bipolar','Síntoma','Diagnóstico médico','Tratamiento médico','Prevención','Vacuna','Cirugía','Aparato circulatorio','Aparato respiratorio','Aparato digestivo','Sistema nervioso','Sistema inmunitario','Sistema endocrino','Genética médica','Inmunología','Microbiología','Bioquímica clínica','Radiología','Anestesiología','Urgencias médicas','Medicina interna'], 'medicina_');
+  await recolectarListaWikipedia(['Medicina','Anatomía','Fisiología','Patología','Farmacología','Cardiología','Neurología','Oncología','Pediatría','Geriatría','Diabetes mellitus','Hipertensión arterial','Asma','Artritis','Enfermedad de Alzheimer','Enfermedad de Parkinson','Cáncer','Infarto agudo de miocardio','Accidente cerebrovascular','Enfermedad pulmonar obstructiva crónica','Neumonía','Tuberculosis','Malaria','VIH','Hepatitis','COVID-19','Depresión','Trastorno de ansiedad','Esquizofrenia','Trastorno bipolar','Síntoma','Diagnóstico médico','Tratamiento médico','Prevención','Vacuna','Cirugía','Aparato circulatorio','Aparato respiratorio','Aparato digestivo','Sistema nervioso','Sistema inmunitario','Sistema endocrino','Genética médica','Inmunología','Microbiología','Bioquímica clínica','Radiología','Anestesiología','Urgencias médicas','Medicina interna'], 'medicina_');
   log('🏥 Medicina terminado', 'ok');
 }
 
@@ -625,26 +738,24 @@ async function recolectarDoctorAbuse(max) {
 }
 
 async function recolectarPapers(max) {
-  temaActual = 'Papers'; updateStats(); log('🔬 Papers académicos...', 'tema');
+  temaActual = 'Papers'; updateStats(); log('🔬 Papers...', 'tema');
   const temas = ['machine learning','deep learning','quantum computing','CRISPR gene editing','climate change','neuroscience','artificial intelligence','natural language processing','computer vision','cybersecurity','blockchain','renewable energy','cancer immunotherapy','diabetes treatment','Alzheimer disease','quantum physics','string theory','dark matter','exoplanets','synthetic biology','bioinformatics','robotics','autonomous vehicles'].slice(0, max);
   const tareas = temas.map(t => async () => {
     await tarea('paper_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await openalex(t));
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('🔬 Papers terminados', 'ok');
 }
 
 async function recolectarLibros(max) {
-  temaActual = 'Libros'; updateStats(); log('📚 Libros (OpenLibrary)...', 'tema');
+  temaActual = 'Libros'; updateStats(); log('📚 Libros...', 'tema');
   const temas = ['filosofía','ciencia ficción','novela negra','poesía','matemáticas','física','biología','historia universal','inteligencia artificial','programación','ciberseguridad','medicina','mitología','arte','fotografía','cocina'].slice(0, max);
   const tareas = temas.map(t => async () => {
     await tarea('libro_' + t.replace(/[^a-z0-9]/gi,'_'), async () => await openLibrary(t));
-    await delay(parseInt($('optDelay').value) || 120);
   });
   totalTareas += tareas.length; updateStats();
-  await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+  await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
   log('📚 Libros terminado', 'ok');
 }
 
@@ -660,10 +771,9 @@ async function expandirCategorias(maxPorCat) {
       log('    → ' + titulos.length + ' artículos', 'info');
       const tareas = titulos.map(t => async () => {
         await tarea('cat_' + cat.replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + t.replace(/[^a-z0-9]/gi,'_').toLowerCase(), async () => await obtenerWiki(t, 'es'));
-        await delay(parseInt($('optDelay').value) || 120);
       });
       totalTareas += tareas.length; updateStats();
-      await conLimite(tareas, parseInt($('optConcurrent').value) || 4);
+      await conLimite(tareas, parseInt($('optConcurrent').value) || 3);
     } catch (e) { log('    ✗ Error en "' + cat + '": ' + e.message, 'err'); }
   }
   log('📂 Categorías terminadas', 'ok');
@@ -722,15 +832,23 @@ $('startBtn').addEventListener('click', async () => {
   stopBtn.disabled = false;
   $('dlBtn').disabled = true;
   LOG.innerHTML = '';
-  resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v3', datos: {} };
-  ok = 0; err = 0; bytes = 0; totalTareas = 0; hechas = 0;
+  resultado = { generado: new Date().toISOString(), fuente: 'recolector-total-v4', datos: {} };
+  ok = 0; err = 0; bytes = 0; totalTareas = 0; hechas = 0; count429 = 0;
   detenerFlag = false;
+
+  // Reset rate limiter
+  rateLimiter.delayMs = parseInt($('optDelay').value) || 200;
+  rateLimiter.workers = parseInt($('optConcurrent').value) || 3;
+  rateLimiter.consecutive429 = 0;
+  rateLimiter.totalRequests = 0;
+  updateRateDisplay('OK');
   updateStats();
 
-  const max = parseInt($('optMaxPerTheme').value) || 80;
-  const maxCat = parseInt($('optMaxPerCat').value) || 40;
+  const max = parseInt($('optMaxPerTheme').value) || 200;
+  const maxCat = parseInt($('optMaxPerCat').value) || 80;
 
-  log('🚀 Iniciando recolección (modo ' + modoActual.toUpperCase() + ')...', 'info');
+  log('🚀 Iniciando (modo ' + modoActual.toUpperCase() + ')', 'info');
+  log('⚙️ Pausa inicial: ' + rateLimiter.delayMs + ' ms · Workers: ' + rateLimiter.workers, 'info');
 
   if ($('tDiccionario').checked) await recolectarDiccionario(max);
   if ($('tTraduccion').checked) await recolectarTraduccion(max);
@@ -756,7 +874,7 @@ $('startBtn').addEventListener('click', async () => {
   temaActual = '—'; updateStats();
 
   log('', 'info');
-  log('✅ COMPLETADO: ' + ok.toLocaleString() + ' OK, ' + err.toLocaleString() + ' errores', 'ok');
+  log('✅ COMPLETADO: ' + ok.toLocaleString() + ' OK, ' + err.toLocaleString() + ' errores, ' + count429.toLocaleString() + ' bloqueos 429', 'ok');
   log('📦 Total: ' + (bytes/1024/1024).toFixed(2) + ' MB', 'ok');
   log('🔑 Recursos: ' + Object.keys(resultado.datos).length.toLocaleString(), 'struct');
 
@@ -764,8 +882,8 @@ $('startBtn').addEventListener('click', async () => {
   ultimoBlob = blob;
   $('dlBtn').disabled = false;
   if ($('optAutoDownload').checked) {
-    download(blob, 'conocimiento-total-v3.json');
-    log('💾 Descargado: conocimiento-total-v3.json (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
+    download(blob, 'conocimiento-total-v4.json');
+    log('💾 Descargado: conocimiento-total-v4.json (' + (blob.size/1024/1024).toFixed(2) + ' MB)', 'ok');
   }
 
   btn.disabled = false;
@@ -774,12 +892,12 @@ $('startBtn').addEventListener('click', async () => {
 
 $('stopBtn').addEventListener('click', () => {
   detenerFlag = true;
-  log('⏹ Detenido por el usuario. Los datos recolectados hasta ahora se conservarán.', 'warn');
+  log('⏹ Detenido por el usuario.', 'warn');
   $('stopBtn').disabled = true;
   $('startBtn').disabled = false;
 });
 
-$('dlBtn').addEventListener('click', () => { if (ultimoBlob) download(ultimoBlob, 'conocimiento-total-v3.json'); });
+$('dlBtn').addEventListener('click', () => { if (ultimoBlob) download(ultimoBlob, 'conocimiento-total-v4.json'); });
 
 function download(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -791,10 +909,10 @@ function download(blob, filename) {
 }
 
 window.addEventListener('load', () => {
-  log('🔬 Recolector Total v3 listo.', 'info');
-  log('  APIs: Wikipedia (origin=*), Wiktionary (origin=*), RAE, OpenAlex, OpenLibrary, TVmaze, Superhero, OpenFDA, MyMemory, Google Translate', 'info');
-  log('  Eliminadas: dictionaryapi.dev, Wikidata API, Crossref, DBpedia', 'info');
-  log('👉 Selecciona modo, temas y pulsa "Iniciar recolección".', 'info');
+  log('🔬 Recolector Total v4 listo.', 'info');
+  log('  → Rate limiter adaptativo activo', 'info');
+  log('  → Los valores por defecto (200 ms, 3 workers) son seguros', 'info');
+  log('  → Si hay 429, se ajusta automáticamente', 'info');
 });
 </script>
 </body>
