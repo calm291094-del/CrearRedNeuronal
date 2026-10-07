@@ -3,1571 +3,1646 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Cerebro HDF5 — Creador + Visor + Chat</title>
+<title>🧠 Ania — Diccionario Completo → Cerebro → Chat</title>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: #0f172a; color: #e2e8f0;
-    margin: 0; padding: 20px; line-height: 1.5;
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0f1e;--panel:#111827;--panel2:#1a2233;--border:#2a3441;
+    --text:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#0ea5e9;
+    --ok:#4ade80;--err:#f87171;--warn:#fbbf24;--purple:#c084fc;
   }
-  .container { max-width: 1200px; margin: 0 auto; }
-  h1 { color: #38bdf8; margin-bottom: 4px; }
-  .subtitle { color: #94a3b8; margin-top: 0; }
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;
+    background-image:radial-gradient(circle at 20% 0%,rgba(56,189,248,.08),transparent 40%),
+                     radial-gradient(circle at 80% 100%,rgba(192,132,252,.06),transparent 40%);
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:24px}
 
-  .tabs { display: flex; gap: 4px; margin: 20px 0 0; border-bottom: 2px solid #334155; }
-  .tab {
-    padding: 12px 24px; background: transparent; color: #94a3b8;
-    border: none; cursor: pointer; font-size: 1rem; font-weight: 600;
-    border-bottom: 3px solid transparent; margin-bottom: -2px;
-  }
-  .tab:hover { color: #cbd5e1; }
-  .tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+  header{display:flex;align-items:center;gap:14px;padding:16px 0 20px;border-bottom:1px solid var(--border);margin-bottom:22px;flex-wrap:wrap}
+  .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--purple));display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 8px 24px rgba(56,189,248,.3)}
+  header h1{font-size:1.25rem;color:var(--accent)}
+  header p{font-size:.8rem;color:var(--muted)}
 
-  .panel {
-    background: #1e293b; border-radius: 12px;
-    padding: 20px; margin: 16px 0;
-    border: 1px solid #334155;
-  }
-  .panel h2 { margin-top: 0; color: #7dd3fc; font-size: 1.1rem; }
+  .steps{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  .step{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--panel);border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s}
+  .step:hover{border-color:#3a4553}
+  .step.active{border-color:var(--accent);background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(56,189,248,.05))}
+  .step.done{border-color:var(--ok)}
+  .step-num{width:34px;height:34px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex-shrink:0}
+  .step.active .step-num{background:var(--accent);color:white}
+  .step.done .step-num{background:var(--ok);color:white}
+  .step-info h3{font-size:.88rem;color:var(--text);font-weight:600}
+  .step-info p{font-size:.72rem;color:var(--muted)}
 
-  input[type="file"] { display: block; margin: 8px 0; color: #cbd5e1; }
-  button {
-    background: #0ea5e9; color: white; border: none;
-    padding: 12px 24px; border-radius: 8px;
-    font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: background 0.2s;
-  }
-  button:hover:not(:disabled) { background: #0284c7; }
-  button:disabled { background: #475569; cursor: not-allowed; }
-  button.secondary { background: #475569; font-size: 0.85rem; padding: 8px 16px; }
-  button.secondary:hover:not(:disabled) { background: #64748b; }
-  label { display: flex; align-items: center; gap: 8px; color: #cbd5e1; }
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
+  .panel h2{font-size:1rem;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .panel p.hint{color:var(--muted);font-size:.85rem;margin-bottom:12px}
+  .page{display:none}
+  .page.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-  #log {
-    background: #0f172a; border-radius: 8px; padding: 12px;
-    margin-top: 16px; max-height: 300px; overflow-y: auto;
-    font-family: ui-monospace, monospace; font-size: 0.8rem;
-  }
-  .log-info { color: #94a3b8; }
-  .log-ok { color: #4ade80; }
-  .log-err { color: #f87171; }
-  .log-warn { color: #fbbf24; }
-  .log-struct { color: #c084fc; }
+  button{background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;border:none;padding:11px 20px;border-radius:10px;font-size:.92rem;font-weight:600;cursor:pointer;transition:transform .1s,box-shadow .2s,opacity .2s;font-family:inherit;margin:4px 4px 4px 0;display:inline-flex;align-items:center;gap:6px}
+  button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(14,165,233,.4)}
+  button:disabled{background:#334155;cursor:not-allowed;opacity:.6}
+  button.sec{background:var(--panel2);border:1px solid var(--border)}
+  button.sec:hover:not(:disabled){background:#232d42;box-shadow:none}
+  button.ok{background:linear-gradient(135deg,#16a34a,#22c55e)}
+  button.warn{background:linear-gradient(135deg,#d97706,#f59e0b)}
+  button.danger{background:linear-gradient(135deg,#b91c1c,#dc2626)}
+  button.big{padding:16px 30px;font-size:1rem}
+  button.small{padding:7px 14px;font-size:.82rem}
 
-  .viewer {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 16px;
-    height: 620px;
-  }
-  .tree-panel {
-    background: #0f172a; border-radius: 8px;
-    border: 1px solid #334155; overflow: auto; padding: 12px;
-    font-family: ui-monospace, monospace; font-size: 0.85rem;
-  }
-  .detail-panel {
-    background: #0f172a; border-radius: 8px;
-    border: 1px solid #334155; overflow: auto; padding: 16px;
-  }
-  .tree-item {
-    padding: 3px 6px; cursor: pointer; border-radius: 4px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .tree-item:hover { background: #1e293b; }
-  .tree-item.selected { background: #0ea5e9; color: white; }
-  .tree-group { color: #7dd3fc; font-weight: 600; }
-  .tree-dataset { color: #cbd5e1; }
+  textarea,input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.92rem;font-family:inherit;transition:border-color .15s,box-shadow .15s;width:100%}
+  textarea{min-height:120px;resize:vertical;font-family:ui-monospace,monospace;font-size:.82rem}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  label.opt{display:flex;align-items:center;gap:10px;color:var(--text);padding:7px 0;cursor:pointer;font-size:.9rem}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  .row label{color:var(--muted);font-size:.85rem;display:flex;align-items:center;gap:6px}
+  .row input[type=number]{width:100px}
 
-  .detail-header { margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-  .detail-header h3 { margin: 0 0 6px; color: #38bdf8; word-break: break-all; font-size: 1rem; }
-  .detail-header .path { color: #94a3b8; font-size: 0.85rem; font-family: ui-monospace, monospace; }
-  .meta-row {
-    display: grid; grid-template-columns: 160px 1fr;
-    gap: 8px; padding: 4px 0; font-size: 0.9rem;
-  }
-  .meta-key { color: #94a3b8; }
-  .meta-val { color: #e2e8f0; font-family: ui-monospace, monospace; word-break: break-all; }
-  .content-box {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 6px; padding: 12px; margin-top: 12px;
-    font-family: ui-monospace, monospace; font-size: 0.8rem;
-    white-space: pre-wrap; word-break: break-word;
-    max-height: 380px; overflow: auto;
-  }
-  .content-box.json { color: #fbbf24; }
-  .content-box.text { color: #e2e8f0; }
-  .content-box.binary { color: #f87171; font-style: italic; }
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:12px;margin:14px 0}
+  .stat{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+  .stat-v{font-size:1.35rem;font-weight:700;color:var(--accent);word-break:break-all}
+  .stat-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
 
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 12px; margin-bottom: 16px;
-  }
-  .stat-card {
-    background: #0f172a; border: 1px solid #334155;
-    border-radius: 8px; padding: 12px; text-align: center;
-  }
-  .stat-value { font-size: 1.4rem; font-weight: 700; color: #38bdf8; word-break: break-all; }
-  .stat-label { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .progress{background:var(--bg);border:1px solid var(--border);border-radius:10px;height:26px;overflow:hidden;margin:14px 0;display:none}
+  .progress.show{display:block}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--ok));width:0%;transition:width .3s;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.75rem}
 
-  .empty-state {
-    color: #64748b; text-align: center;
-    padding: 40px 20px; font-style: italic;
-  }
-  .debug-box {
-    background: #0f172a; border: 1px solid #7c3aed;
-    border-radius: 6px; padding: 12px; margin-top: 12px;
-    font-family: ui-monospace, monospace; font-size: 0.75rem;
-    color: #c4b5fd; max-height: 500px; overflow: auto;
-    white-space: pre-wrap;
-  }
+  .log{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:12px;max-height:280px;overflow-y:auto;font-family:ui-monospace,monospace;font-size:.78rem}
+  .log::-webkit-scrollbar{width:8px}
+  .log::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .l-info{color:var(--muted)} .l-ok{color:var(--ok)} .l-err{color:var(--err)}
+  .l-warn{color:var(--warn)} .l-prog{color:var(--purple);font-weight:600}
+  .l-time{color:#475569}
 
-  /* ========== CHAT ========== */
-  #chatWindow {
-    background: #0f172a;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    padding: 16px;
-    height: 500px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .msg {
-    max-width: 78%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    line-height: 1.5;
-    font-size: 0.9rem;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-  .msg-user {
-    background: #0ea5e9;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-  }
-  .msg-bot {
-    background: #1e293b;
-    color: #e2e8f0;
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-    border: 1px solid #334155;
-  }
-  .msg-sys {
-    background: transparent;
-    color: #64748b;
-    font-style: italic;
-    font-size: 0.78rem;
-    align-self: center;
-    text-align: center;
-    max-width: 92%;
-    padding: 4px;
-  }
-  .msg-tag {
-    font-size: 0.68rem;
-    opacity: 0.55;
-    margin-top: 6px;
-    font-family: ui-monospace, monospace;
-    color: #7dd3fc;
-  }
-  .msg-typing span {
-    display: inline-block;
-    animation: blink 1.2s infinite;
-    font-size: 1.2rem;
-    line-height: 0.8;
-  }
-  .msg-typing span:nth-child(2) { animation-delay: 0.2s; }
-  .msg-typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink {
-    0%, 60%, 100% { opacity: 0.2; }
-    30% { opacity: 1; }
-  }
+  .chat-window{background:var(--bg);border-radius:14px;border:1px solid var(--border);padding:18px;height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+  .chat-window::-webkit-scrollbar{width:8px}
+  .chat-window::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .msg{max-width:78%;padding:12px 16px;border-radius:14px;font-size:.92rem;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;animation:msgIn .25s}
+  @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg-user{background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;align-self:flex-end;border-bottom-right-radius:4px}
+  .msg-bot{background:var(--panel2);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;border:1px solid var(--border)}
+  .msg-sys{color:var(--muted);font-style:italic;font-size:.78rem;align-self:center;text-align:center;max-width:92%;padding:4px}
+  .msg-tag{font-size:.68rem;opacity:.6;margin-top:8px;font-family:ui-monospace,monospace;color:var(--accent)}
+  .msg-typing span{display:inline-block;animation:blink 1.4s infinite;font-size:1.1rem;margin-right:2px}
+  .msg-typing span:nth-child(2){animation-delay:.2s}
+  .msg-typing span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,60%,100%{opacity:.2}30%{opacity:1}}
+  .chat-input-row{display:flex;gap:10px;margin-top:14px}
+  .chat-input-row input{flex:1;padding:14px 16px;font-size:1rem}
+  .chat-sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .sugg{background:var(--panel2);color:var(--muted);padding:6px 12px;border-radius:20px;font-size:.78rem;cursor:pointer;border:1px solid var(--border);font-family:inherit;transition:all .15s}
+  .sugg:hover{background:#232d42;color:var(--text);border-color:var(--accent)}
 
-  #chatInputRow {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--border);padding:14px 24px;border-radius:12px;z-index:9999;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:.9rem;animation:toastIn .3s;display:flex;align-items:center;gap:10px;max-width:90vw}
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+  .toast.ok{border-color:var(--ok)} .toast.err{border-color:var(--err)} .toast.warn{border-color:var(--warn)}
+
+  .locked{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:14px 16px;color:#fcd34d;font-size:.85rem;margin-bottom:16px}
+  .good{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.35);border-radius:12px;padding:18px;margin-bottom:16px}
+  .good h3{color:var(--ok);font-size:1rem;margin-bottom:8px}
+  .good .big-num{font-size:1.8rem;font-weight:800;color:var(--accent);margin:6px 0}
+  pre.code{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:auto;font-family:ui-monospace,monospace;font-size:.75rem;color:#cbd5e1;max-height:300px;white-space:pre-wrap;word-break:break-all}
+
+  .dict-hero{background:linear-gradient(135deg,rgba(14,165,233,.15),rgba(192,132,252,.1));border:2px solid var(--accent);border-radius:14px;padding:24px;text-align:center;margin-bottom:16px}
+  .dict-hero h3{color:var(--accent);font-size:1.2rem;margin-bottom:8px}
+  .dict-hero .big{font-size:2.4rem;font-weight:800;color:var(--text);margin:8px 0}
+  .dict-hero .sub{color:var(--muted);font-size:.85rem;margin-bottom:14px}
+  .dict-hero .loaded{border-color:var(--ok);background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(56,189,248,.08))}
+
+  .kbd{background:var(--panel2);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-family:ui-monospace,monospace;font-size:.8rem;color:#cbd5e1}
+
+  @media(max-width:640px){
+    .wrap{padding:16px}
+    .step{padding:10px 14px;min-width:100%}
+    .msg{max-width:92%}
   }
-  #chatInput {
-    flex: 1;
-    padding: 12px 14px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    color: #e2e8f0;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-  #chatInput:focus {
-    outline: none;
-    border-color: #0ea5e9;
-  }
-  #chatInput:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .chat-status {
-    margin-left: 12px;
-    font-size: 0.85rem;
-    color: #94a3b8;
-  }
-  .chat-status.ok { color: #4ade80; }
-  .chat-status.err { color: #f87171; }
-  .chat-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-  }
-  .sugg {
-    background: #334155;
-    color: #cbd5e1;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    border: none;
-    font-family: inherit;
-  }
-  .sugg:hover { background: #475569; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🧠 Cerebro HDF5</h1>
-  <p class="subtitle">Creador · Visor · Chat — 100% offline</p>
+<div class="wrap">
 
-  <div class="tabs">
-    <button class="tab active" data-tab="creador">🚀 Creador</button>
-    <button class="tab" data-tab="visor">🔍 Visor</button>
-    <button class="tab" data-tab="chat">💬 Chat</button>
-  </div>
-
-  <!-- =================== CREADOR =================== -->
-  <div class="tab-content active" id="tab-creador">
-    <div class="panel">
-      <h2>1. Selecciona archivos</h2>
-      <p style="color:#94a3b8;font-size:0.9rem">Formatos: .json (entrenamiento Ania o genérico) · .txt · .pdf · .docx</p>
-      <input type="file" id="fileInput" multiple accept=".txt,.json,.pdf,.docx" />
-      <h2 style="margin-top:16px">o una carpeta completa</h2>
-      <input type="file" id="folderInput" webkitdirectory multiple />
+  <header>
+    <div class="logo">🧠</div>
+    <div>
+      <h1>Ania · Diccionario Español Completo → Cerebro → Chat</h1>
+      <p>Carga las ~636.000 palabras del español · Procesa por lotes · Reanuda cuando quieras</p>
     </div>
+  </header>
 
-    <div class="panel">
-      <h2>2. Datos de APIs (opcional)</h2>
-      <p style="color:#94a3b8;font-size:0.9rem">Carga aquí el <code>datos_apis.json</code> del recolector.</p>
-      <input type="file" id="apisInput" accept=".json" />
+  <div class="steps">
+    <div class="step active" data-step="1">
+      <div class="step-num">1</div>
+      <div class="step-info"><h3>Recolectar</h3><p>Procesar el diccionario</p></div>
     </div>
-
-    <div class="panel">
-      <h2>3. Generar archivo</h2>
-      <button id="processBtn">🚀 Procesar y crear cerebro.h5</button>
-      <button id="viewResultBtn" class="secondary" style="margin-left:8px; display:none">🔍 Ver resultado</button>
-      <button id="chatWithResultBtn" class="secondary" style="margin-left:8px; display:none">💬 Chatear</button>
-      <div id="log"></div>
+    <div class="step" data-step="2">
+      <div class="step-num">2</div>
+      <div class="step-info"><h3>Crear cerebro</h3><p>JSON Ania + cerebro.h5</p></div>
+    </div>
+    <div class="step" data-step="3">
+      <div class="step-num">3</div>
+      <div class="step-info"><h3>Probar</h3><p>Chatea con tu cerebro</p></div>
     </div>
   </div>
 
-  <!-- =================== VISOR =================== -->
-  <div class="tab-content" id="tab-visor">
+  <!-- ============ PASO 1 ============ -->
+  <section id="page-1" class="page active">
+
     <div class="panel">
-      <h2>Cargar archivo HDF5</h2>
-      <input type="file" id="h5Input" accept=".h5,.hdf5" />
-      <button id="loadH5Btn" class="secondary">📂 Cargar</button>
-      <button id="unloadH5Btn" class="secondary">✖ Cerrar</button>
-      <button id="debugBtn" class="secondary">🔬 Diagnóstico</button>
+      <h2>📚 Diccionario</h2>
+      <div class="dict-hero" id="dictHero">
+        <h3>🇪🇸 Diccionario completo del español</h3>
+        <div class="big" id="dictCount">—</div>
+        <div class="sub">palabras totales (fuente: <code>an-array-of-spanish-words</code>)</div>
+        <button id="btnLoadDict" class="big">📥 Cargar diccionario completo</button>
+        <button id="btnQuick" class="sec">⚡ Solo las 5000 más comunes</button>
+        <button id="btnResetDict" class="danger small">🗑 Vaciar diccionario</button>
+      </div>
+      <div id="dictProgress" class="progress"><div class="progress-bar" id="dictProgressBar">0%</div></div>
+      <div id="dictLog" class="log" style="display:none"></div>
     </div>
 
-    <div class="panel" id="viewerPanel" style="display:none">
-      <div class="stats-grid" id="statsGrid"></div>
-      <div class="viewer">
-        <div class="tree-panel" id="treePanel"></div>
-        <div class="detail-panel" id="detailPanel">
-          <div class="empty-state">Selecciona un nodo del árbol para ver su contenido</div>
+    <div class="panel">
+      <h2>⚙️ Fuentes y rendimiento</h2>
+      <p class="hint">Para 636k palabras, activa solo lo esencial. Wiktionary ES y MyMemory son los más fiables.</p>
+      <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px 16px">
+        <label class="opt"><input type="checkbox" id="oWikt" checked> 📜 Wiktionary ES (definiciones en español)</label>
+        <label class="opt"><input type="checkbox" id="oTrans" checked> 🌐 MyMemory (traducción ES ↔ EN)</label>
+        <label class="opt"><input type="checkbox" id="oDef"> 📖 Free Dictionary (definiciones ES/EN)</label>
+        <label class="opt"><input type="checkbox" id="oWiki"> 📚 Wikipedia (resumen, lento)</label>
+      </div>
+
+      <div class="row">
+        <label>🔀 Paralelo: <input type="number" id="concurrent" value="6" min="1" max="20"></label>
+        <label>⏱ Retardo ms: <input type="number" id="delay" value="50" min="0" max="2000"></label>
+        <label>📏 Máx. definiciones: <input type="number" id="maxDefs" value="4" min="1" max="20"></label>
+      </div>
+
+      <div class="row">
+        <label>🎯 Empezar desde la palabra #:
+          <input type="number" id="startFrom" value="0" min="0" style="width:130px" placeholder="0 = auto">
+        </label>
+        <label>🛑 Detener después de N palabras (0 = todas):
+          <input type="number" id="maxProcess" value="0" min="0" style="width:130px">
+        </label>
+      </div>
+
+      <div class="row">
+        <label class="opt"><input type="checkbox" id="optSkipProcessed" checked> Saltar palabras ya procesadas (no reintentar)</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🚀 Procesar</h2>
+      <button id="btnStart" class="big ok" disabled>🚀 Iniciar / Continuar recolección</button>
+      <button id="btnStop" class="warn" disabled>⏹ Detener</button>
+      <button id="btnSaveNow" class="sec small">💾 Guardar ahora</button>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-v" id="sOk">0</div><div class="stat-l">Procesadas</div></div>
+        <div class="stat"><div class="stat-v" id="sErr">0</div><div class="stat-l">Errores</div></div>
+        <div class="stat"><div class="stat-v" id="sSkip">0</div><div class="stat-l">Saltadas</div></div>
+        <div class="stat"><div class="stat-v" id="sPct">0%</div><div class="stat-l">Progreso</div></div>
+        <div class="stat"><div class="stat-v" id="sRate">0</div><div class="stat-l">pal/min</div></div>
+        <div class="stat"><div class="stat-v" id="sEta">—</div><div class="stat-l">ETA</div></div>
+      </div>
+
+      <div class="progress" id="progWrap"><div class="progress-bar" id="progBar">0%</div></div>
+
+      <div id="log" class="log"></div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="btnToStep2" class="big" disabled>➡️ Continuar al Paso 2 · Crear cerebro</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PASO 2 ============ -->
+  <section id="page-2" class="page">
+    <div class="panel">
+      <h2>🧠 Paso 2 · Empaquetar el cerebro</h2>
+      <p class="hint">Convierte todo lo recolectado al formato Ania y crea <code>cerebro.json</code> + <code>cerebro.h5</code>.</p>
+
+      <div id="brainEmpty" class="locked">⚠️ Todavía no has procesado palabras. Vuelve al Paso 1.</div>
+
+      <div id="brainInfo" style="display:none">
+        <div class="stats">
+          <div class="stat"><div class="stat-v" id="bWords">0</div><div class="stat-l">Palabras</div></div>
+          <div class="stat"><div class="stat-v" id="bTags">0</div><div class="stat-l">Tags</div></div>
+          <div class="stat"><div class="stat-v" id="bPatterns">0</div><div class="stat-l">Patrones</div></div>
+          <div class="stat"><div class="stat-v" id="bResponses">0</div><div class="stat-l">Respuestas</div></div>
+          <div class="stat"><div class="stat-v" id="bSize">0 KB</div><div class="stat-l">Tamaño JSON</div></div>
         </div>
       </div>
     </div>
 
-    <div id="viewerEmpty" class="panel">
-      <div class="empty-state">
-        Carga un archivo .h5 para explorarlo<br>
-        <span style="font-size:0.85rem">o genera uno en la pestaña "Creador" y pulsa "Ver resultado"</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- =================== CHAT =================== -->
-  <div class="tab-content" id="tab-chat">
     <div class="panel">
-      <h2>1. Cargar cerebro.h5</h2>
-      <input type="file" id="chatH5Input" accept=".h5,.hdf5" />
-      <button id="chatLoadBtn" class="secondary">🧠 Cargar cerebro</button>
-      <button id="chatUseLastBtn" class="secondary" style="display:none">⚡ Usar último cerebro</button>
-      <span id="chatStatus" class="chat-status">Sin cerebro cargado</span>
+      <h2>🎛️ Metadatos</h2>
+      <div class="row">
+        <label style="flex:1;min-width:220px">Versión: <input type="text" id="cfgVersion" value="1.0 DICCIONARIO ES" style="flex:1"></label>
+        <label style="flex:1;min-width:220px">Autor: <input type="text" id="cfgAutor" value="Ania" style="flex:1"></label>
+      </div>
+      <div class="row">
+        <label style="flex:1">Descripción: <input type="text" id="cfgDesc" value="Diccionario español completo generado automáticamente" style="flex:1"></label>
+      </div>
     </div>
 
     <div class="panel">
-      <h2>2. Conversación</h2>
-      <div id="chatWindow">
-        <div class="msg msg-sys">Carga un cerebro.h5 para empezar a conversar</div>
-      </div>
-      <div id="chatInputRow">
-        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." disabled />
-        <button id="chatSend" disabled>Enviar</button>
-        <button id="chatClear" class="secondary">🗑</button>
-      </div>
-      <div class="chat-suggestions" id="chatSuggestions"></div>
+      <h2>🔧 Acciones</h2>
+      <button id="btnCreateBrain" class="big ok">🧠 Convertir a formato Ania</button>
+      <button id="btnDownloadJSON" class="sec" disabled>💾 Descargar cerebro.json</button>
+      <button id="btnCreateH5" class="big" disabled>📦 Crear cerebro.h5</button>
+      <button id="btnDownloadH5" class="sec" disabled>💾 Descargar cerebro.h5</button>
+      <button id="btnLoadIntoChat" class="big" disabled>💬 Cargar en el Chat (Paso 3)</button>
+
+      <div id="brainResult" style="margin-top:16px"></div>
     </div>
-  </div>
+
+    <div class="panel">
+      <h2>🔍 Vista previa</h2>
+      <div class="row">
+        <label>Mostrar:
+          <select id="previewWhich" style="width:auto">
+            <option value="primer">Primer tag</option>
+            <option value="ultimo">Último tag</option>
+            <option value="config">Configuración</option>
+            <option value="meta">Metadata</option>
+          </select>
+        </label>
+        <button id="btnPreview" class="sec small" disabled>Ver</button>
+      </div>
+      <pre class="code" id="previewBox">— Sin datos —</pre>
+    </div>
+
+    <div class="panel">
+      <h2>📎 Fusionar cerebros externos</h2>
+      <p class="hint">Añade tu <code>entrenamiento.json</code> original con las 312+ intenciones.</p>
+      <button id="btnMerge" class="sec">📎 Fusionar archivos .json</button>
+      <input type="file" id="mergeFiles" accept=".json" multiple style="display:none">
+      <div id="mergeLog" class="log" style="display:none"></div>
+    </div>
+  </section>
+
+  <!-- ============ PASO 3 ============ -->
+  <section id="page-3" class="page">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+        <h2 style="margin:0">💬 Paso 3 · Prueba tu cerebro</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btnLoadBrainFile" class="sec small">📂 Cargar cerebro (.json/.h5)</button>
+          <input type="file" id="brainFile" accept=".json,.h5,.hdf5" style="display:none">
+          <button id="btnClearChat" class="sec small">🗑 Limpiar chat</button>
+        </div>
+      </div>
+
+      <div id="chatBrainInfo" class="locked" style="border-color:var(--border);background:var(--panel2);color:var(--muted)">
+        Sin cerebro cargado. Crea uno en el Paso 2 o carga un archivo.
+      </div>
+
+      <div class="chat-window" id="chatWin">
+        <div class="msg msg-sys">
+          Carga un cerebro para empezar.<br>
+          Prueba: <b>arbol</b> · <b>que es un arbol</b> · <b>q significa arbol</b> · <b>tree</b> · <b>traduce arbol al ingles</b>
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Escribe una palabra o pregunta..." disabled>
+        <button id="sendBtn" disabled>Enviar</button>
+      </div>
+
+      <div class="chat-sugg">
+        <button class="sugg" data-q="arbol">arbol</button>
+        <button class="sugg" data-q="que es un arbol">que es un arbol</button>
+        <button class="sugg" data-q="q significa arbol">q significa arbol</button>
+        <button class="sugg" data-q="tree">tree</button>
+        <button class="sugg" data-q="traduce arbol al ingles">traduce arbol al ingles</button>
+        <button class="sugg" data-q="hola">hola</button>
+      </div>
+    </div>
+  </section>
+
 </div>
-
-<!-- ============ LIBRERÍAS LOCALES ============ -->
-<script src="libs/h5wasm.js"></script>
-<script src="libs/pdf.min.js"></script>
-<script src="libs/mammoth.browser.min.js"></script>
 
 <script>
 // ============================================================
-// CONFIG WORKER PDF.JS
+// CONSTANTES
 // ============================================================
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'libs/pdf.worker.min.js';
-}
+const IDB_NAME='ania_dict_full_v1';
+const IDB_STORE='kv';
+const KEY_DICT='diccionario';
+const KEY_PROG='progreso';
+const KEY_WORDS='palabras_lista';   // array de las 636k palabras
+const KEY_BRAIN='cerebro_ania';
+const SAVE_EVERY=25;                 // Guardar diccionario cada N palabras
+
+// URLs del diccionario completo español (~636k palabras)
+const DICT_URLS=[
+  'https://cdn.jsdelivr.net/npm/an-array-of-spanish-words/index.json',
+  'https://unpkg.com/an-array-of-spanish-words/index.json',
+  'https://cdn.jsdelivr.net/gh/words/an-array-of-spanish-words@latest/index.json',
+  'https://raw.githubusercontent.com/words/an-array-of-spanish-words/main/index.json'
+];
+
+// Lista de las 5000 palabras más comunes (rápido)
+const QUICK_URLS=[
+  'https://raw.githubusercontent.com/first20hours/google-10000-spanish/master/google-10000-spanish.txt',
+  'https://cdn.jsdelivr.net/gh/first20hours/google-10000-spanish@master/google-10000-spanish.txt'
+];
+
+// ============================================================
+// ESTADO
+// ============================================================
+let palabras=[];                  // array completo del diccionario (636k)
+let diccionario={};               // { "arbol": {palabra, idioma, traduccion, definiciones[], ...} }
+let progreso={idx:0, total:0};
+let cerebroAnia=null;
+let jsonBlob=null, h5Blob=null;
+let procesando=false, stopFlag=false;
+let db=null;
+let lastSaveTime=0;
+let startTime=0, doneCount=0, lastRate=0;
 
 const $ = id => document.getElementById(id);
-const logEl = $('log');
-const processBtn = $('processBtn');
-const viewResultBtn = $('viewResultBtn');
-const chatWithResultBtn = $('chatWithResultBtn');
-
-// ============================================================
-// PESTAÑAS
-// ============================================================
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    $('tab-' + tab.dataset.tab).classList.add('active');
-  });
-});
-
-// ============================================================
-// LOG
-// ============================================================
-function log(msg, type = 'info') {
-  const div = document.createElement('div');
-  div.className = 'log-' + type;
-  div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  logEl.appendChild(div);
-  logEl.scrollTop = logEl.scrollHeight;
-}
 
 // ============================================================
 // UTILIDADES
 // ============================================================
-function sanitize(name) {
-  return String(name)
-    .replace(/[\/\\:*?"<>|\s]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 100) || 'item';
+function normalizar(s){
+  if(!s)return'';
+  return String(s).toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[¿?¡!.,;:()"'\[\]{}\-_]/g,' ')
+    .replace(/\s+/g,' ').trim();
 }
-
-function bytesLen(text) {
-  return new TextEncoder().encode(text).length;
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type='ok',dur=2800){
+  const t=document.createElement('div');t.className='toast '+type;
+  const ic=type==='ok'?'✅':type==='err'?'❌':'⚠️';
+  t.innerHTML='<span>'+ic+'</span><span>'+esc(msg)+'</span>';
+  document.body.appendChild(t);setTimeout(()=>t.remove(),dur);
 }
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function logMsg(msg,type='info'){
+  const el=$('log');if(!el)return;
+  const d=document.createElement('div');d.className='l-'+type;
+  d.innerHTML='<span class="l-time">['+new Date().toLocaleTimeString()+']</span> '+esc(msg);
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+  while(el.children.length>500)el.removeChild(el.firstChild);
 }
-
-// ============================================================
-// NOMBRES ÚNICOS POR PADRE
-// ============================================================
-const _usedNames = new WeakMap();
-
-function nombreUnico(parent, name) {
-  if (!_usedNames.has(parent)) _usedNames.set(parent, new Set());
-  const set = _usedNames.get(parent);
-  const base = name;
-  let candidate = base;
-  let i = 1;
-  while (set.has(candidate)) {
-    candidate = base + '_' + i;
-    i++;
-  }
-  set.add(candidate);
-  return candidate;
+function logDict(msg,type='info'){
+  const el=$('dictLog');if(!el)return;
+  el.style.display='block';
+  const d=document.createElement('div');d.className='l-'+type;
+  d.innerHTML='<span class="l-time">['+new Date().toLocaleTimeString()+']</span> '+esc(msg);
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
 }
-
-function crearGrupoSeguro(parent, name) {
-  const unique = nombreUnico(parent, sanitize(name));
-  try {
-    return parent.create_group(unique);
-  } catch (e) {
-    log('  ✗ grupo ' + unique + ': ' + e.message, 'err');
-    return null;
-  }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function fmtBytes(b){
+  if(b>1024*1024*1024)return(b/1024/1024/1024).toFixed(2)+' GB';
+  if(b>1024*1024)return(b/1024/1024).toFixed(1)+' MB';
+  if(b>1024)return(b/1024).toFixed(1)+' KB';
+  return b+' B';
 }
-
-function writeString(parent, name, text) {
-  if (!text || !String(text).trim()) return false;
-  const s = String(text);
-  const size = bytesLen(s);
-  if (size === 0) return false;
-
-  const unique = nombreUnico(parent, sanitize(name));
-
-  try {
-    parent.create_dataset({
-      name: unique, data: s, dtype: 'S' + size,
-      compression: 'gzip', compression_opts: 6
-    });
-    return true;
-  } catch (e1) {
-    try {
-      parent.create_dataset({ name: unique, data: s, dtype: 'S' + size });
-      return true;
-    } catch (e2) {
-      log('  ✗ dataset ' + unique + ': ' + e2.message, 'err');
-      return false;
-    }
-  }
+function fmtTime(seconds){
+  if(!isFinite(seconds)||seconds<=0)return'—';
+  const h=Math.floor(seconds/3600);
+  const m=Math.floor((seconds%3600)/60);
+  const s=Math.floor(seconds%60);
+  if(h>0)return h+'h '+m+'m';
+  if(m>0)return m+'m '+s+'s';
+  return s+'s';
 }
 
 // ============================================================
-// HELPERS h5wasm
+// INDEXEDDB
 // ============================================================
-function h5Keys(obj) {
-  if (!obj) return [];
-  if (typeof obj.keys === 'function') {
-    try {
-      const k = obj.keys();
-      if (Array.isArray(k)) return k;
-      if (k && typeof k[Symbol.iterator] === 'function') return Array.from(k);
-    } catch (e) {}
-  }
-  try {
-    return Object.keys(obj).filter(x =>
-      typeof obj[x] !== 'function' && !x.startsWith('_')
-    );
-  } catch (e) {}
-  return [];
-}
-
-function h5Get(obj, key) {
-  if (!obj) return null;
-  if (typeof obj.get === 'function') {
-    try {
-      const h = obj.get(key);
-      if (h) return h;
-    } catch (e) {}
-  }
-  try {
-    const h = obj[key];
-    if (h && typeof h !== 'function') return h;
-  } catch (e) {}
-  return null;
-}
-
-function esGrupo(obj) {
-  if (!obj || typeof obj !== 'object') return false;
-  try {
-    const c = obj.constructor && obj.constructor.name;
-    if (c === 'Group' || c === 'File') return true;
-    if (c === 'Dataset') return false;
-  } catch (e) {}
-  try {
-    if (obj.dtype !== undefined && obj.shape !== undefined) return false;
-  } catch (e) {}
-  try {
-    if (typeof obj.keys === 'function') {
-      const k = obj.keys();
-      if (Array.isArray(k) || (k && typeof k[Symbol.iterator] === 'function')) return true;
-    }
-  } catch (e) {}
-  try {
-    if (obj.metadata && obj.metadata.type) return obj.metadata.type === 'Group';
-  } catch (e) {}
-  return false;
-}
-
-// Leer dataset de texto
-function leerTexto(dataset) {
-  if (!dataset) return '';
-  try {
-    const v = dataset.value;
-    if (v === null || v === undefined) return '';
-    if (typeof v === 'string') return v;
-    if (v instanceof Uint8Array) return new TextDecoder('utf-8').decode(v);
-    if (Array.isArray(v)) {
-      if (v.length && typeof v[0] === 'number') {
-        return new TextDecoder('utf-8').decode(new Uint8Array(v));
-      }
-      return v.join('\n');
-    }
-    return String(v);
-  } catch (e) {
-    return '';
-  }
-}
-
-// ============================================================
-// JSON DE ENTRENAMIENTO
-// ============================================================
-function esEntrenamientoAnia(obj) {
-  return obj && typeof obj === 'object'
-    && Array.isArray(obj.entrenamiento)
-    && obj.entrenamiento.length > 0
-    && obj.entrenamiento.every(it => it && typeof it.tag === 'string');
-}
-
-function escribirMetadata(grupo, metadata) {
-  Object.keys(metadata).forEach(k => {
-    const v = metadata[k];
-    if (v && typeof v === 'object' && !Array.isArray(v)) {
-      const sub = crearGrupoSeguro(grupo, k);
-      if (!sub) return;
-      Object.keys(v).forEach(k2 => {
-        writeString(sub, k2, typeof v[k2] === 'object'
-          ? JSON.stringify(v[k2], null, 2) : String(v[k2]));
-      });
-    } else if (Array.isArray(v)) {
-      writeString(grupo, k, v.join('\n'));
-    } else {
-      writeString(grupo, k, String(v));
-    }
-  });
-}
-
-function escribirConfiguracion(grupo, config) {
-  Object.keys(config).forEach(seccion => {
-    const sub = crearGrupoSeguro(grupo, seccion);
-    if (!sub) return;
-    const contenido = config[seccion];
-    if (typeof contenido === 'object' && contenido !== null && !Array.isArray(contenido)) {
-      escribirObjetoRecursivo(sub, contenido);
-    } else if (Array.isArray(contenido)) {
-      writeString(sub, 'lista', contenido.join('\n'));
-    } else {
-      writeString(sub, 'valor', String(contenido));
-    }
-  });
-}
-
-function escribirObjetoRecursivo(grupo, obj) {
-  Object.keys(obj).forEach(k => {
-    const v = obj[k];
-    if (v === null || v === undefined) return;
-    if (typeof v === 'object' && !Array.isArray(v)) {
-      const sub = crearGrupoSeguro(grupo, k);
-      if (sub) escribirObjetoRecursivo(sub, v);
-    } else if (Array.isArray(v)) {
-      writeString(grupo, k, v.join('\n'));
-    } else {
-      writeString(grupo, k, String(v));
-    }
-  });
-}
-
-function escribirEntrenamiento(grupoEntrenamiento, entrenamiento) {
-  let ok = 0, err = 0;
-  entrenamiento.forEach((item, idx) => {
-    const tagName = sanitize(item.tag || ('tag_' + idx));
-    const g = crearGrupoSeguro(grupoEntrenamiento, tagName);
-    if (!g) { err++; return; }
-
-    try {
-      g.create_attribute('tag_original', String(item.tag || ''));
-      g.create_attribute('num_patterns', (item.patterns || []).length);
-      g.create_attribute('num_responses', (item.responses || []).length);
-      g.create_attribute('indice', idx);
-    } catch (e) {}
-
-    if (Array.isArray(item.patterns)) {
-      writeString(g, 'patterns', item.patterns.join('\n'));
-    }
-    if (Array.isArray(item.responses)) {
-      writeString(g, 'responses', item.responses.join('\n---\n'));
-      item.responses.forEach((r, i) => {
-        writeString(g, 'resp_' + String(i).padStart(3, '0'), r);
-      });
-    }
-    if (item.meta && typeof item.meta === 'object') {
-      const gMeta = crearGrupoSeguro(g, 'meta');
-      if (gMeta) escribirObjetoRecursivo(gMeta, item.meta);
-      writeString(g, 'meta_json', JSON.stringify(item.meta, null, 2));
-    }
-    ok++;
-    log('  ✓ tag: ' + tagName + ' (' + (item.patterns || []).length + 'p, ' + (item.responses || []).length + 'r)', 'struct');
-  });
-  return { ok, err };
-}
-
-// ============================================================
-// PDF / DOCX
-// ============================================================
-async function extractPdf(file) {
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({
-    data: buf,
-    useSystemFonts: true,
-    disableFontFace: false,
-    standardFontDataUrl: 'libs/standard_fonts/'
-  }).promise;
-  let out = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    out += content.items.map(it => it.str).join(' ') + '\n';
-  }
-  return out;
-}
-
-async function extractDocx(file) {
-  const buf = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer: buf });
-  return result.value;
-}
-
-// ============================================================
-// DEDUPLICAR ARCHIVOS
-// ============================================================
-function deduplicarArchivos(files) {
-  const vistos = new Set();
-  const unicos = [];
-  for (const f of files) {
-    const key = f.name + '::' + f.size + '::' + (f.lastModified || 0);
-    if (vistos.has(key)) continue;
-    vistos.add(key);
-    unicos.push(f);
-  }
-  return unicos;
-}
-
-// ============================================================
-// CONSTRUCCIÓN DEL HDF5
-// ============================================================
-async function buildHDF5(files, apisData) {
-  if (typeof h5wasm === 'undefined') throw new Error('h5wasm no está disponible');
-  log('Inicializando h5wasm...');
-  await h5wasm.ready;
-  const FS = h5wasm.FS;
-  const File = h5wasm.File;
-
-  const f = new File('cerebro.h5', 'w');
-
-  const gMeta = f.create_group('metadata');
-  const gConfig = f.create_group('configuracion');
-  const gEntr = f.create_group('entrenamiento');
-  const gDocs = f.create_group('documentos');
-  const gApis = f.create_group('apis');
-
-  const stats = { metadata:0, config:0, tags:0, documentos:0, apis:0 };
-
-  for (const file of files) {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const rel = file.webkitRelativePath || file.name;
-
-    if (ext === 'json') {
-      log('📄 Analizando ' + rel, 'info');
-      let parsed;
-      try {
-        parsed = JSON.parse(await file.text());
-      } catch (e) {
-        log('  ✗ JSON inválido: ' + e.message, 'err');
-        continue;
-      }
-
-      if (esEntrenamientoAnia(parsed)) {
-        log('  🎯 JSON de entrenamiento Ania detectado', 'struct');
-        if (parsed.metadata) {
-          escribirMetadata(gMeta, parsed.metadata);
-          stats.metadata++;
-        }
-        if (parsed.configuracion) {
-          escribirConfiguracion(gConfig, parsed.configuracion);
-          stats.config++;
-        }
-        log('  Procesando ' + parsed.entrenamiento.length + ' tags...', 'struct');
-        const r = escribirEntrenamiento(gEntr, parsed.entrenamiento);
-        stats.tags += r.ok;
-        log('  ✓ ' + r.ok + ' tags, ' + r.err + ' errores', 'ok');
-      } else {
-        writeString(gDocs, rel, JSON.stringify(parsed, null, 2));
-        stats.documentos++;
-        log('  ✓ ' + rel + ' (JSON genérico)', 'ok');
-      }
-    } else if (ext === 'txt') {
-      const text = await file.text();
-      if (writeString(gDocs, rel, text)) {
-        stats.documentos++;
-        log('  ✓ ' + rel, 'ok');
-      }
-    } else if (ext === 'pdf') {
-      try {
-        const text = await extractPdf(file);
-        if (writeString(gDocs, rel, text)) {
-          stats.documentos++;
-          log('  ✓ ' + rel, 'ok');
-        }
-      } catch (e) {
-        log('  ✗ PDF ' + rel + ': ' + e.message, 'err');
-      }
-    } else if (ext === 'docx') {
-      try {
-        const text = await extractDocx(file);
-        if (writeString(gDocs, rel, text)) {
-          stats.documentos++;
-          log('  ✓ ' + rel, 'ok');
-        }
-      } catch (e) {
-        log('  ✗ DOCX ' + rel + ': ' + e.message, 'err');
-      }
-    } else {
-      log('  ⏭ Ignorado: ' + rel, 'warn');
-    }
-  }
-
-  if (apisData && apisData.datos) {
-    log('📡 Procesando ' + Object.keys(apisData.datos).length + ' APIs...', 'info');
-    Object.keys(apisData.datos).forEach(k => {
-      const item = apisData.datos[k];
-      if (item.contenido) {
-        writeString(gApis, k, item.contenido);
-        stats.apis++;
-      }
-    });
-    log('  ✓ ' + stats.apis + ' APIs guardadas', 'ok');
-  }
-
-  try {
-    f.create_attribute('fecha_creacion', new Date().toISOString());
-    f.create_attribute('version_formato', 'ania-h5-v1');
-    f.create_attribute('num_tags_entrenamiento', stats.tags);
-    f.create_attribute('num_documentos', stats.documentos);
-    f.create_attribute('num_apis', stats.apis);
-    f.create_attribute('fuente', 'navegador-offline');
-  } catch (e) {
-    log('Aviso atributos: ' + e.message, 'warn');
-  }
-
-  f.close();
-  const data = FS.readFile('cerebro.h5');
-  return { blob: new Blob([data], { type: 'application/x-hdf5' }), stats };
-}
-
-// ============================================================
-// DESCARGA
-// ============================================================
-function download(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-// ============================================================
-// FLUJO CREADOR
-// ============================================================
-let ultimoBlob = null;
-
-processBtn.addEventListener('click', async () => {
-  processBtn.disabled = true;
-  viewResultBtn.style.display = 'none';
-  chatWithResultBtn.style.display = 'none';
-  logEl.innerHTML = '';
-  log('Iniciando proceso...', 'info');
-
-  const rawFiles = [
-    ...Array.from($('fileInput').files || []),
-    ...Array.from($('folderInput').files || [])
-  ];
-  const files = deduplicarArchivos(rawFiles);
-
-  if (files.length === 0) {
-    log('Selecciona al menos un archivo.', 'warn');
-    processBtn.disabled = false;
-    return;
-  }
-
-  if (rawFiles.length !== files.length) {
-    log('⚠️ ' + (rawFiles.length - files.length) + ' duplicado(s) ignorado(s)', 'warn');
-  }
-  log('Archivos únicos: ' + files.length, 'info');
-
-  let apisData = null;
-  const apiFile = $('apisInput').files[0];
-  if (apiFile) {
-    try {
-      apisData = JSON.parse(await apiFile.text());
-      log('✓ ' + apiFile.name + ' cargado', 'ok');
-    } catch (e) {
-      log('✗ Error APIs: ' + e.message, 'err');
-    }
-  }
-
-  try {
-    const { blob, stats } = await buildHDF5(files, apisData);
-    ultimoBlob = blob;
-    download(blob, 'cerebro.h5');
-    log('', 'info');
-    log('🎉 cerebro.h5 generado (' + (blob.size / 1024).toFixed(1) + ' KB)', 'ok');
-    log('📊 Tags: ' + stats.tags + ' · Docs: ' + stats.documentos + ' · APIs: ' + stats.apis, 'struct');
-    viewResultBtn.style.display = 'inline-block';
-    chatWithResultBtn.style.display = 'inline-block';
-    // Hacer visible el botón "usar último cerebro" en el chat
-    $('chatUseLastBtn').style.display = 'inline-block';
-  } catch (e) {
-    log('Error: ' + e.message, 'err');
-    console.error(e);
-  }
-  processBtn.disabled = false;
-});
-
-viewResultBtn.addEventListener('click', async () => {
-  if (!ultimoBlob) return;
-  document.querySelector('.tab[data-tab="visor"]').click();
-  await cargarH5DesdeBlob(ultimoBlob, 'cerebro.h5 (recién creado)');
-});
-
-chatWithResultBtn.addEventListener('click', async () => {
-  if (!ultimoBlob) return;
-  document.querySelector('.tab[data-tab="chat"]').click();
-  await cargarCerebroParaChat(ultimoBlob, 'cerebro.h5 (recién creado)');
-});
-
-// ============================================================
-// VISOR HDF5
-// ============================================================
-let h5FileActual = null;
-
-const h5Input = $('h5Input');
-const loadH5Btn = $('loadH5Btn');
-const unloadH5Btn = $('unloadH5Btn');
-const debugBtn = $('debugBtn');
-const viewerPanel = $('viewerPanel');
-const viewerEmpty = $('viewerEmpty');
-const treePanel = $('treePanel');
-const detailPanel = $('detailPanel');
-const statsGrid = $('statsGrid');
-
-async function cargarH5DesdeBlob(blob, nombre) {
-  if (typeof h5wasm === 'undefined') { alert('h5wasm no está cargado'); return; }
-  try {
-    await h5wasm.ready;
-    const buf = new Uint8Array(await blob.arrayBuffer());
-    const FS = h5wasm.FS;
-    try { FS.unlink('/_viewer.h5'); } catch (e) {}
-    FS.writeFile('/_viewer.h5', buf);
-
-    if (h5FileActual) { try { h5FileActual.close(); } catch (e) {} }
-    h5FileActual = new h5wasm.File('/_viewer.h5', 'r');
-
-    const raiz = { name: '/', type: 'group', path: '', children: [], attributes: [] };
-    explorarGrupo(h5FileActual, raiz);
-
-    const contStats = contarNodos(raiz);
-
-    viewerEmpty.style.display = 'none';
-    viewerPanel.style.display = 'block';
-    renderStats({
-      nombre: nombre,
-      bytes: blob.size,
-      grupos: contStats.grupos,
-      datasets: contStats.datasets,
-      atributos: contStats.atributos,
-      raizAttrs: extraerAtributos(h5FileActual).length
-    });
-    renderTree(raiz);
-    detailPanel.innerHTML = '<div class="empty-state">Selecciona un nodo del árbol</div>';
-    log('✓ HDF5 cargado: ' + nombre, 'ok');
-    log('  Grupos: ' + contStats.grupos + ' · Datasets: ' + contStats.datasets, 'struct');
-  } catch (e) {
-    alert('Error cargando HDF5: ' + e.message);
-    console.error(e);
-  }
-}
-
-function explorarGrupo(grupo, nodo) {
-  nodo.attributes = extraerAtributos(grupo);
-  const keys = h5Keys(grupo);
-
-  for (const key of keys) {
-    const child = h5Get(grupo, key);
-    if (!child) continue;
-
-    const esGrp = esGrupo(child);
-    const childNode = {
-      name: key,
-      type: esGrp ? 'group' : 'dataset',
-      path: (nodo.path || '') + '/' + key,
-      children: [],
-      attributes: extraerAtributos(child),
-      obj: child
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(db)return res(db);
+    const r=indexedDB.open(IDB_NAME,1);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(IDB_STORE))d.createObjectStore(IDB_STORE);
     };
-
-    if (esGrp) {
-      explorarGrupo(child, childNode);
-    } else {
-      try { childNode.dtype = String(child.dtype); } catch (e) {}
-      try { childNode.shape = child.shape; } catch (e) {}
-    }
-    nodo.children.push(childNode);
-  }
-}
-
-function extraerAtributos(obj) {
-  const attrs = [];
-  try {
-    if (!obj || !obj.attrs) return attrs;
-    let keys = [];
-    try { keys = Object.keys(obj.attrs); } catch (e) {}
-    if (keys.length === 0 && typeof obj.attrs.keys === 'function') {
-      try { keys = obj.attrs.keys(); } catch (e) {}
-    }
-    for (const k of keys) {
-      let val;
-      try {
-        val = obj.attrs[k];
-        if (val && typeof val === 'object' && val.value !== undefined) val = val.value;
-        if (val instanceof Uint8Array || ArrayBuffer.isView(val)) {
-          val = new TextDecoder().decode(val);
-        }
-      } catch (e) { val = '(error)'; }
-      attrs.push({ key: k, value: val });
-    }
-  } catch (e) {}
-  return attrs;
-}
-
-function contarNodos(nodo) {
-  const r = { grupos: 0, datasets: 0, atributos: (nodo.attributes || []).length };
-  (nodo.children || []).forEach(c => {
-    if (c.type === 'group') {
-      r.grupos++;
-      const sub = contarNodos(c);
-      r.grupos += sub.grupos;
-      r.datasets += sub.datasets;
-      r.atributos += sub.atributos;
-    } else {
-      r.datasets++;
-      r.atributos += (c.attributes || []).length;
-    }
-  });
-  return r;
-}
-
-function renderStats({ nombre, bytes, grupos, datasets, atributos, raizAttrs }) {
-  statsGrid.innerHTML = '';
-  const cards = [
-    { label: 'Archivo', value: nombre.length > 24 ? nombre.slice(0, 24) + '…' : nombre },
-    { label: 'Tamaño', value: bytes > 1024 * 1024
-        ? (bytes / 1024 / 1024).toFixed(2) + ' MB'
-        : (bytes / 1024).toFixed(1) + ' KB' },
-    { label: 'Grupos', value: grupos },
-    { label: 'Datasets', value: datasets },
-    { label: 'Atributos', value: atributos + raizAttrs }
-  ];
-  cards.forEach(c => {
-    const el = document.createElement('div');
-    el.className = 'stat-card';
-    el.innerHTML = '<div class="stat-label">' + c.label + '</div>'
-                 + '<div class="stat-value">' + escapeHtml(String(c.value)) + '</div>';
-    statsGrid.appendChild(el);
+    r.onsuccess=e=>{db=e.target.result;res(db);};
+    r.onerror=()=>rej(r.error);
   });
 }
-
-function renderTree(raiz) {
-  treePanel.innerHTML = '';
-  const nodoRaiz = document.createElement('div');
-  nodoRaiz.className = 'tree-item tree-group selected';
-  nodoRaiz.textContent = '📦 / (raíz)';
-  nodoRaiz.addEventListener('click', () => {
-    treePanel.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
-    nodoRaiz.classList.add('selected');
-    seleccionarNodo(h5FileActual, '/', 'group');
-  });
-  treePanel.appendChild(nodoRaiz);
-  raiz.children.forEach(c => renderNodo(c, 1));
-}
-
-function renderNodo(nodo, nivel) {
-  const el = document.createElement('div');
-  el.className = 'tree-item ' + (nodo.type === 'group' ? 'tree-group' : 'tree-dataset');
-  el.style.paddingLeft = (nivel * 14) + 'px';
-  el.textContent = (nodo.type === 'group' ? '📁 ' : '📄 ') + nodo.name;
-  el.title = nodo.path;
-  el.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    treePanel.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected');
-    seleccionarNodo(nodo.obj, nodo.path, nodo.type);
-  });
-  treePanel.appendChild(el);
-  (nodo.children || []).forEach(c => renderNodo(c, nivel + 1));
-}
-
-async function seleccionarNodo(obj, path, tipo) {
-  detailPanel.innerHTML = '';
-  const header = document.createElement('div');
-  header.className = 'detail-header';
-  const nombre = obj.name || obj.filename || (path.split('/').pop() || '/');
-  header.innerHTML = '<h3>' + (tipo === 'group' ? '📁' : '📄') + ' ' + escapeHtml(nombre)
-                   + '</h3><div class="path">' + escapeHtml(path) + '</div>';
-  detailPanel.appendChild(header);
-
-  const infoBox = document.createElement('div');
-  const info = [['Tipo', tipo === 'group' ? 'Grupo' : 'Dataset']];
-  if (tipo === 'dataset') {
-    try { info.push(['dtype', String(obj.dtype)]); } catch (e) {}
-    try { info.push(['shape', JSON.stringify(obj.shape)]); } catch (e) {}
-  }
-  info.forEach(([k, v]) => {
-    const row = document.createElement('div');
-    row.className = 'meta-row';
-    row.innerHTML = '<div class="meta-key">' + escapeHtml(k) + '</div>'
-                  + '<div class="meta-val">' + escapeHtml(String(v)) + '</div>';
-    infoBox.appendChild(row);
-  });
-  detailPanel.appendChild(infoBox);
-
-  const attrs = extraerAtributos(obj);
-  if (attrs.length > 0) {
-    const h = document.createElement('h4');
-    h.style.cssText = 'color:#7dd3fc;margin-top:16px;margin-bottom:8px';
-    h.textContent = '🏷️ Atributos (' + attrs.length + ')';
-    detailPanel.appendChild(h);
-    attrs.forEach(a => {
-      const row = document.createElement('div');
-      row.className = 'meta-row';
-      let valStr = a.value;
-      if (typeof valStr === 'object' && valStr !== null) valStr = JSON.stringify(valStr);
-      row.innerHTML = '<div class="meta-key">' + escapeHtml(a.key) + '</div>'
-                    + '<div class="meta-val">' + escapeHtml(String(valStr)) + '</div>';
-      detailPanel.appendChild(row);
-    });
-  }
-
-  if (tipo === 'dataset') {
-    try {
-      const val = obj.value;
-      const cont = document.createElement('div');
-      cont.className = 'content-box';
-      const decoded = decodificarValor(val);
-      cont.textContent = decoded;
-      if (typeof decoded === 'string' && (decoded.trim().startsWith('{') || decoded.trim().startsWith('['))) {
-        try {
-          cont.textContent = JSON.stringify(JSON.parse(decoded), null, 2);
-          cont.classList.add('json');
-        } catch (e) { cont.classList.add('text'); }
-      } else {
-        cont.classList.add('text');
-      }
-      const h = document.createElement('h4');
-      h.style.cssText = 'color:#7dd3fc;margin-top:16px;margin-bottom:8px';
-      h.textContent = '📄 Contenido';
-      detailPanel.appendChild(h);
-      detailPanel.appendChild(cont);
-    } catch (e) {
-      const err = document.createElement('div');
-      err.className = 'content-box binary';
-      err.textContent = 'No se pudo leer el dataset: ' + e.message;
-      detailPanel.appendChild(err);
-    }
-  }
-}
-
-function decodificarValor(val) {
-  if (val === null || val === undefined) return '(vacío)';
-  if (typeof val === 'string') return val;
-  if (val instanceof Uint8Array) {
-    return new TextDecoder('utf-8', { fatal: false }).decode(val);
-  }
-  if (Array.isArray(val)) {
-    if (val.length && typeof val[0] === 'number') {
-      try { return new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(val)); }
-      catch (e) { return JSON.stringify(val); }
-    }
-    return val.map(v => decodificarValor(v)).join(', ');
-  }
-  if (typeof val === 'object') {
-    if (val.value !== undefined) return decodificarValor(val.value);
-    return JSON.stringify(val, null, 2);
-  }
-  return String(val);
-}
-
-loadH5Btn.addEventListener('click', async () => {
-  const f = h5Input.files[0];
-  if (!f) { alert('Selecciona un archivo .h5'); return; }
-  await cargarH5DesdeBlob(f, f.name);
-});
-
-unloadH5Btn.addEventListener('click', () => {
-  try { if (h5FileActual) h5FileActual.close(); } catch (e) {}
-  h5FileActual = null;
-  viewerPanel.style.display = 'none';
-  viewerEmpty.style.display = 'block';
-  h5Input.value = '';
-});
-
-debugBtn.addEventListener('click', () => {
-  if (!h5FileActual) { alert('Carga un HDF5 primero'); return; }
-  const info = [];
-  info.push('=== DIAGNÓSTICO h5wasm ===');
-  info.push('typeof h5wasm.File: ' + typeof h5wasm.File);
-  info.push('');
-  info.push('=== RAÍZ ===');
-  info.push('constructor.name: ' + (h5FileActual.constructor && h5FileActual.constructor.name));
-  let keys = [];
-  try { keys = h5FileActual.keys(); } catch (e) { info.push('ERROR: ' + e.message); }
-  info.push('keys(): ' + JSON.stringify(keys));
-  keys.forEach(k => {
-    const child = h5Get(h5FileActual, k);
-    info.push('');
-    info.push('--- ' + k + ' ---');
-    if (!child) { info.push('NULL'); return; }
-    info.push('constructor: ' + (child.constructor && child.constructor.name));
-    info.push('dtype: ' + (child.dtype !== undefined ? String(child.dtype) : '(no)'));
-    info.push('esGrupo(): ' + esGrupo(child));
-  });
-  detailPanel.innerHTML = '';
-  const h = document.createElement('div');
-  h.className = 'detail-header';
-  h.innerHTML = '<h3>🔬 Diagnóstico</h3>';
-  detailPanel.appendChild(h);
-  const box = document.createElement('div');
-  box.className = 'debug-box';
-  box.textContent = info.join('\n');
-  detailPanel.appendChild(box);
-});
+async function idbSet(k,v){await openDB();return new Promise((res,rej)=>{const t=db.transaction(IDB_STORE,'readwrite');t.objectStore(IDB_STORE).put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
+async function idbGet(k){await openDB();return new Promise((res,rej)=>{const t=db.transaction(IDB_STORE,'readonly');const r=t.objectStore(IDB_STORE).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbDel(k){await openDB();return new Promise((res,rej)=>{const t=db.transaction(IDB_STORE,'readwrite');t.objectStore(IDB_STORE).delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
 
 // ============================================================
-// ==================== MOTOR DE CHAT =========================
+// CARGA DEL DICCIONARIO COMPLETO
 // ============================================================
+async function cargarDiccionarioCompleto(){
+  const btn=$('btnLoadDict');
+  btn.disabled=true;
+  btn.textContent='⏳ Descargando...';
+  $('dictProgress').classList.add('show');
+  $('dictProgressBar').style.width='5%';
+  $('dictProgressBar').textContent='Descargando...';
+  logDict('📥 Descargando diccionario completo desde CDN...','info');
 
-// Estado global del chat
-const chatState = {
-  cargado: false,
-  nombreArchivo: '',
-  tags: [],              // [{tag, patterns[], responses[], meta, patternsNorm[]}]
-  substitutions: {},     // {"q":"que", "k":"que", ...}
-  userName: null,
-  ultimaTag: null,
-  ultimaRespIndex: {},   // tag → último índice usado (para no repetir)
-  totalPatterns: 0
-};
-
-// Cargar el H5 en el chat
-async function cargarCerebroParaChat(blob, nombre) {
-  const status = $('chatStatus');
-  status.textContent = 'Cargando...';
-  status.className = 'chat-status';
-
-  if (typeof h5wasm === 'undefined') {
-    status.textContent = '✗ h5wasm no disponible';
-    status.className = 'chat-status err';
-    return;
-  }
-
-  try {
-    await h5wasm.ready;
-    const buf = new Uint8Array(await blob.arrayBuffer());
-    const FS = h5wasm.FS;
-    try { FS.unlink('/_chat.h5'); } catch (e) {}
-    FS.writeFile('/_chat.h5', buf);
-
-    // Cerrar anterior si existe
-    if (chatState.file) { try { chatState.file.close(); } catch (e) {} }
-    const file = new h5wasm.File('/_chat.h5', 'r');
-    chatState.file = file;
-
-    // Reset state
-    chatState.tags = [];
-    chatState.substitutions = {};
-    chatState.userName = null;
-    chatState.ultimaTag = null;
-    chatState.ultimaRespIndex = {};
-    chatState.totalPatterns = 0;
-
-    // Cargar sustituciones del configuracion/mini_lenguaje...
-    cargarSubstituciones(file);
-
-    // Cargar tags de entrenamiento
-    cargarTagsEntrenamiento(file);
-
-    if (chatState.tags.length === 0) {
-      status.textContent = '⚠ No hay tags de entrenamiento en este H5';
-      status.className = 'chat-status err';
-      addChatMsg('sys', 'Este cerebro no contiene datos de entrenamiento (grupo /entrenamiento/). Solo se pueden usar los PDFs/documentos en el Visor.');
+  // Verificar si ya estaba cargado
+  try{
+    const cached=await idbGet(KEY_WORDS);
+    if(cached&&Array.isArray(cached)&&cached.length>100000){
+      palabras=cached;
+      logDict('✅ Cargado desde caché local: '+palabras.length.toLocaleString()+' palabras','ok');
+      $('dictCount').textContent=palabras.length.toLocaleString();
+      $('dictHero').classList.add('loaded');
+      $('dictProgressBar').style.width='100%';
+      $('dictProgressBar').textContent='✅ '+palabras.length.toLocaleString();
+      $('btnStart').disabled=false;
+      btn.textContent='✅ Diccionario cargado ('+palabras.length.toLocaleString()+')';
+      setTimeout(()=>$('dictProgress').classList.remove('show'),1500);
       return;
     }
+  }catch(e){}
 
-    chatState.cargado = true;
-    chatState.nombreArchivo = nombre;
-    status.textContent = '✓ ' + chatState.tags.length + ' tags · ' + chatState.totalPatterns + ' patrones';
-    status.className = 'chat-status ok';
-
-    addChatMsg('sys', '🧠 Cerebro cargado: ' + chatState.tags.length + ' tags, ' + chatState.totalPatterns + ' patrones');
-    addChatMsg('bot', '¡Hola! Soy Ania. ¿En qué te puedo ayudar hoy? 💫');
-    $('chatInput').disabled = false;
-    $('chatSend').disabled = false;
-    $('chatInput').focus();
-    renderSugerencias();
-  } catch (e) {
-    console.error(e);
-    status.textContent = '✗ Error: ' + e.message;
-    status.className = 'chat-status err';
-  }
-}
-
-function cargarSubstituciones(file) {
-  try {
-    const gConfig = h5Get(file, 'configuracion');
-    if (!gConfig) return;
-    const gMini = h5Get(gConfig, 'mini_lenguaje_natural_humano');
-    if (!gMini) return;
-    const gNorm = h5Get(gMini, 'normalizacion_emocional');
-    if (!gNorm) return;
-    const keys = h5Keys(gNorm);
-    for (const k of keys) {
-      const ds = h5Get(gNorm, k);
-      if (!ds) continue;
-      const val = leerTexto(ds).trim();
-      if (val) chatState.substitutions[k.toLowerCase()] = val.toLowerCase();
-    }
-    log('💬 Substituciones cargadas: ' + Object.keys(chatState.substitutions).length, 'info');
-  } catch (e) {
-    console.warn('No se pudieron cargar sustituciones:', e);
-  }
-}
-
-function cargarTagsEntrenamiento(file) {
-  const gEntr = h5Get(file, 'entrenamiento');
-  if (!gEntr) return;
-  const keys = h5Keys(gEntr);
-
-  for (const tagName of keys) {
-    const gTag = h5Get(gEntr, tagName);
-    if (!gTag || !esGrupo(gTag)) continue;
-
-    // Patterns (uno por línea)
-    const patternsTxt = leerTexto(h5Get(gTag, 'patterns'));
-    const patterns = patternsTxt ? patternsTxt.split('\n').filter(p => p.trim()) : [];
-
-    // Responses (separadas por \n---\n)
-    let responses = [];
-    const respTxt = leerTexto(h5Get(gTag, 'responses'));
-    if (respTxt) {
-      responses = respTxt.split('\n---\n').filter(r => r.trim());
-    } else {
-      // Fallback: leer resp_000, resp_001...
-      const subKeys = h5Keys(gTag).filter(k => k.startsWith('resp_')).sort();
-      for (const sk of subKeys) {
-        const r = leerTexto(h5Get(gTag, sk));
-        if (r) responses.push(r);
+  // Descargar desde CDN
+  let data=null;
+  for(const url of DICT_URLS){
+    try{
+      logDict('⏳ Probando: '+url,'info');
+      const r=await fetch(url,{signal:AbortSignal.timeout(60000)});
+      if(!r.ok){logDict('  ⚠️ HTTP '+r.status+' — siguiente','warn');continue;}
+      $('dictProgressBar').style.width='40%';
+      $('dictProgressBar').textContent='Procesando...';
+      data=await r.json();
+      if(Array.isArray(data)&&data.length>1000){
+        logDict('✅ Descargado desde '+url+' ('+data.length.toLocaleString()+' palabras)','ok');
+        break;
       }
+    }catch(e){
+      logDict('  ✗ '+e.message,'err');
+      data=null;
     }
+  }
 
-    if (patterns.length === 0 || responses.length === 0) continue;
+  if(!data||!Array.isArray(data)||data.length<1000){
+    btn.textContent='📥 Cargar diccionario completo';
+    btn.disabled=false;
+    $('dictProgress').classList.remove('show');
+    toast('No se pudo descargar. Revisa tu conexión.','err',5000);
+    logDict('❌ No se pudo descargar. Prueba "Solo las 5000 más comunes".','err');
+    return;
+  }
 
-    // Meta
-    let meta = {};
-    try {
-      const metaJson = leerTexto(h5Get(gTag, 'meta_json'));
-      if (metaJson) meta = JSON.parse(metaJson);
-    } catch (e) {}
+  // Limpiar y normalizar
+  $('dictProgressBar').style.width='60%';
+  $('dictProgressBar').textContent='Limpiando...';
+  const limpio=Array.from(new Set(
+    data
+      .map(w=>String(w).trim().toLowerCase())
+      .filter(w=>w&&w.length>=2&&w.length<=40)
+      .filter(w=>/^[a-záéíóúñü]+$/.test(w))
+  )).sort();
 
-    // Normalizar patterns una vez
-    const patternsNorm = patterns.map(p => normalizar(p, chatState.substitutions));
+  palabras=limpio;
+  logDict('📊 Diccionario final: '+palabras.length.toLocaleString()+' palabras únicas','ok');
 
-    chatState.tags.push({
-      tag: tagName,
-      patterns: patterns,
-      patternsNorm: patternsNorm,
-      responses: responses,
-      meta: meta
+  // Guardar en IndexedDB
+  $('dictProgressBar').style.width='80%';
+  $('dictProgressBar').textContent='Guardando...';
+  try{
+    await idbSet(KEY_WORDS,palabras);
+    logDict('💾 Guardado en navegador','ok');
+  }catch(e){
+    logDict('⚠️ No se pudo guardar en caché (puede que sea muy grande): '+e.message,'warn');
+  }
+
+  $('dictProgressBar').style.width='100%';
+  $('dictProgressBar').textContent='✅ '+palabras.length.toLocaleString();
+  $('dictCount').textContent=palabras.length.toLocaleString();
+  $('dictHero').classList.add('loaded');
+  btn.textContent='✅ Diccionario cargado ('+palabras.length.toLocaleString()+')';
+  $('btnStart').disabled=false;
+  toast('Diccionario listo: '+palabras.length.toLocaleString()+' palabras','ok',4000);
+  setTimeout(()=>$('dictProgress').classList.remove('show'),2000);
+}
+
+async function cargarSoloComunes(){
+  const btn=$('btnQuick');
+  btn.disabled=true;btn.textContent='⏳ Cargando...';
+  logDict('⚡ Cargando top 5000 español...','info');
+  let words=null;
+  for(const url of QUICK_URLS){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(20000)});
+      if(!r.ok)continue;
+      const txt=await r.text();
+      words=txt.split('\n').map(s=>s.trim().split(/\s+/)[0]).filter(Boolean).slice(0,5000);
+      break;
+    }catch(e){}
+  }
+  if(!words||!words.length){
+    toast('No se pudo descargar','err');
+    btn.disabled=false;btn.textContent='⚡ Solo las 5000 más comunes';
+    return;
+  }
+  palabras=Array.from(new Set(words.map(w=>w.toLowerCase())));
+  $('dictCount').textContent=palabras.length.toLocaleString()+' (modo rápido)';
+  $('dictHero').classList.add('loaded');
+  $('btnStart').disabled=false;
+  await idbSet(KEY_WORDS,palabras);
+  logDict('✅ Top 5000 cargado','ok');
+  toast('Top 5000 listo','ok');
+  btn.textContent='✅ 5000 palabras';
+}
+
+// ============================================================
+// APIs
+// ============================================================
+async function fetchJSON(url,timeout=8000,retries=1){
+  for(let i=0;i<=retries;i++){
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),timeout);
+    try{
+      const r=await fetch(url,{signal:ctrl.signal});
+      clearTimeout(t);
+      if(r.status===429){await sleep(1000*(i+1));continue;}
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return await r.json();
+    }catch(e){
+      clearTimeout(t);
+      if(i===retries)throw e;
+      await sleep(300*(i+1));
+    }
+  }
+}
+function detectLang(text){
+  const en=/\b(the|and|of|to|in|is|are|was|were|be|have|has|this|that|with|for|not|you|all|can|will|just|but|from|they|know|like|time|make|use)\b/i;
+  const es=/\b(el|la|los|las|de|del|en|es|son|fue|era|ser|tiene|este|esta|con|por|para|no|todo|puede|como|pero|que|qué)\b/i;
+  const c1=(text.match(en)||[]).length,c2=(text.match(es)||[]).length;
+  if(c1>c2)return'en';if(c2>c1)return'es';
+  return /[áéíóúñ¿¡]/.test(text)?'es':'en';
+}
+
+async function wiktionaryExtract(word,lang){
+  try{
+    const url=`https://${lang}.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&format=json&explaintext=1&redirects=1`;
+    const data=await fetchJSON(url,7000,0);
+    const pages=data.query?.pages;if(!pages)return null;
+    const page=Object.values(pages)[0];
+    if(page.missing!==undefined)return null;
+    return page.extract||null;
+  }catch(e){return null;}
+}
+async function translateMyMemory(text,from,to){
+  try{
+    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
+    const data=await fetchJSON(url,7000,0);
+    if(data.responseStatus!==200)return null;
+    const t=data.responseData?.translatedText;
+    if(!t||t.toLowerCase()===text.toLowerCase())return null;
+    return t;
+  }catch(e){return null;}
+}
+async function freeDict(word,lang){
+  try{
+    const url=`https://api.dictionaryapi.dev/api/v2/entries/${lang}/${encodeURIComponent(word)}`;
+    const data=await fetchJSON(url,6000,0);
+    return Array.isArray(data)&&data.length?data:null;
+  }catch(e){return null;}
+}
+async function wikiSummary(title,lang){
+  try{
+    const url=`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const data=await fetchJSON(url,6000,0);
+    return data.extract||null;
+  }catch(e){return null;}
+}
+
+// ============================================================
+// FICHA DE PALABRA
+// ============================================================
+async function construirFicha(palabra,opts){
+  const word=String(palabra).trim();
+  if(!word)return null;
+  const lang=detectLang(word);
+  const other=lang==='es'?'en':'es';
+  const ficha={palabra:word,idioma:lang,traduccion:null,traduccion_inversa:null,definiciones:[],wikipedia:null,wiktionary:null};
+
+  // Wiktionary (principal para español)
+  if(opts.useWikt){
+    const w=await wiktionaryExtract(word,lang);
+    if(w){
+      ficha.wiktionary=w.slice(0,3000);
+      // Extraer definiciones numeradas del extracto de Wiktionary
+      const lines=w.split('\n').map(l=>l.trim()).filter(Boolean);
+      const defs=[];
+      for(const line of lines){
+        // Buscar líneas tipo "1. definición" o "1 definición"
+        const m=line.match(/^(\d+)[\.\)]\s+(.+)/);
+        if(m&&m[2].length>5&&m[2].length<400){
+          defs.push(m[2]);
+          if(defs.length>=opts.maxDefs)break;
+        }
+      }
+      ficha.definiciones=defs;
+    }
+  }
+
+  // Free Dictionary
+  if(opts.useDef){
+    const d=await freeDict(word,lang);
+    if(d){
+      const defs=[];
+      d.forEach(entry=>{
+        (entry.meanings||[]).forEach(m=>{
+          (m.definitions||[]).slice(0,opts.maxDefs).forEach(def=>{
+            defs.push(`[${m.partOfSpeech}] ${def.definition}${def.example?' — Ej: '+def.example:''}`);
+          });
+        });
+      });
+      ficha.definiciones=[...new Set([...ficha.definiciones,...defs])].slice(0,opts.maxDefs);
+    }
+  }
+
+  // Traducción
+  if(opts.useTrans){
+    const fwd=await translateMyMemory(word,lang,other);
+    if(fwd)ficha.traduccion=fwd;
+    const back=await translateMyMemory(word,other,lang);
+    if(back&&normalizar(back)!==normalizar(word))ficha.traduccion_inversa=back;
+  }
+
+  // Wikipedia
+  if(opts.useWiki){
+    const w=await wikiSummary(word,lang);
+    if(w)ficha.wikipedia=w.slice(0,1500);
+  }
+
+  const hasData=ficha.definiciones.length||ficha.traduccion||ficha.wiktionary||ficha.wikipedia;
+  return hasData?ficha:null;
+}
+
+async function conLimite(tareas,limite){
+  const cola=[...tareas];
+  await Promise.all(Array(Math.min(limite,cola.length||1)).fill(0).map(async()=>{
+    while(cola.length&&!stopFlag){await cola.shift()();}
+  }));
+}
+
+// ============================================================
+// PROCESO PRINCIPAL
+// ============================================================
+async function iniciarRecoleccion(){
+  if(procesando)return;
+  if(!palabras.length){toast('Carga el diccionario primero','warn');return;}
+
+  procesando=true;stopFlag=false;
+  $('btnStart').disabled=true;$('btnStop').disabled=false;
+  $('btnLoadDict').disabled=true;
+  $('btnQuick').disabled=true;
+
+  const concurrent=Math.max(1,Math.min(20,parseInt($('concurrent').value)||6));
+  const delay=Math.max(0,parseInt($('delay').value)||50);
+  const maxDefs=Math.max(1,Math.min(20,parseInt($('maxDefs').value)||4));
+  const startFrom=Math.max(0,parseInt($('startFrom').value)||0);
+  const maxProcess=Math.max(0,parseInt($('maxProcess').value)||0);
+  const skipProcessed=$('optSkipProcessed').checked;
+
+  const opts={
+    useWikt:$('oWikt').checked,
+    useTrans:$('oTrans').checked,
+    useDef:$('oDef').checked,
+    useWiki:$('oWiki').checked,
+    maxDefs
+  };
+
+  // Determinar índice de inicio
+  let startIdx=startFrom>0?startFrom:progreso.idx||0;
+  if(startIdx>=palabras.length){
+    toast('Ya está todo procesado','ok');
+    procesando=false;$('btnStart').disabled=false;$('btnStop').disabled=true;
+    $('btnLoadDict').disabled=false;$('btnQuick').disabled=false;
+    return;
+  }
+
+  // Determinar cuántas procesar
+  let endIdx=maxProcess>0?Math.min(startIdx+maxProcess,palabras.length):palabras.length;
+  const lote=palabras.slice(startIdx,endIdx);
+
+  logMsg('🚀 Procesando '+lote.length.toLocaleString()+' palabras ('+startIdx.toLocaleString()+' → '+endIdx.toLocaleString()+' de '+palabras.length.toLocaleString()+')','prog');
+  logMsg('⚙️ Paralelo: '+concurrent+' · Delay: '+delay+'ms · Fuentes: '+
+    [opts.useWikt?'Wiktionary':'',opts.useTrans?'MyMemory':'',opts.useDef?'FreeDict':'',opts.useWiki?'Wikipedia':''].filter(Boolean).join(' + '),'info');
+
+  $('progWrap').classList.add('show');
+  startTime=Date.now();
+  doneCount=0;
+
+  let ok=0,err=0,skip=0;
+  let lastSaveIdx=0;
+
+  async function guardarProgreso(force){
+    const ahora=Date.now();
+    if(!force&&ahora-lastSaveTime<3000)return; // no más de 1 vez cada 3s
+    lastSaveTime=ahora;
+    try{
+      await idbSet(KEY_DICT,diccionario);
+      await idbSet(KEY_PROG,{idx:startIdx+i,total:palabras.length});
+    }catch(e){console.warn('save fail',e);}
+  }
+
+  for(let i=0;i<lote.length&&!stopFlag;i+=concurrent){
+    const chunk=lote.slice(i,i+concurrent);
+    const tareas=chunk.map(palabra=>async()=>{
+      if(stopFlag)return;
+      const key=normalizar(palabra)||palabra.toLowerCase();
+      try{
+        // Saltar si ya existe
+        if(skipProcessed&&diccionario[key]){
+          skip++;
+          return;
+        }
+        const ficha=await construirFicha(palabra,opts);
+        if(!ficha){
+          err++;
+        }else{
+          diccionario[key]=ficha;
+          ok++;
+        }
+      }catch(e){
+        err++;
+      }finally{
+        doneCount++;
+      }
     });
-    chatState.totalPatterns += patterns.length;
-  }
+    await Promise.all(tareas.map(t=>t()));
+    if(delay>0)await sleep(delay);
+    await guardarProgreso(false);
 
-  log('💬 Tags de chat cargados: ' + chatState.tags.length, 'info');
-}
-
-// Normalizar texto: minúsculas, sin acentos, aplicar substituciones
-function normalizar(texto, subs) {
-  if (!texto) return '';
-  let t = String(texto).toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  // Aplicar substituciones por palabra completa
-  if (subs && Object.keys(subs).length > 0) {
-    t = t.replace(/\b\w+\b/g, w => subs[w] || w);
-  }
-  // Quitar puntuación y espacios múltiples
-  t = t.replace(/[¿?¡!.,;:()"']/g, ' ').replace(/\s+/g, ' ').trim();
-  return t;
-}
-
-// Puntuar coincidencia entre input y patrón
-function puntuar(inputNorm, patronNorm) {
-  if (!patronNorm || !inputNorm) return 0;
-  if (inputNorm === patronNorm) return 100;
-  if (inputNorm.includes(patronNorm)) return 85 + Math.min(10, patronNorm.length / 2);
-  if (patronNorm.includes(inputNorm) && inputNorm.length >= 4) return 70 + Math.min(10, inputNorm.length / 2);
-
-  // Solapamiento de palabras
-  const inputWords = new Set(inputNorm.split(' ').filter(Boolean));
-  const patWords = patronNorm.split(' ').filter(Boolean);
-  if (patWords.length === 0) return 0;
-  let overlap = 0;
-  for (const w of patWords) {
-    if (inputWords.has(w)) overlap++;
-  }
-  // Requiere al menos 1 palabra en común
-  if (overlap === 0) return 0;
-  return (overlap / patWords.length) * 60;
-}
-
-// Buscar la mejor tag para un input
-function encontrarMejorTag(input) {
-  const inputNorm = normalizar(input, chatState.substitutions);
-  if (!inputNorm) return null;
-
-  let mejor = null;
-  let mejorScore = 0;
-
-  for (const t of chatState.tags) {
-    let maxScore = 0;
-    for (const pNorm of t.patternsNorm) {
-      const s = puntuar(inputNorm, pNorm);
-      if (s > maxScore) maxScore = s;
-      if (maxScore >= 100) break;
-    }
-    // Bonus por prioridad alta
-    if (t.meta && t.meta.prioridad === 'alta') maxScore *= 1.15;
-
-    if (maxScore > mejorScore) {
-      mejorScore = maxScore;
-      mejor = t;
+    // Actualizar UI cada 10 chunks
+    if(i%10===0){
+      const done=i+chunk.length;
+      const pct=Math.round(((done)/lote.length)*100);
+      $('progBar').style.width=pct+'%';
+      $('progBar').textContent=pct+'%';
+      $('sOk').textContent=ok.toLocaleString();
+      $('sErr').textContent=err.toLocaleString();
+      $('sSkip').textContent=skip.toLocaleString();
+      $('sPct').textContent=Math.round(((startIdx+done)/palabras.length)*100)+'%';
+      const elapsed=(Date.now()-startTime)/1000;
+      const rate=doneCount/elapsed*60;
+      $('sRate').textContent=rate.toFixed(0);
+      const remaining=(lote.length-done)/Math.max(rate/60,0.001);
+      $('sEta').textContent=fmtTime(remaining);
+      await new Promise(r=>setTimeout(r,0)); // ceder al browser
     }
   }
 
-  // Umbral mínimo
-  if (mejorScore < 30) return null;
-  return { tag: mejor, score: mejorScore };
+  // Guardar al terminar
+  await guardarProgreso(true);
+
+  procesando=false;
+  $('btnStart').disabled=false;$('btnStop').disabled=true;
+  $('btnLoadDict').disabled=false;$('btnQuick').disabled=false;
+
+  if(stopFlag){
+    logMsg('⏹ Detenido. Progreso guardado.','warn');
+  }else{
+    logMsg('✅ Lote completado: '+ok.toLocaleString()+' OK · '+err.toLocaleString()+' errores · '+skip.toLocaleString()+' saltadas','ok');
+  }
+  logMsg('📊 Total en diccionario: '+Object.keys(diccionario).length.toLocaleString()+' palabras','ok');
+
+  $('btnToStep2').disabled=Object.keys(diccionario).length===0;
 }
 
-// Extraer nombre del usuario de un input
-function extraerNombre(input) {
-  const patrones = [
-    /me llamo\s+([a-záéíóúñ]+)/i,
-    /mi nombre es\s+([a-záéíóúñ]+)/i,
-    /puedes llamarme\s+([a-záéíóúñ]+)/i,
-    /^soy\s+([a-záéíóúñ]+)$/i,
-    /yo soy\s+([a-záéíóúñ]+)/i
-  ];
-  for (const re of patrones) {
-    const m = input.match(re);
-    if (m && m[1]) {
-      return m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+// ============================================================
+// CONVERSIÓN A FORMATO ANIA
+// ============================================================
+function generarPatronesParaPalabra(word,traduccion){
+  const formas=new Set();
+  const w=String(word).trim();
+  const wl=w.toLowerCase();
+  const wa=wl.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  formas.add(w);formas.add(wl);if(wa!==wl)formas.add(wa);
+  if(traduccion){
+    const t=String(traduccion).trim();
+    const tl=t.toLowerCase();
+    const ta=tl.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    formas.add(t);formas.add(tl);if(ta!==tl)formas.add(ta);
+  }
+  const patrones=new Set();
+  for(const f of formas){
+    if(!f||f.length<2)continue;
+    patrones.add(f);
+    // que es
+    for(const pre of ['que es','qué es','q es','k es','ke es']){
+      patrones.add(pre+' '+f);
+      patrones.add(pre+' un '+f);
+      patrones.add(pre+' una '+f);
+      patrones.add(pre+' el '+f);
+      patrones.add(pre+' la '+f);
     }
+    // que significa
+    for(const pre of ['que significa','qué significa','q significa','k significa','ke significa','que quiere decir','q quiere decir']){
+      patrones.add(pre+' '+f);
+    }
+    // definición
+    for(const pre of ['definicion de','definición de','definicion','definición','defineme','defíneme']){
+      patrones.add(pre+' '+f);
+    }
+    // dime / explica
+    for(const pre of ['dime que es','dime qué es','dime sobre','explicame','explícame','hablame de','háblame de','cuentame de','cuéntame de']){
+      patrones.add(pre+' '+f);
+    }
+    // sabes
+    for(const pre of ['que sabes de','qué sabes de','sabes algo de','sabes algo sobre']){
+      patrones.add(pre+' '+f);
+    }
+    // info
+    for(const pre of ['info sobre','informacion sobre','información sobre','concepto de','busca','buscar']){
+      patrones.add(pre+' '+f);
+    }
+    // traducción
+    patrones.add('como se dice '+f+' en ingles');
+    patrones.add('como se dice '+f+' en inglés');
+    patrones.add('como se dice '+f+' en español');
+    patrones.add('traduce '+f);
+    patrones.add('traduce '+f+' al ingles');
+    patrones.add('traduce '+f+' al inglés');
+    patrones.add('traduce '+f+' al español');
+    patrones.add('traduccion de '+f);
+    patrones.add('traducción de '+f);
+    // quien es
+    patrones.add('quien es '+f);
+    patrones.add('quién es '+f);
+    // interrogación
+    patrones.add(f+'?');
+    patrones.add('¿'+f+'?');
   }
-  return null;
+  return Array.from(patrones).filter(p=>p&&p.length>=2).slice(0,60);
 }
 
-// Elegir una respuesta del tag (evitando repetir la última)
-function elegirRespuesta(tagObj) {
-  const tagName = tagObj.tag;
-  const resps = tagObj.responses;
-  if (resps.length === 1) return resps[0];
-
-  let idx;
-  let intentos = 0;
-  do {
-    idx = Math.floor(Math.random() * resps.length);
-    intentos++;
-  } while (idx === chatState.ultimaRespIndex[tagName] && intentos < 10);
-
-  chatState.ultimaRespIndex[tagName] = idx;
-  return resps[idx];
+function formatearRespuesta(ficha){
+  let t=`📖 ${ficha.palabra}`;
+  if(ficha.idioma)t+=` · ${ficha.idioma==='es'?'Español':'Inglés'}`;
+  t+='\n';
+  if(ficha.traduccion)t+=`🌐 Traducción: ${ficha.traduccion}\n`;
+  if(ficha.traduccion_inversa&&ficha.traduccion_inversa!==ficha.traduccion)t+=`🔄 Inversa: ${ficha.traduccion_inversa}\n`;
+  t+='\n';
+  if(ficha.definiciones.length){
+    t+='**Definiciones:**\n';
+    ficha.definiciones.slice(0,6).forEach((d,i)=>{t+=`${i+1}. ${d}\n`;});
+    t+='\n';
+  }else if(ficha.wiktionary){
+    t+='**Info:**\n'+ficha.wiktionary.slice(0,600)+'\n\n';
+  }
+  if(ficha.wikipedia){
+    t+='**Wikipedia:**\n'+ficha.wikipedia.slice(0,700);
+  }
+  return t.trim();
 }
 
-// Reemplazar placeholders [nombre]
-function aplicarPlaceholders(texto) {
-  const nombre = chatState.userName || 'amigo/a';
-  return texto.replace(/\[nombre\]/g, nombre);
-}
+function convertirAFormatoAnia(){
+  const keys=Object.keys(diccionario);
+  if(!keys.length){toast('Diccionario vacío','warn');return null;}
 
-// Generar respuesta del bot
-function generarRespuesta(inputUsuario) {
-  // Intentar extraer nombre
-  const nombreDetectado = extraerNombre(inputUsuario);
-  if (nombreDetectado) {
-    chatState.userName = nombreDetectado;
+  logMsg('🧠 Convirtiendo '+keys.length.toLocaleString()+' palabras a formato Ania...','prog');
+
+  const entrenamiento=[];
+  let totalPatterns=0,totalResponses=0;
+
+  for(const key of keys){
+    const ficha=diccionario[key];
+    const tagName='palabra_'+key.replace(/\s+/g,'_').replace(/[^a-z0-9_]/gi,'').slice(0,80);
+    const patterns=generarPatronesParaPalabra(ficha.palabra,ficha.traduccion);
+    const respuesta=formatearRespuesta(ficha);
+
+    entrenamiento.push({
+      tag:tagName,
+      patterns,
+      responses:[respuesta],
+      meta:{
+        tipo:'diccionario',
+        idioma:ficha.idioma,
+        traduccion:ficha.traduccion||null,
+        traduccion_inversa:ficha.traduccion_inversa||null,
+        prioridad:'media'
+      }
+    });
+    totalPatterns+=patterns.length;
+    totalResponses+=1;
   }
 
-  // Buscar mejor tag
-  const resultado = encontrarMejorTag(inputUsuario);
+  // Tags de personalidad base
+  entrenamiento.push(...TAGS_PERSONALIDAD);
+  const personalityPatterns=TAGS_PERSONALIDAD.reduce((s,t)=>s+t.patterns.length,0);
+  totalPatterns+=personalityPatterns;
+  totalResponses+=TAGS_PERSONALIDAD.length;
 
-  if (!resultado) {
-    const fallbacks = [
-      'Mmm... no estoy segura de cómo responder a eso. ¿Puedes decirlo de otra forma? 🤔',
-      'No tengo un patrón para eso todavía. ¡Sigo aprendiendo! ¿Probamos con un saludo o preguntarme cómo estoy?',
-      'Lo siento, no encontré una respuesta adecuada. ¿Puedes intentar con otras palabras? 💫',
-      'Eso se me escapa por ahora. ¿Charlamos de otra cosa?'
-    ];
-    return {
-      texto: fallbacks[Math.floor(Math.random() * fallbacks.length)],
-      tag: null,
-      score: 0
-    };
-  }
-
-  const respuesta = elegirRespuesta(resultado.tag);
-  const texto = aplicarPlaceholders(respuesta);
-
-  // Si el tag tiene meta.guardar_nombre y el usuario dijo su nombre
-  if (resultado.tag.meta && resultado.tag.meta.accion === 'guardar_nombre') {
-    // El nombre ya se guardó arriba
-  }
+  const hoy=new Date().toISOString().slice(0,10);
+  const version=$('cfgVersion').value.trim()||'1.0 DICCIONARIO ES';
+  const autor=$('cfgAutor').value.trim()||'Ania';
+  const descripcion=$('cfgDesc').value.trim()||'Diccionario español completo';
 
   return {
-    texto: texto,
-    tag: resultado.tag.tag,
-    score: resultado.score
+    metadata:{
+      version,descripcion,creado_por:autor,fecha_actualizacion:hoy,
+      contadores:{
+        total_respuestas:totalResponses,
+        patrones_totales:totalPatterns,
+        intentos_totales:entrenamiento.length,
+        archivos_cargados:1
+      }
+    },
+    configuracion:{
+      mini_lenguaje_natural_humano:{
+        normalizacion_emocional:{
+          q:'que',k:'que',ke:'que',xq:'porque',tmb:'también',grax:'gracias',
+          hl:'hola',tb:'también',x:'por',d:'de',tas:'estás',ta:'está',toy:'estoy'
+        },
+        variaciones_naturales:{},
+        detectores_emocionales:{
+          positivo:'(bien|genial|feliz|contento|alegre)',
+          negativo:'(triste|ansioso|cansado|deprimido|solo)',
+          pregunta:'\\?$'
+        }
+      },
+      configuracion_pi_humana:{
+        umbral_confianza:0.5,
+        usar_memoria_afectiva:true,
+        max_variaciones_por_patron:12,
+        activar_emociones_contextuales:true,
+        prioridad_tags:[]
+      }
+    },
+    entrenamiento
   };
 }
 
+const TAGS_PERSONALIDAD=[
+  {
+    tag:'presentacion',
+    patterns:['hola','holis','hey','hi','buenas','saludo','saludos','buenos dias','buenas tardes','buenas noches','quien eres','quién eres','que eres','qué eres','como te llamas','cómo te llamas'],
+    responses:['¡Hola! Soy Ania. 🧠 Pregúntame el significado de cualquier palabra en español. ¿Qué palabra quieres que busque?'],
+    meta:{tipo:'personalidad',prioridad:'alta'}
+  },
+  {
+    tag:'despedida',
+    patterns:['adios','adiós','chao','bye','hasta luego','nos vemos','me voy'],
+    responses:['¡Hasta luego! 👋'],
+    meta:{tipo:'personalidad',prioridad:'media'}
+  },
+  {
+    tag:'agradecimiento',
+    patterns:['gracias','grax','mil gracias','muchas gracias','te lo agradezco'],
+    responses:['¡De nada! 😊'],
+    meta:{tipo:'personalidad',prioridad:'media'}
+  }
+];
+
 // ============================================================
-// UI DEL CHAT
+// H5 · CARGAR h5wasm
 // ============================================================
-function addChatMsg(tipo, texto, tag) {
-  const win = $('chatWindow');
-  const div = document.createElement('div');
-  div.className = 'msg msg-' + (tipo === 'user' ? 'user' : tipo === 'bot' ? 'bot' : 'sys');
-  const textDiv = document.createElement('div');
-  textDiv.textContent = texto;
-  div.appendChild(textDiv);
-  if (tag) {
-    const tagDiv = document.createElement('div');
-    tagDiv.className = 'msg-tag';
-    tagDiv.textContent = '[' + tag + ']';
-    div.appendChild(tagDiv);
-  }
-  win.appendChild(div);
-  win.scrollTop = win.scrollHeight;
-  return div;
-}
-
-function addTypingIndicator() {
-  const win = $('chatWindow');
-  const div = document.createElement('div');
-  div.className = 'msg msg-bot msg-typing';
-  div.id = 'typingIndicator';
-  div.innerHTML = '<span>●</span><span>●</span><span>●</span>';
-  win.appendChild(div);
-  win.scrollTop = win.scrollHeight;
-}
-
-function removeTypingIndicator() {
-  const el = $('typingIndicator');
-  if (el) el.remove();
-}
-
-function enviarMensajeChat() {
-  const input = $('chatInput');
-  const texto = input.value.trim();
-  if (!texto || !chatState.cargado) return;
-
-  addChatMsg('user', texto);
-  input.value = '';
-  input.focus();
-
-  addTypingIndicator();
-
-  // Delay artificial para parecer humano
-  const delay = 300 + Math.random() * 600;
-  setTimeout(() => {
-    removeTypingIndicator();
-    const respuesta = generarRespuesta(texto);
-    addChatMsg('bot', respuesta.texto, respuesta.tag);
-  }, delay);
-}
-
-// Eventos del chat
-$('chatInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    enviarMensajeChat();
-  }
-});
-$('chatSend').addEventListener('click', enviarMensajeChat);
-
-$('chatClear').addEventListener('click', () => {
-  $('chatWindow').innerHTML = '';
-  chatState.ultimaTag = null;
-  chatState.ultimaRespIndex = {};
-  if (chatState.cargado) {
-    addChatMsg('sys', '🧠 Conversación reiniciada');
-    addChatMsg('bot', '¡Hola de nuevo! ¿En qué te ayudo? 💫');
-  } else {
-    addChatMsg('sys', 'Carga un cerebro.h5 para empezar a conversar');
-  }
-});
-
-$('chatLoadBtn').addEventListener('click', async () => {
-  const f = $('chatH5Input').files[0];
-  if (!f) { alert('Selecciona un cerebro.h5'); return; }
-  await cargarCerebroParaChat(f, f.name);
-});
-
-$('chatUseLastBtn').addEventListener('click', async () => {
-  if (!ultimoBlob) { alert('No hay cerebro reciente. Genera uno en la pestaña Creador.'); return; }
-  await cargarCerebroParaChat(ultimoBlob, 'cerebro.h5 (recién creado)');
-});
-
-// Sugerencias rápidas
-function renderSugerencias() {
-  const sugg = $('chatSuggestions');
-  sugg.innerHTML = '';
-  const frases = ['hola', '¿cómo estás?', 'qué bola', 'quién eres', 'gracias', 'me llamo Carlos'];
-  frases.forEach(f => {
-    const b = document.createElement('button');
-    b.className = 'sugg';
-    b.textContent = f;
-    b.addEventListener('click', () => {
-      $('chatInput').value = f;
-      enviarMensajeChat();
-    });
-    sugg.appendChild(b);
+function cargarH5wasm(){
+  return new Promise((resolve,reject)=>{
+    if(window.h5wasm)return resolve(window.h5wasm);
+    const urls=[
+      'https://cdn.jsdelivr.net/npm/h5wasm@0.7.5/dist/iife/h5wasm.js',
+      'https://unpkg.com/h5wasm@0.7.5/dist/iife/h5wasm.js'
+    ];
+    let i=0;
+    const next=()=>{
+      if(i>=urls.length)return reject(new Error('No se pudo cargar h5wasm'));
+      const s=document.createElement('script');
+      s.src=urls[i++];
+      s.onload=()=>window.h5wasm?resolve(window.h5wasm):next();
+      s.onerror=()=>next();
+      document.head.appendChild(s);
+    };
+    next();
   });
 }
 
+function sanitizeH5(name){
+  return String(name).replace(/[\/\\:*?"<>|\s]+/g,'_').replace(/^_+|_+$/g,'').slice(0,100)||'item';
+}
+function bytesLen(s){return new TextEncoder().encode(s).length;}
+function nombreUnicoH5(parent,name,used){
+  const base=sanitizeH5(name);
+  let c=base,i=1;
+  while(used.has(c)){c=base+'_'+i;i++;}
+  used.add(c);
+  return c;
+}
+function writeStringH5(parent,name,text,used){
+  if(!text||!String(text).trim())return false;
+  const s=String(text);const size=bytesLen(s);
+  if(size===0)return false;
+  const unique=nombreUnicoH5(parent,name,used);
+  try{
+    parent.create_dataset({name:unique,data:s,dtype:'S'+size,compression:'gzip',compression_opts:6});
+    return true;
+  }catch(e1){
+    try{parent.create_dataset({name:unique,data:s,dtype:'S'+size});return true;}
+    catch(e2){return false;}
+  }
+}
+function escribirObjetoH5(grupo,obj,used){
+  for(const k of Object.keys(obj)){
+    const v=obj[k];
+    if(v===null||v===undefined)continue;
+    if(typeof v==='object'&&!Array.isArray(v)){
+      try{
+        const sub=grupo.create_group(nombreUnicoH5(grupo,k,used));
+        escribirObjetoH5(sub,v,new Set());
+      }catch(e){}
+    }else if(Array.isArray(v)){
+      writeStringH5(grupo,k,v.join('\n'),used);
+    }else{
+      writeStringH5(grupo,k,String(v),used);
+    }
+  }
+}
+
+async function crearH5(cerebro){
+  if(!window.h5wasm){
+    toast('Cargando h5wasm...','warn');
+    await cargarH5wasm();
+  }
+  const h5wasm=window.h5wasm;
+  await h5wasm.ready;
+  const FS=h5wasm.FS;
+  const File=h5wasm.File;
+
+  const f=new File('cerebro.h5','w');
+  const gMeta=f.create_group('metadata');
+  const gConfig=f.create_group('configuracion');
+  const gEntr=f.create_group('entrenamiento');
+
+  escribirObjetoH5(gMeta,cerebro.metadata,new Set());
+  escribirObjetoH5(gConfig,cerebro.configuracion,new Set());
+
+  let escritos=0;
+  for(const item of cerebro.entrenamiento){
+    const tagName=sanitizeH5(item.tag||('tag_'+escritos));
+    let gTag;
+    try{gTag=gEntr.create_group(tagName);}catch(e){continue;}
+    try{
+      gTag.create_attribute('tag_original',String(item.tag||''));
+      gTag.create_attribute('num_patterns',(item.patterns||[]).length);
+      gTag.create_attribute('num_responses',(item.responses||[]).length);
+      gTag.create_attribute('indice',escritos);
+    }catch(e){}
+    const used=new Set();
+    if(Array.isArray(item.patterns))writeStringH5(gTag,'patterns',item.patterns.join('\n'),used);
+    if(Array.isArray(item.responses)){
+      writeStringH5(gTag,'responses',item.responses.join('\n---\n'),used);
+      item.responses.forEach((r,i)=>writeStringH5(gTag,'resp_'+String(i).padStart(3,'0'),r,used));
+    }
+    if(item.meta)writeStringH5(gTag,'meta_json',JSON.stringify(item.meta,null,2),used);
+    escritos++;
+  }
+  try{
+    f.create_attribute('fecha_creacion',new Date().toISOString());
+    f.create_attribute('version_formato','ania-h5-v1');
+    f.create_attribute('num_tags',escritos);
+  }catch(e){}
+  f.close();
+  const data=FS.readFile('cerebro.h5');
+  try{FS.unlink('cerebro.h5');}catch(e){}
+  return new Blob([data],{type:'application/x-hdf5'});
+}
+
 // ============================================================
-// DIAGNÓSTICO INICIAL
+// H5 · LEER
 // ============================================================
-window.addEventListener('load', () => {
-  log('Diagnóstico:', 'info');
-  log('h5wasm: ' + (typeof h5wasm !== 'undefined' ? '✓' : '✗'),
-      typeof h5wasm !== 'undefined' ? 'ok' : 'err');
-  log('pdfjsLib: ' + (typeof pdfjsLib !== 'undefined' ? '✓' : '✗'),
-      typeof pdfjsLib !== 'undefined' ? 'ok' : 'err');
-  log('mammoth: ' + (typeof mammoth !== 'undefined' ? '✓' : '✗'),
-      typeof mammoth !== 'undefined' ? 'ok' : 'err');
+function h5Keys(obj){
+  if(!obj)return[];
+  if(typeof obj.keys==='function'){
+    try{const k=obj.keys();if(Array.isArray(k))return k;if(k&&typeof k[Symbol.iterator]==='function')return Array.from(k);}catch(e){}
+  }
+  try{return Object.keys(obj).filter(x=>typeof obj[x]!=='function'&&!x.startsWith('_'));}catch(e){}
+  return[];
+}
+function h5Get(obj,key){
+  if(!obj)return null;
+  if(typeof obj.get==='function'){try{const h=obj.get(key);if(h)return h;}catch(e){}}
+  try{const h=obj[key];if(h&&typeof h!=='function')return h;}catch(e){}
+  return null;
+}
+function esGrupoH5(obj){
+  if(!obj||typeof obj!=='object')return false;
+  try{const c=obj.constructor&&obj.constructor.name;if(c==='Group'||c==='File')return true;if(c==='Dataset')return false;}catch(e){}
+  try{if(obj.dtype!==undefined&&obj.shape!==undefined)return false;}catch(e){}
+  try{if(typeof obj.keys==='function'){const k=obj.keys();if(Array.isArray(k)||(k&&typeof k[Symbol.iterator]==='function'))return true;}}catch(e){}
+  return false;
+}
+function leerTextoH5(ds){
+  if(!ds)return'';
+  try{
+    const v=ds.value;
+    if(v===null||v===undefined)return'';
+    if(typeof v==='string')return v;
+    if(v instanceof Uint8Array)return new TextDecoder('utf-8').decode(v);
+    if(Array.isArray(v)){if(v.length&&typeof v[0]==='number')return new TextDecoder('utf-8').decode(new Uint8Array(v));return v.join('\n');}
+    return String(v);
+  }catch(e){return'';}
+}
+async function leerH5(blob){
+  if(!window.h5wasm){toast('Cargando h5wasm...','warn');await cargarH5wasm();}
+  const h5wasm=window.h5wasm;
+  await h5wasm.ready;
+  const buf=new Uint8Array(await blob.arrayBuffer());
+  const FS=h5wasm.FS;
+  try{FS.unlink('/_read.h5');}catch(e){}
+  FS.writeFile('/_read.h5',buf);
+  const file=new h5wasm.File('/_read.h5','r');
+
+  const meta={},config={},entrenamiento=[];
+  const gMeta=h5Get(file,'metadata');
+  if(gMeta){
+    for(const k of h5Keys(gMeta)){
+      const child=h5Get(gMeta,k);if(!child)continue;
+      if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child))sub[k2]=leerTextoH5(h5Get(child,k2));meta[k]=sub;}
+      else meta[k]=leerTextoH5(child);
+    }
+  }
+  const gCfg=h5Get(file,'configuracion');
+  if(gCfg){
+    for(const k of h5Keys(gCfg)){
+      const child=h5Get(gCfg,k);if(!child)continue;
+      if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child)){const c2=h5Get(child,k2);if(c2)sub[k2]=leerTextoH5(c2);}config[k]=sub;}
+      else config[k]=leerTextoH5(child);
+    }
+  }
+  const gEntr=h5Get(file,'entrenamiento');
+  if(gEntr){
+    for(const tagName of h5Keys(gEntr)){
+      const gTag=h5Get(gEntr,tagName);
+      if(!gTag||!esGrupoH5(gTag))continue;
+      const patternsTxt=leerTextoH5(h5Get(gTag,'patterns'));
+      const patterns=patternsTxt?patternsTxt.split('\n').filter(p=>p.trim()):[];
+      let responses=[];
+      const respTxt=leerTextoH5(h5Get(gTag,'responses'));
+      if(respTxt)responses=respTxt.split('\n---\n').filter(r=>r.trim());
+      let metaItem={};
+      try{const mj=leerTextoH5(h5Get(gTag,'meta_json'));if(mj)metaItem=JSON.parse(mj);}catch(e){}
+      if(patterns.length&&responses.length)entrenamiento.push({tag:tagName,patterns,responses,meta:metaItem});
+    }
+  }
+  try{file.close();}catch(e){}
+  try{FS.unlink('/_read.h5');}catch(e){}
+  return {metadata:meta,configuracion:config,entrenamiento};
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+document.querySelectorAll('.step').forEach(s=>s.addEventListener('click',()=>irPaso(parseInt(s.dataset.step))));
+function irPaso(n){
+  document.querySelectorAll('.step').forEach(s=>{
+    s.classList.toggle('active',parseInt(s.dataset.step)===n);
+    if(parseInt(s.dataset.step)<n)s.classList.add('done');
+    else s.classList.remove('done');
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('page-'+n).classList.add('active');
+  if(n===2)refrescarPaso2();
+}
+
+// ============================================================
+// UI
+// ============================================================
+$('btnLoadDict').addEventListener('click',cargarDiccionarioCompleto);
+$('btnQuick').addEventListener('click',cargarSoloComunes);
+$('btnResetDict').addEventListener('click',async()=>{
+  if(!confirm('¿Borrar TODO el diccionario procesado? (No se puede deshacer)'))return;
+  diccionario={};progreso={idx:0,total:0};
+  await idbDel(KEY_DICT);await idbDel(KEY_PROG);
+  $('sOk').textContent='0';$('sErr').textContent='0';$('sSkip').textContent='0';$('sPct').textContent='0%';
+  logMsg('🗑 Diccionario vaciado','warn');
+  toast('Diccionario vaciado','warn');
+});
+
+$('btnStart').addEventListener('click',iniciarRecoleccion);
+$('btnStop').addEventListener('click',()=>{
+  stopFlag=true;
+  logMsg('⏹ Deteniendo...','warn');
+});
+$('btnSaveNow').addEventListener('click',async()=>{
+  await idbSet(KEY_DICT,diccionario);
+  await idbSet(KEY_PROG,progreso);
+  toast('Guardado','ok');
+});
+
+$('btnToStep2').addEventListener('click',()=>irPaso(2));
+
+function refrescarPaso2(){
+  const n=Object.keys(diccionario).length;
+  if(n===0){
+    $('brainEmpty').style.display='block';
+    $('brainInfo').style.display='none';
+    $('btnCreateBrain').disabled=true;
+    return;
+  }
+  $('brainEmpty').style.display='none';
+  $('brainInfo').style.display='block';
+  $('bWords').textContent=n.toLocaleString();
+  $('btnCreateBrain').disabled=false;
+}
+
+$('btnCreateBrain').addEventListener('click',()=>{
+  toast('Convirtiendo a formato Ania...','warn');
+  setTimeout(()=>{
+    cerebroAnia=convertirAFormatoAnia();
+    if(!cerebroAnia){toast('Nada que convertir','warn');return;}
+    const total=cerebroAnia.entrenamiento.length;
+    const pats=cerebroAnia.metadata.contadores.patrones_totales;
+    const resps=cerebroAnia.metadata.contadores.total_respuestas;
+    $('bTags').textContent=total.toLocaleString();
+    $('bPatterns').textContent=pats.toLocaleString();
+    $('bResponses').textContent=resps.toLocaleString();
+    const jsonStr=JSON.stringify(cerebroAnia);
+    jsonBlob=new Blob([jsonStr],{type:'application/json'});
+    $('bSize').textContent=fmtBytes(jsonBlob.size);
+    $('btnDownloadJSON').disabled=false;
+    $('btnCreateH5').disabled=false;
+    $('btnPreview').disabled=false;
+    $('btnLoadIntoChat').disabled=false;
+    $('brainResult').innerHTML=`<div class="good">
+      <h3>✅ Cerebro en formato Ania listo</h3>
+      <div class="big-num">${total.toLocaleString()} tags</div>
+      <div>${pats.toLocaleString()} patrones · ${resps.toLocaleString()} respuestas · ${fmtBytes(jsonBlob.size)}</div>
+    </div>`;
+    toast('Formato Ania generado: '+total.toLocaleString()+' tags','ok');
+    idbSet(KEY_BRAIN,cerebroAnia).catch(()=>{});
+  },50);
+});
+
+$('btnDownloadJSON').addEventListener('click',()=>{
+  if(!jsonBlob)return;
+  descargar(jsonBlob,'cerebro.json');
+  toast('Descargado cerebro.json ('+fmtBytes(jsonBlob.size)+')','ok');
+});
+
+$('btnCreateH5').addEventListener('click',async()=>{
+  if(!cerebroAnia){toast('Primero convierte a formato Ania','warn');return;}
+  const btn=$('btnCreateH5');btn.disabled=true;btn.textContent='⏳ Creando .h5...';
+  try{
+    if(!window.h5wasm)await cargarH5wasm();
+    h5Blob=await crearH5(cerebroAnia);
+    $('btnDownloadH5').disabled=false;
+    toast('cerebro.h5 creado ('+fmtBytes(h5Blob.size)+')','ok');
+    btn.textContent='📦 Crear cerebro.h5';
+  }catch(e){
+    console.error(e);
+    toast('Error: '+e.message,'err',5000);
+    btn.textContent='📦 Crear cerebro.h5';
+  }
+  btn.disabled=false;
+});
+
+$('btnDownloadH5').addEventListener('click',()=>{
+  if(!h5Blob)return;
+  descargar(h5Blob,'cerebro.h5');
+  toast('Descargado cerebro.h5','ok');
+});
+
+$('btnLoadIntoChat').addEventListener('click',()=>{
+  if(!cerebroAnia)cerebroAnia=convertirAFormatoAnia();
+  cargarCerebroEnChat(cerebroAnia,'cerebro.json');
+  irPaso(3);
+  toast('Cerebro cargado en el chat','ok');
+});
+
+$('btnPreview').addEventListener('click',()=>{
+  if(!cerebroAnia)return;
+  const which=$('previewWhich').value;
+  let obj;
+  if(which==='primer')obj=cerebroAnia.entrenamiento[0];
+  else if(which==='ultimo')obj=cerebroAnia.entrenamiento[cerebroAnia.entrenamiento.length-1];
+  else if(which==='config')obj=cerebroAnia.configuracion;
+  else obj=cerebroAnia.metadata;
+  $('previewBox').textContent=JSON.stringify(obj,null,2).slice(0,8000);
+});
+
+$('btnMerge').addEventListener('click',()=>$('mergeFiles').click());
+$('mergeFiles').addEventListener('change',async e=>{
+  const files=Array.from(e.target.files||[]);e.target.value='';
+  if(!files.length)return;
+  const logEl=$('mergeLog');logEl.style.display='block';logEl.innerHTML='';
+  if(!cerebroAnia){
+    cerebroAnia={
+      metadata:{version:'1.0 MERGED',descripcion:'Cerebro fusionado',creado_por:'Ania',
+        fecha_actualizacion:new Date().toISOString().slice(0,10),
+        contadores:{total_respuestas:0,patrones_totales:0,intentos_totales:0,archivos_cargados:0}},
+      configuracion:{},entrenamiento:[]
+    };
+  }
+  const existentes=new Set(cerebroAnia.entrenamiento.map(t=>t.tag));
+  let total=0;
+  for(const f of files){
+    try{
+      const txt=await f.text();
+      const j=JSON.parse(txt);
+      const items=j.entrenamiento||[];
+      let added=0;
+      for(const it of items){
+        if(!it.tag||!it.patterns)continue;
+        let tagName=it.tag,n=1;
+        while(existentes.has(tagName)){tagName=it.tag+'_'+n;n++;}
+        existentes.add(tagName);
+        cerebroAnia.entrenamiento.push({tag:tagName,patterns:it.patterns,responses:it.responses||[''],meta:it.meta||{}});
+        added++;total++;
+      }
+      logEl.innerHTML+=`<div class="l-ok">📎 ${esc(f.name)}: +${added} tags</div>`;
+    }catch(err){
+      logEl.innerHTML+=`<div class="l-err">✗ ${esc(f.name)}: ${esc(err.message)}</div>`;
+    }
+  }
+  const pats=cerebroAnia.entrenamiento.reduce((s,t)=>s+(t.patterns||[]).length,0);
+  const resps=cerebroAnia.entrenamiento.reduce((s,t)=>s+(t.responses||[]).length,0);
+  cerebroAnia.metadata.contadores={
+    total_respuestas:resps,patrones_totales:pats,
+    intentos_totales:cerebroAnia.entrenamiento.length,
+    archivos_cargados:(cerebroAnia.metadata.contadores?.archivos_cargados||0)+files.length
+  };
+  jsonBlob=new Blob([JSON.stringify(cerebroAnia)],{type:'application/json'});
+  $('bSize').textContent=fmtBytes(jsonBlob.size);
+  $('bTags').textContent=cerebroAnia.entrenamiento.length.toLocaleString();
+  $('bPatterns').textContent=pats.toLocaleString();
+  $('bResponses').textContent=resps.toLocaleString();
+  $('brainInfo').style.display='block';$('brainEmpty').style.display='none';
+  $('btnDownloadJSON').disabled=false;$('btnCreateH5').disabled=false;$('btnPreview').disabled=false;$('btnLoadIntoChat').disabled=false;
+  logEl.innerHTML+=`<div class="l-prog">✅ Total fusionado: ${total} tags nuevos</div>`;
+  toast('Fusionados: +'+total+' tags','ok');
+});
+
+function descargar(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// ============================================================
+// CHAT
+// ============================================================
+const chatState={
+  cargado:false,nombreArchivo:'',tags:[],substitutions:{},
+  userName:null,ultimaRespIndex:{},totalPatterns:0,exactIndex:new Map()
+};
+
+function prepararIndices(){
+  chatState.exactIndex.clear();
+  chatState.totalPatterns=0;
+  for(let i=0;i<chatState.tags.length;i++){
+    const t=chatState.tags[i];
+    t.patternsNorm=t.patterns.map(p=>normalizar(p));
+    for(const pn of t.patternsNorm){
+      if(pn&&!chatState.exactIndex.has(pn))chatState.exactIndex.set(pn,i);
+    }
+    chatState.totalPatterns+=t.patterns.length;
+  }
+}
+
+function puntuar(inputNorm,patronNorm){
+  if(!patronNorm||!inputNorm)return 0;
+  if(inputNorm===patronNorm)return 100;
+  if(inputNorm.includes(patronNorm)&&patronNorm.length>=3)return 85+Math.min(10,patronNorm.length/2);
+  if(patronNorm.includes(inputNorm)&&inputNorm.length>=4)return 70+Math.min(10,inputNorm.length/2);
+  const iw=new Set(inputNorm.split(' ').filter(Boolean));
+  const pw=patronNorm.split(' ').filter(Boolean);
+  if(!pw.length)return 0;
+  let ov=0;for(const w of pw)if(iw.has(w))ov++;
+  if(!ov)return 0;
+  return (ov/pw.length)*60;
+}
+
+const PREFIJOS=[
+  /^(que|qué|k|q|ke)\s+(es|son|significa|quiere decir|era)\s+(el|la|los|las|un|una)?\s*/i,
+  /^(dime|decime)\s+(que es|qué es|sobre|de)\s+(el|la|los|las|un|una)?\s*/i,
+  /^(explicame|explícame|explica)\s+(que es|qué es|el|la|los|las|un|una)?\s*/i,
+  /^(hablame|háblame|cuentame|cuéntame)\s+(de|sobre)\s+(el|la|los|las|un|una)?\s*/i,
+  /^(definicion|definición|defineme|defíneme|define)\s+(de\s+)?(el|la|los|las|un|una)?\s*/i,
+  /^(info|informacion|información|concepto)\s+(de\s+|sobre\s+)?(el|la|los|las|un|una)?\s*/i,
+  /^(que sabes de|qué sabes de|sabes algo de|sabes algo sobre)\s+/i,
+  /^(traduce|traduccion de|traducción de|traduceme)\s+/i,
+  /^(como se dice|cómo se dice)\s+/i,
+  /^(busca|buscar|buscame|búscame)\s+/i,
+  /^(quien es|quién es|quien fue|quién fue)\s+/i,
+  /^(what is|what are|who is)\s+(a|an|the)?\s*/i,
+  /^(tell me about|explain|define)\s+/i,
+  /^(translate)\s+/i,
+];
+function limpiarConsulta(input){
+  let s=String(input).trim().replace(/[¿¡]/g,'');
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(const p of PREFIJOS){
+      const nuevo=s.replace(p,'');
+      if(nuevo!==s){s=nuevo;changed=true;}
+    }
+  }
+  s=s.replace(/\s+(por favor|please)$/i,'');
+  s=s.replace(/\s+(en ingles|en inglés|en español|al ingles|al inglés|al español|to english|to spanish)$/i,'');
+  s=s.replace(/[?\.]+$/,'');
+  s=s.replace(/^(el|la|los|las|un|una|a|an|the)\s+/i,'');
+  return s.trim();
+}
+
+function encontrarMejorTag(input){
+  const inputNorm=normalizar(input);
+  if(!inputNorm)return null;
+  if(chatState.exactIndex.has(inputNorm)){
+    return {tag:chatState.tags[chatState.exactIndex.get(inputNorm)],score:100};
+  }
+  const limpio=limpiarConsulta(input);
+  const limpioNorm=normalizar(limpio);
+  if(limpioNorm&&chatState.exactIndex.has(limpioNorm)){
+    return {tag:chatState.tags[chatState.exactIndex.get(limpioNorm)],score:100};
+  }
+  let mejor=null,mejorScore=0;
+  for(const t of chatState.tags){
+    let maxScore=0;
+    for(const pn of t.patternsNorm){
+      const s=puntuar(inputNorm,pn);
+      if(s>maxScore)maxScore=s;
+      if(maxScore>=100)break;
+    }
+    if(t.meta&&t.meta.prioridad==='alta')maxScore*=1.15;
+    if(maxScore>mejorScore){mejorScore=maxScore;mejor=t;}
+  }
+  if(mejorScore<40&&limpioNorm&&limpioNorm!==inputNorm){
+    for(const t of chatState.tags){
+      let maxScore=0;
+      for(const pn of t.patternsNorm){
+        const s=puntuar(limpioNorm,pn);
+        if(s>maxScore)maxScore=s;
+        if(maxScore>=100)break;
+      }
+      if(maxScore>mejorScore){mejorScore=maxScore;mejor=t;}
+    }
+  }
+  if(mejorScore<25)return null;
+  return {tag:mejor,score:mejorScore};
+}
+
+function elegirRespuesta(tagObj){
+  const t=tagObj.tag||tagObj;
+  const resps=t.responses;
+  if(!resps||!resps.length)return'';
+  if(resps.length===1)return resps[0];
+  let idx,intentos=0;
+  do{idx=Math.floor(Math.random()*resps.length);intentos++;}
+  while(idx===chatState.ultimaRespIndex[t.tag]&&intentos<10);
+  chatState.ultimaRespIndex[t.tag]=idx;
+  return resps[idx];
+}
+
+function generarRespuesta(input){
+  const r=encontrarMejorTag(input);
+  if(!r){
+    return {texto:'No encontré esa palabra en mi cerebro. Prueba a procesarla primero en el Paso 1. 🤔',tag:null,score:0};
+  }
+  let texto=elegirRespuesta(r.tag);
+  texto=texto.replace(/\[nombre\]/g,chatState.userName||'amigo');
+  return {texto,tag:r.tag.tag,score:r.score};
+}
+
+async function cargarCerebroEnChat(cerebro,nombre){
+  if(!cerebro||!cerebro.entrenamiento){toast('Cerebro inválido','err');return;}
+  chatState.tags=[];
+  chatState.ultimaRespIndex={};
+  chatState.userName=null;
+  chatState.cargado=false;
+  if(cerebro.configuracion?.mini_lenguaje_natural_humano?.normalizacion_emocional){
+    chatState.substitutions={...cerebro.configuracion.mini_lenguaje_natural_humano.normalizacion_emocional};
+  }
+  for(const item of cerebro.entrenamiento){
+    if(!item.patterns||!item.responses)continue;
+    chatState.tags.push({tag:item.tag,patterns:item.patterns,responses:item.responses,meta:item.meta||{}});
+  }
+  prepararIndices();
+  chatState.cargado=true;
+  chatState.nombreArchivo=nombre;
+  const info=$('chatBrainInfo');
+  info.className='good';
+  info.innerHTML=`<b>✅ Cerebro cargado:</b> ${esc(nombre)} · ${chatState.tags.length.toLocaleString()} tags · ${chatState.totalPatterns.toLocaleString()} patrones`;
+  $('chatInput').disabled=false;
+  $('sendBtn').disabled=false;
+  addMsg('sys','🧠 Cerebro cargado con '+chatState.tags.length.toLocaleString()+' tags');
+  addMsg('bot','¡Hola! Pregúntame el significado de cualquier palabra. 💫');
+}
+
+function addMsg(tipo,texto,tag){
+  const win=$('chatWin');
+  const div=document.createElement('div');
+  div.className='msg msg-'+(tipo==='user'?'user':tipo==='bot'?'bot':'sys');
+  const t=document.createElement('div');t.textContent=texto;div.appendChild(t);
+  if(tag){const tg=document.createElement('div');tg.className='msg-tag';tg.textContent='['+tag+']';div.appendChild(tg);}
+  win.appendChild(div);win.scrollTop=win.scrollHeight;
+}
+function addTyping(){
+  const win=$('chatWin');
+  const d=document.createElement('div');
+  d.className='msg msg-bot msg-typing';d.id='typing';
+  d.innerHTML='<span>●</span><span>●</span><span>●</span>';
+  win.appendChild(d);win.scrollTop=win.scrollHeight;
+}
+function removeTyping(){const e=$('typing');if(e)e.remove();}
+function enviarChat(){
+  const inp=$('chatInput');
+  const txt=inp.value.trim();
+  if(!txt||!chatState.cargado)return;
+  addMsg('user',txt);
+  inp.value='';
+  addTyping();
+  setTimeout(()=>{
+    removeTyping();
+    const r=generarRespuesta(txt);
+    addMsg('bot',r.texto,r.tag);
+  },250+Math.random()*400);
+}
+
+$('sendBtn').addEventListener('click',enviarChat);
+$('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarChat();}
+});
+$('btnClearChat').addEventListener('click',()=>{
+  $('chatWin').innerHTML='<div class="msg msg-sys">Chat limpiado. 💫</div>';
+});
+document.querySelectorAll('.sugg').forEach(b=>{
+  b.addEventListener('click',()=>{$('chatInput').value=b.dataset.q;enviarChat();});
+});
+$('btnLoadBrainFile').addEventListener('click',()=>$('brainFile').click());
+$('brainFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];e.target.value='';
+  if(!f)return;
+  toast('Cargando '+f.name+'...','warn');
+  try{
+    let cerebro;
+    if(f.name.endsWith('.h5')||f.name.endsWith('.hdf5')){
+      cerebro=await leerH5(f);
+      if(!cerebro.entrenamiento||!cerebro.entrenamiento.length){toast('El H5 no contiene entrenamiento','err');return;}
+    }else{
+      const txt=await f.text();
+      const j=JSON.parse(txt);
+      if(j.entrenamiento)cerebro=j;
+      else if(j.datos){
+        const entrenamiento=[];
+        for(const key in j.datos){
+          const item=j.datos[key];
+          const contenido=typeof item==='string'?item:(item.contenido||'');
+          const palabra=item.palabra||key.replace(/^(dict_|doc_|con_)/i,'').replace(/_/g,' ');
+          entrenamiento.push({
+            tag:'auto_'+key.replace(/[^a-z0-9]/gi,'_'),
+            patterns:generarPatronesParaPalabra(palabra),
+            responses:[contenido],
+            meta:{tipo:'auto',palabra}
+          });
+        }
+        cerebro={metadata:{},configuracion:{},entrenamiento};
+      }else{toast('Formato no reconocido','err');return;}
+    }
+    await cargarCerebroEnChat(cerebro,f.name);
+    toast('Cargado: '+chatState.tags.length+' tags','ok');
+  }catch(e){
+    console.error(e);
+    toast('Error: '+e.message,'err',5000);
+  }
+});
+
+// ============================================================
+// CARGA INICIAL
+// ============================================================
+window.addEventListener('load',async()=>{
+  try{
+    const w=await idbGet(KEY_WORDS);
+    if(w&&Array.isArray(w)&&w.length>1000){
+      palabras=w;
+      $('dictCount').textContent=palabras.length.toLocaleString();
+      $('dictHero').classList.add('loaded');
+      $('btnLoadDict').textContent='✅ Diccionario cargado ('+palabras.length.toLocaleString()+')';
+      $('btnStart').disabled=false;
+      logDict('📂 Diccionario recuperado del navegador: '+palabras.length.toLocaleString()+' palabras','ok');
+    }
+    const d=await idbGet(KEY_DICT);
+    if(d&&typeof d==='object'){
+      diccionario=d;
+      logMsg('📂 Diccionario procesado recuperado: '+Object.keys(diccionario).length.toLocaleString()+' palabras','ok');
+      $('sOk').textContent=Object.keys(diccionario).length.toLocaleString();
+      $('btnToStep2').disabled=false;
+    }
+    const p=await idbGet(KEY_PROG);
+    if(p&&typeof p.idx==='number')progreso=p;
+  }catch(e){console.warn(e);}
+
+  cargarH5wasm().then(()=>console.log('h5wasm listo')).catch(e=>console.warn('h5wasm:',e.message));
+
+  logMsg('👋 Carga el diccionario completo y pulsa "Iniciar"','info');
+  logDict('👉 Pulsa "Cargar diccionario completo" para descargar las ~636k palabras','info');
 });
 </script>
 </body>
