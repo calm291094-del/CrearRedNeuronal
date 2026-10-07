@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Ania — Diccionario Español Completo → Cerebro → Chat</title>
+<title>🧠 Ania — Diccionario Español → Cerebro → Chat</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -11,19 +11,13 @@
     --text:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#0ea5e9;
     --ok:#4ade80;--err:#f87171;--warn:#fbbf24;--purple:#c084fc;
   }
-  body{
-    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;
-    background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;
-    background-image:radial-gradient(circle at 20% 0%,rgba(56,189,248,.08),transparent 40%),
-                     radial-gradient(circle at 80% 100%,rgba(192,132,252,.06),transparent 40%);
-  }
+  body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;
+    background-image:radial-gradient(circle at 20% 0%,rgba(56,189,248,.08),transparent 40%),radial-gradient(circle at 80% 100%,rgba(192,132,252,.06),transparent 40%);}
   .wrap{max-width:1100px;margin:0 auto;padding:24px}
-
   header{display:flex;align-items:center;gap:14px;padding:16px 0 20px;border-bottom:1px solid var(--border);margin-bottom:22px;flex-wrap:wrap}
   .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--purple));display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 8px 24px rgba(56,189,248,.3)}
   header h1{font-size:1.25rem;color:var(--accent)}
   header p{font-size:.8rem;color:var(--muted)}
-
   .steps{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
   .step{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--panel);border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s}
   .step:hover{border-color:#3a4553}
@@ -34,14 +28,12 @@
   .step.done .step-num{background:var(--ok);color:white}
   .step-info h3{font-size:.88rem;color:var(--text);font-weight:600}
   .step-info p{font-size:.72rem;color:var(--muted)}
-
   .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px}
   .panel h2{font-size:1rem;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
   .panel p.hint{color:var(--muted);font-size:.85rem;margin-bottom:12px}
   .page{display:none}
   .page.active{display:block;animation:fade .25s}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
   button{background:linear-gradient(135deg,var(--accent2),var(--accent));color:white;border:none;padding:11px 20px;border-radius:10px;font-size:.92rem;font-weight:600;cursor:pointer;transition:transform .1s,box-shadow .2s,opacity .2s;font-family:inherit;margin:4px 4px 4px 0;display:inline-flex;align-items:center;gap:6px}
   button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(14,165,233,.4)}
   button:disabled{background:#334155;cursor:not-allowed;opacity:.6}
@@ -52,32 +44,26 @@
   button.danger{background:linear-gradient(135deg,#b91c1c,#dc2626)}
   button.big{padding:16px 30px;font-size:1rem}
   button.small{padding:7px 14px;font-size:.82rem}
-
-  textarea,input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.92rem;font-family:inherit;transition:border-color .15s,box-shadow .15s;width:100%}
-  textarea{min-height:120px;resize:vertical;font-family:ui-monospace,monospace;font-size:.82rem}
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  input[type=text],input[type=number],input[type=email],select{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.92rem;font-family:inherit;transition:border-color .15s,box-shadow .15s;width:100%}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
   label.opt{display:flex;align-items:center;gap:10px;color:var(--text);padding:7px 0;cursor:pointer;font-size:.9rem}
   input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:10px 0}
   .row label{color:var(--muted);font-size:.85rem;display:flex;align-items:center;gap:6px}
   .row input[type=number]{width:100px}
-
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:12px;margin:14px 0}
   .stat{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
   .stat-v{font-size:1.35rem;font-weight:700;color:var(--accent);word-break:break-all}
   .stat-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
-
   .progress{background:var(--bg);border:1px solid var(--border);border-radius:10px;height:26px;overflow:hidden;margin:14px 0;display:none}
   .progress.show{display:block}
   .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--ok));width:0%;transition:width .3s;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.75rem}
-
   .log{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:12px;max-height:280px;overflow-y:auto;font-family:ui-monospace,monospace;font-size:.78rem}
   .log::-webkit-scrollbar{width:8px}
   .log::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
   .l-info{color:var(--muted)} .l-ok{color:var(--ok)} .l-err{color:var(--err)}
   .l-warn{color:var(--warn)} .l-prog{color:var(--purple);font-weight:600}
   .l-time{color:#475569}
-
   .chat-window{background:var(--bg);border-radius:14px;border:1px solid var(--border);padding:18px;height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
   .chat-window::-webkit-scrollbar{width:8px}
   .chat-window::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
@@ -96,28 +82,21 @@
   .chat-sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .sugg{background:var(--panel2);color:var(--muted);padding:6px 12px;border-radius:20px;font-size:.78rem;cursor:pointer;border:1px solid var(--border);font-family:inherit;transition:all .15s}
   .sugg:hover{background:#232d42;color:var(--text);border-color:var(--accent)}
-
   .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--border);padding:14px 24px;border-radius:12px;z-index:9999;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:.9rem;animation:toastIn .3s;display:flex;align-items:center;gap:10px;max-width:90vw}
   @keyframes toastIn{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
   .toast.ok{border-color:var(--ok)} .toast.err{border-color:var(--err)} .toast.warn{border-color:var(--warn)}
-
   .locked{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:14px 16px;color:#fcd34d;font-size:.85rem;margin-bottom:16px}
   .good{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.35);border-radius:12px;padding:18px;margin-bottom:16px}
   .good h3{color:var(--ok);font-size:1rem;margin-bottom:8px}
   .good .big-num{font-size:1.8rem;font-weight:800;color:var(--accent);margin:6px 0}
   pre.code{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:auto;font-family:ui-monospace,monospace;font-size:.75rem;color:#cbd5e1;max-height:300px;white-space:pre-wrap;word-break:break-all}
-
   .dict-hero{background:linear-gradient(135deg,rgba(14,165,233,.15),rgba(192,132,252,.1));border:2px solid var(--accent);border-radius:14px;padding:24px;text-align:center;margin-bottom:16px}
   .dict-hero h3{color:var(--accent);font-size:1.2rem;margin-bottom:8px}
   .dict-hero .big{font-size:2.4rem;font-weight:800;color:var(--text);margin:8px 0}
   .dict-hero .sub{color:var(--muted);font-size:.85rem;margin-bottom:14px}
   .dict-hero.loaded{border-color:var(--ok);background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(56,189,248,.08))}
-
-  @media(max-width:640px){
-    .wrap{padding:16px}
-    .step{padding:10px 14px;min-width:100%}
-    .msg{max-width:92%}
-  }
+  .warn-box{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;color:#fcd34d;font-size:.82rem;margin:10px 0;line-height:1.5}
+  @media(max-width:640px){.wrap{padding:16px}.step{padding:10px 14px;min-width:100%}.msg{max-width:92%}}
 </style>
 </head>
 <body>
@@ -127,7 +106,7 @@
     <div class="logo">🧠</div>
     <div>
       <h1>Ania · Diccionario Español → Cerebro → Chat</h1>
-      <p>Carga el diccionario completo · Procesa por lotes · Reanuda cuando quieras</p>
+      <p>Carga el diccionario · Procesa por lotes · Reanuda cuando quieras</p>
     </div>
   </header>
 
@@ -165,20 +144,29 @@
 
     <div class="panel">
       <h2>⚙️ Fuentes y rendimiento</h2>
-      <p class="hint">Recomendado para español: <b>Wiktionary ES</b> + <b>MyMemory</b>. Los demás son lentos o no cubren bien español.</p>
+      <div class="warn-box">
+        ⚠️ <b>MyMemory tiene límite diario</b> (~5000 consultas/día sin email). Si lo activas con el diccionario completo te dará <code>429 Too Many Requests</code>. <b>Recomendado: déjalo desactivado</b>. Wiktionary ES solo ya da definiciones en español.
+      </div>
       <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px 16px">
         <label class="opt"><input type="checkbox" id="oWikt" checked> 📜 Wiktionary ES (definiciones en español)</label>
-        <label class="opt"><input type="checkbox" id="oTrans" checked> 🌐 MyMemory (traducción ES ↔ EN)</label>
+        <label class="opt"><input type="checkbox" id="oTrans"> 🌐 MyMemory (traducción ES ↔ EN) — límite diario</label>
         <label class="opt"><input type="checkbox" id="oDef"> 📖 Free Dictionary (poco útil en español)</label>
         <label class="opt"><input type="checkbox" id="oWiki"> 📚 Wikipedia (muy lento)</label>
       </div>
-      <div class="row">
-        <label class="opt"><input type="checkbox" id="optFilterConj" checked> 🧹 Filtrar conjugaciones raras (reduce de 636k a ~250k)</label>
+
+      <div class="row" id="myMemoryEmailRow" style="display:none">
+        <label style="flex:1">📧 Email MyMemory (opcional, sube el límite a 50.000/día):
+          <input type="email" id="mymemoryEmail" placeholder="tu@email.com" style="max-width:320px">
+        </label>
       </div>
 
       <div class="row">
-        <label>🔀 Paralelo: <input type="number" id="concurrent" value="6" min="1" max="20"></label>
-        <label>⏱ Retardo ms: <input type="number" id="delay" value="50" min="0" max="2000"></label>
+        <label class="opt"><input type="checkbox" id="optFilterConj" checked> 🧹 Filtrar conjugaciones raras (~636k → ~250k)</label>
+      </div>
+
+      <div class="row">
+        <label>🔀 Paralelo: <input type="number" id="concurrent" value="3" min="1" max="10"></label>
+        <label>⏱ Retardo ms: <input type="number" id="delay" value="100" min="0" max="2000"></label>
         <label>📏 Máx. definiciones: <input type="number" id="maxDefs" value="4" min="1" max="20"></label>
       </div>
 
@@ -212,7 +200,6 @@
       </div>
 
       <div class="progress" id="progWrap"><div class="progress-bar" id="progBar">0%</div></div>
-
       <div id="log" class="log"></div>
 
       <div class="row" style="margin-top:16px">
@@ -226,9 +213,7 @@
     <div class="panel">
       <h2>🧠 Paso 2 · Empaquetar el cerebro</h2>
       <p class="hint">Convierte todo lo recolectado al formato Ania y crea <code>cerebro.json</code> + <code>cerebro.h5</code>.</p>
-
       <div id="brainEmpty" class="locked">⚠️ Todavía no has procesado palabras. Vuelve al Paso 1.</div>
-
       <div id="brainInfo" style="display:none">
         <div class="stats">
           <div class="stat"><div class="stat-v" id="bWords">0</div><div class="stat-l">Palabras</div></div>
@@ -258,7 +243,6 @@
       <button id="btnCreateH5" class="big" disabled>📦 Crear cerebro.h5</button>
       <button id="btnDownloadH5" class="sec" disabled>💾 Descargar cerebro.h5</button>
       <button id="btnLoadIntoChat" class="big" disabled>💬 Cargar en el Chat (Paso 3)</button>
-
       <div id="brainResult" style="margin-top:16px"></div>
     </div>
 
@@ -298,23 +282,19 @@
           <button id="btnClearChat" class="sec small">🗑 Limpiar chat</button>
         </div>
       </div>
-
       <div id="chatBrainInfo" class="locked" style="border-color:var(--border);background:var(--panel2);color:var(--muted)">
         Sin cerebro cargado. Crea uno en el Paso 2 o carga un archivo.
       </div>
-
       <div class="chat-window" id="chatWin">
         <div class="msg msg-sys">
           Carga un cerebro para empezar.<br>
           Prueba: <b>arbol</b> · <b>que es un arbol</b> · <b>q significa arbol</b> · <b>tree</b> · <b>traduce arbol al ingles</b>
         </div>
       </div>
-
       <div class="chat-input-row">
         <input type="text" id="chatInput" placeholder="Escribe una palabra o pregunta..." disabled>
         <button id="sendBtn" disabled>Enviar</button>
       </div>
-
       <div class="chat-sugg">
         <button class="sugg" data-q="arbol">arbol</button>
         <button class="sugg" data-q="que es un arbol">que es un arbol</button>
@@ -332,21 +312,18 @@
 // ============================================================
 // CONSTANTES
 // ============================================================
-const IDB_NAME='ania_dict_full_v2';
+const IDB_NAME='ania_dict_full_v3';
 const IDB_STORE='kv';
 const KEY_DICT='diccionario';
 const KEY_PROG='progreso';
 const KEY_WORDS='palabras_lista';
 const KEY_BRAIN='cerebro_ania';
-const SAVE_EVERY=25;
 
-// URLs del diccionario completo español
 const DICT_URLS=[
   'https://cdn.jsdelivr.net/npm/an-array-of-spanish-words/index.json',
   'https://unpkg.com/an-array-of-spanish-words/index.json',
   'https://raw.githubusercontent.com/words/an-array-of-spanish-words/main/index.json'
 ];
-
 const QUICK_URLS=[
   'https://raw.githubusercontent.com/first20hours/google-10000-spanish/master/google-10000-spanish.txt',
   'https://cdn.jsdelivr.net/gh/first20hours/google-10000-spanish@master/google-10000-spanish.txt'
@@ -365,6 +342,8 @@ let db=null;
 let lastSaveTime=0;
 let startTime=0, doneCount=0;
 let h5wasmLoadPromise=null;
+let rateLimitHits=0;       // contador de 429
+let rateLimitBackoffUntil=0; // timestamp hasta el que no hacer más peticiones MyMemory
 
 const $ = id => document.getElementById(id);
 
@@ -436,13 +415,11 @@ async function idbGet(k){await openDB();return new Promise((res,rej)=>{const t=d
 async function idbDel(k){await openDB();return new Promise((res,rej)=>{const t=db.transaction(IDB_STORE,'readwrite');t.objectStore(IDB_STORE).delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
 
 // ============================================================
-// FILTRO DE CONJUGACIONES RARAS
+// FILTRO DE CONJUGACIONES
 // ============================================================
 function esConjugacionRara(w){
   if(w.length>16)return true;
-  // Formas verbales raras (imperfecto/subjuntivo poco usadas)
   if(/(?:iésemos|iéramos|ásemos|áramos|iéremos|áremos|asteis|isteis)$/.test(w))return true;
-  // Gerundios dobles raros
   if(/ándose|iéndose|iéndole|iéndoles|ándole|ándoles$/.test(w))return true;
   return false;
 }
@@ -452,18 +429,17 @@ function esConjugacionRara(w){
 // ============================================================
 async function cargarDiccionarioCompleto(){
   const btn=$('btnLoadDict');
-  btn.disabled=true;
-  btn.textContent='⏳ Descargando...';
+  btn.disabled=true;btn.textContent='⏳ Descargando...';
   $('dictProgress').classList.add('show');
   $('dictProgressBar').style.width='5%';
   $('dictProgressBar').textContent='Descargando...';
-  logDict('📥 Descargando diccionario completo desde CDN...','info');
+  logDict('📥 Descargando diccionario completo...','info');
 
   try{
     const cached=await idbGet(KEY_WORDS);
     if(cached&&Array.isArray(cached)&&cached.length>1000){
       palabras=cached;
-      logDict('✅ Cargado desde caché local: '+palabras.length.toLocaleString()+' palabras','ok');
+      logDict('✅ Cargado de caché: '+palabras.length.toLocaleString()+' palabras','ok');
       $('dictCount').textContent=palabras.length.toLocaleString();
       $('dictHero').classList.add('loaded');
       $('dictProgressBar').style.width='100%';
@@ -480,57 +456,45 @@ async function cargarDiccionarioCompleto(){
     try{
       logDict('⏳ Probando: '+url,'info');
       const r=await fetch(url,{signal:AbortSignal.timeout(60000)});
-      if(!r.ok){logDict('  ⚠️ HTTP '+r.status+' — siguiente','warn');continue;}
+      if(!r.ok){logDict('  ⚠️ HTTP '+r.status,'warn');continue;}
       $('dictProgressBar').style.width='40%';
       $('dictProgressBar').textContent='Procesando...';
       data=await r.json();
       if(Array.isArray(data)&&data.length>1000){
-        logDict('✅ Descargado desde '+url+' ('+data.length.toLocaleString()+' palabras)','ok');
+        logDict('✅ Descargado: '+data.length.toLocaleString()+' palabras','ok');
         break;
       }
-    }catch(e){
-      logDict('  ✗ '+e.message,'err');
-      data=null;
-    }
+    }catch(e){logDict('  ✗ '+e.message,'err');data=null;}
   }
 
   if(!data||!Array.isArray(data)||data.length<1000){
     btn.textContent='📥 Cargar diccionario completo';
     btn.disabled=false;
     $('dictProgress').classList.remove('show');
-    toast('No se pudo descargar. Revisa tu conexión.','err',5000);
-    logDict('❌ No se pudo descargar. Prueba "Solo las 5000 más comunes".','err');
+    toast('No se pudo descargar','err',5000);
     return;
   }
 
-  // Limpieza
   $('dictProgressBar').style.width='60%';
   $('dictProgressBar').textContent='Limpiando...';
   const filtrar=$('optFilterConj').checked;
   let limpio=Array.from(new Set(
-    data
-      .map(w=>String(w).trim().toLowerCase())
+    data.map(w=>String(w).trim().toLowerCase())
       .filter(w=>w&&w.length>=2&&w.length<=25)
       .filter(w=>/^[a-záéíóúñü]+$/.test(w))
   ));
   if(filtrar){
     const antes=limpio.length;
     limpio=limpio.filter(w=>!esConjugacionRara(w));
-    logDict('🧹 Filtro de conjugaciones: '+antes.toLocaleString()+' → '+limpio.length.toLocaleString(),'info');
+    logDict('🧹 Filtro: '+antes.toLocaleString()+' → '+limpio.length.toLocaleString(),'info');
   }
   limpio.sort();
-
   palabras=limpio;
-  logDict('📊 Diccionario final: '+palabras.length.toLocaleString()+' palabras únicas','ok');
+  logDict('📊 Diccionario final: '+palabras.length.toLocaleString()+' palabras','ok');
 
   $('dictProgressBar').style.width='80%';
   $('dictProgressBar').textContent='Guardando...';
-  try{
-    await idbSet(KEY_WORDS,palabras);
-    logDict('💾 Guardado en navegador','ok');
-  }catch(e){
-    logDict('⚠️ No se pudo guardar en caché: '+e.message,'warn');
-  }
+  try{await idbSet(KEY_WORDS,palabras);logDict('💾 Guardado','ok');}catch(e){logDict('⚠️ '+e.message,'warn');}
 
   $('dictProgressBar').style.width='100%';
   $('dictProgressBar').textContent='✅ '+palabras.length.toLocaleString();
@@ -545,7 +509,7 @@ async function cargarDiccionarioCompleto(){
 async function cargarSoloComunes(){
   const btn=$('btnQuick');
   btn.disabled=true;btn.textContent='⏳ Cargando...';
-  logDict('⚡ Cargando top 5000 español...','info');
+  logDict('⚡ Cargando top 5000...','info');
   let words=null;
   for(const url of QUICK_URLS){
     try{
@@ -581,7 +545,12 @@ async function fetchJSON(url,timeout=8000,retries=1){
     try{
       const r=await fetch(url,{signal:ctrl.signal});
       clearTimeout(t);
-      if(r.status===429){await sleep(1000*(i+1));continue;}
+      if(r.status===429){
+        // ✅ FIX: exponer el 429 al llamador para que gestione backoff
+        const err=new Error('HTTP 429');
+        err.code=429;
+        throw err;
+      }
       if(!r.ok)throw new Error('HTTP '+r.status);
       return await r.json();
     }catch(e){
@@ -591,15 +560,20 @@ async function fetchJSON(url,timeout=8000,retries=1){
     }
   }
 }
+
+// ✅ FIX: detectLang más inteligente. Si es 1 palabra sin marcadores, asumimos español.
 function detectLang(text){
+  const t=String(text).trim();
+  // Si es una sola palabra sin espacios ni mayúsculas iniciales → español (estamos procesando el diccionario ES)
+  if(!/\s/.test(t) && /^[a-záéíóúñü]+$/i.test(t)) return 'es';
   const en=/\b(the|and|of|to|in|is|are|was|were|be|have|has|this|that|with|for|not|you|all|can|will|just|but|from|they|know|like|time|make|use)\b/i;
   const es=/\b(el|la|los|las|de|del|en|es|son|fue|era|ser|tiene|este|esta|con|por|para|no|todo|puede|como|pero|que|qué)\b/i;
-  const c1=(text.match(en)||[]).length,c2=(text.match(es)||[]).length;
+  const c1=(t.match(en)||[]).length,c2=(t.match(es)||[]).length;
   if(c1>c2)return'en';if(c2>c1)return'es';
-  return /[áéíóúñ¿¡]/.test(text)?'es':'en';
+  return /[áéíóúñ¿¡]/.test(t)?'es':'en';
 }
 
-// ✅ FIX CORS: añadido &origin=*
+// ✅ FIX CORS Wiktionary
 async function wiktionaryExtract(word,lang){
   try{
     const url=`https://${lang}.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&format=json&explaintext=1&redirects=1&origin=*`;
@@ -610,16 +584,34 @@ async function wiktionaryExtract(word,lang){
     return page.extract||null;
   }catch(e){return null;}
 }
+
+// ✅ FIX MyMemory: backoff global cuando recibe 429 + soporte email
 async function translateMyMemory(text,from,to){
+  // Si estamos en backoff, no intentar
+  if(Date.now()<rateLimitBackoffUntil) return null;
   try{
-    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
+    const email=$('mymemoryEmail')?.value.trim();
+    const emailParam=email?`&de=${encodeURIComponent(email)}`:'';
+    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}${emailParam}`;
     const data=await fetchJSON(url,7000,0);
     if(data.responseStatus!==200)return null;
     const t=data.responseData?.translatedText;
     if(!t||t.toLowerCase()===text.toLowerCase())return null;
     return t;
-  }catch(e){return null;}
+  }catch(e){
+    if(e.code===429){
+      rateLimitHits++;
+      // Backoff exponencial: 30s, 60s, 120s, hasta 5 min
+      const backoff=Math.min(300000, 30000 * Math.pow(2, Math.min(rateLimitHits-1, 3)));
+      rateLimitBackoffUntil=Date.now()+backoff;
+      if(rateLimitHits<=3 || rateLimitHits%50===0){
+        logMsg('⚠️ MyMemory 429 (x'+rateLimitHits+'). Pausando traducción '+Math.round(backoff/1000)+'s. Activa solo Wiktionary para evitar esto.','warn');
+      }
+    }
+    return null;
+  }
 }
+
 async function freeDict(word,lang){
   try{
     const url=`https://api.dictionaryapi.dev/api/v2/entries/${lang}/${encodeURIComponent(word)}`;
@@ -693,27 +685,20 @@ async function construirFicha(palabra,opts){
   return hasData?ficha:null;
 }
 
-async function conLimite(tareas,limite){
-  const cola=[...tareas];
-  await Promise.all(Array(Math.min(limite,cola.length||1)).fill(0).map(async()=>{
-    while(cola.length&&!stopFlag){await cola.shift()();}
-  }));
-}
-
 // ============================================================
-// PROCESO PRINCIPAL ✅ FIX guardarProgreso (i fuera de scope)
+// PROCESO PRINCIPAL
 // ============================================================
 async function iniciarRecoleccion(){
   if(procesando)return;
   if(!palabras.length){toast('Carga el diccionario primero','warn');return;}
 
   procesando=true;stopFlag=false;
+  rateLimitHits=0;rateLimitBackoffUntil=0;
   $('btnStart').disabled=true;$('btnStop').disabled=false;
-  $('btnLoadDict').disabled=true;
-  $('btnQuick').disabled=true;
+  $('btnLoadDict').disabled=true;$('btnQuick').disabled=true;
 
-  const concurrent=Math.max(1,Math.min(20,parseInt($('concurrent').value)||6));
-  const delay=Math.max(0,parseInt($('delay').value)||50);
+  const concurrent=Math.max(1,Math.min(10,parseInt($('concurrent').value)||3));
+  const delay=Math.max(0,parseInt($('delay').value)||100);
   const maxDefs=Math.max(1,Math.min(20,parseInt($('maxDefs').value)||4));
   const startFrom=Math.max(0,parseInt($('startFrom').value)||0);
   const maxProcess=Math.max(0,parseInt($('maxProcess').value)||0);
@@ -727,6 +712,13 @@ async function iniciarRecoleccion(){
     maxDefs
   };
 
+  if(!opts.useWikt&&!opts.useTrans&&!opts.useDef&&!opts.useWiki){
+    toast('Activa al menos una fuente','warn');
+    procesando=false;$('btnStart').disabled=false;$('btnStop').disabled=true;
+    $('btnLoadDict').disabled=false;$('btnQuick').disabled=false;
+    return;
+  }
+
   let startIdx=startFrom>0?startFrom:(progreso.idx||0);
   if(startIdx>=palabras.length){
     toast('Ya está todo procesado','ok');
@@ -738,9 +730,8 @@ async function iniciarRecoleccion(){
   let endIdx=maxProcess>0?Math.min(startIdx+maxProcess,palabras.length):palabras.length;
   const lote=palabras.slice(startIdx,endIdx);
 
-  logMsg('🚀 Procesando '+lote.length.toLocaleString()+' palabras ('+startIdx.toLocaleString()+' → '+endIdx.toLocaleString()+' de '+palabras.length.toLocaleString()+')','prog');
-  logMsg('⚙️ Paralelo: '+concurrent+' · Delay: '+delay+'ms · Fuentes: '+
-    [opts.useWikt?'Wiktionary':'',opts.useTrans?'MyMemory':'',opts.useDef?'FreeDict':'',opts.useWiki?'Wikipedia':''].filter(Boolean).join(' + '),'info');
+  logMsg('🚀 Procesando '+lote.length.toLocaleString()+' palabras ('+startIdx.toLocaleString()+' → '+endIdx.toLocaleString()+')','prog');
+  logMsg('⚙️ Fuentes: '+[opts.useWikt?'Wiktionary':'',opts.useTrans?'MyMemory':'',opts.useDef?'FreeDict':'',opts.useWiki?'Wikipedia':''].filter(Boolean).join(' + '),'info');
 
   $('progWrap').classList.add('show');
   startTime=Date.now();
@@ -748,7 +739,6 @@ async function iniciarRecoleccion(){
 
   let ok=0,err=0,skip=0;
 
-  // ✅ FIX: guardarProgreso ahora recibe el índice actual como parámetro
   async function guardarProgreso(currentDone, force){
     const ahora=Date.now();
     if(!force && ahora-lastSaveTime<3000) return;
@@ -756,9 +746,7 @@ async function iniciarRecoleccion(){
     try{
       await idbSet(KEY_DICT, diccionario);
       await idbSet(KEY_PROG, {idx: startIdx + currentDone, total: palabras.length});
-    }catch(e){
-      console.warn('save fail:', e.message);
-    }
+    }catch(e){console.warn('save fail:', e.message);}
   }
 
   for(let i=0;i<lote.length && !stopFlag;i+=concurrent){
@@ -767,27 +755,15 @@ async function iniciarRecoleccion(){
       if(stopFlag)return;
       const key=normalizar(palabra)||palabra.toLowerCase();
       try{
-        if(skipProcessed && diccionario[key]){
-          skip++;
-          return;
-        }
+        if(skipProcessed && diccionario[key]){skip++;return;}
         const ficha=await construirFicha(palabra,opts);
-        if(!ficha){
-          err++;
-        }else{
-          diccionario[key]=ficha;
-          ok++;
-        }
-      }catch(e){
-        err++;
-      }finally{
-        doneCount++;
-      }
+        if(!ficha){err++;}
+        else{diccionario[key]=ficha;ok++;}
+      }catch(e){err++;}
+      finally{doneCount++;}
     });
     await Promise.all(tareas.map(t=>t()));
     if(delay>0)await sleep(delay);
-
-    // ✅ FIX: pasar el índice actual
     await guardarProgreso(i + chunk.length, false);
 
     if(i%10===0){
@@ -808,20 +784,18 @@ async function iniciarRecoleccion(){
     }
   }
 
-  // ✅ FIX: guardar al terminar con el índice del lote completo
   await guardarProgreso(lote.length, true);
 
   procesando=false;
   $('btnStart').disabled=false;$('btnStop').disabled=true;
   $('btnLoadDict').disabled=false;$('btnQuick').disabled=false;
 
-  if(stopFlag){
-    logMsg('⏹ Detenido. Progreso guardado.','warn');
-  }else{
-    logMsg('✅ Lote completado: '+ok.toLocaleString()+' OK · '+err.toLocaleString()+' errores · '+skip.toLocaleString()+' saltadas','ok');
+  if(stopFlag){logMsg('⏹ Detenido. Progreso guardado.','warn');}
+  else{logMsg('✅ Lote: '+ok.toLocaleString()+' OK · '+err.toLocaleString()+' errores · '+skip.toLocaleString()+' saltadas','ok');}
+  if(rateLimitHits>0){
+    logMsg('⚠️ MyMemory dio '+rateLimitHits+' errores 429. Desactívalo en la próxima corrida.','warn');
   }
   logMsg('📊 Total en diccionario: '+Object.keys(diccionario).length.toLocaleString()+' palabras','ok');
-
   $('btnToStep2').disabled=Object.keys(diccionario).length===0;
 }
 
@@ -897,17 +871,14 @@ function formatearRespuesta(ficha){
   }else if(ficha.wiktionary){
     t+='**Info:**\n'+ficha.wiktionary.slice(0,600)+'\n\n';
   }
-  if(ficha.wikipedia){
-    t+='**Wikipedia:**\n'+ficha.wikipedia.slice(0,700);
-  }
+  if(ficha.wikipedia){t+='**Wikipedia:**\n'+ficha.wikipedia.slice(0,700);}
   return t.trim();
 }
 
 function convertirAFormatoAnia(){
   const keys=Object.keys(diccionario);
   if(!keys.length){toast('Diccionario vacío','warn');return null;}
-
-  logMsg('🧠 Convirtiendo '+keys.length.toLocaleString()+' palabras a formato Ania...','prog');
+  logMsg('🧠 Convirtiendo '+keys.length.toLocaleString()+' palabras...','prog');
 
   const entrenamiento=[];
   let totalPatterns=0,totalResponses=0;
@@ -917,21 +888,13 @@ function convertirAFormatoAnia(){
     const tagName='palabra_'+key.replace(/\s+/g,'_').replace(/[^a-z0-9_]/gi,'').slice(0,80);
     const patterns=generarPatronesParaPalabra(ficha.palabra,ficha.traduccion);
     const respuesta=formatearRespuesta(ficha);
-
     entrenamiento.push({
       tag:tagName,
       patterns,
       responses:[respuesta],
-      meta:{
-        tipo:'diccionario',
-        idioma:ficha.idioma,
-        traduccion:ficha.traduccion||null,
-        traduccion_inversa:ficha.traduccion_inversa||null,
-        prioridad:'media'
-      }
+      meta:{tipo:'diccionario',idioma:ficha.idioma,traduccion:ficha.traduccion||null,traduccion_inversa:ficha.traduccion_inversa||null,prioridad:'media'}
     });
-    totalPatterns+=patterns.length;
-    totalResponses+=1;
+    totalPatterns+=patterns.length;totalResponses+=1;
   }
 
   entrenamiento.push(...TAGS_PERSONALIDAD);
@@ -945,63 +908,35 @@ function convertirAFormatoAnia(){
   const descripcion=$('cfgDesc').value.trim()||'Diccionario español completo';
 
   return {
-    metadata:{
-      version,descripcion,creado_por:autor,fecha_actualizacion:hoy,
-      contadores:{
-        total_respuestas:totalResponses,
-        patrones_totales:totalPatterns,
-        intentos_totales:entrenamiento.length,
-        archivos_cargados:1
-      }
-    },
+    metadata:{version,descripcion,creado_por:autor,fecha_actualizacion:hoy,
+      contadores:{total_respuestas:totalResponses,patrones_totales:totalPatterns,intentos_totales:entrenamiento.length,archivos_cargados:1}},
     configuracion:{
       mini_lenguaje_natural_humano:{
-        normalizacion_emocional:{
-          q:'que',k:'que',ke:'que',xq:'porque',tmb:'también',grax:'gracias',
-          hl:'hola',tb:'también',x:'por',d:'de',tas:'estás',ta:'está',toy:'estoy'
-        },
+        normalizacion_emocional:{q:'que',k:'que',ke:'que',xq:'porque',tmb:'también',grax:'gracias',hl:'hola',tb:'también',x:'por',d:'de',tas:'estás',ta:'está',toy:'estoy'},
         variaciones_naturales:{},
-        detectores_emocionales:{
-          positivo:'(bien|genial|feliz|contento|alegre)',
-          negativo:'(triste|ansioso|cansado|deprimido|solo)',
-          pregunta:'\\?$'
-        }
+        detectores_emocionales:{positivo:'(bien|genial|feliz|contento|alegre)',negativo:'(triste|ansioso|cansado|deprimido|solo)',pregunta:'\\?$'}
       },
-      configuracion_pi_humana:{
-        umbral_confianza:0.5,
-        usar_memoria_afectiva:true,
-        max_variaciones_por_patron:12,
-        activar_emociones_contextuales:true,
-        prioridad_tags:[]
-      }
+      configuracion_pi_humana:{umbral_confianza:0.5,usar_memoria_afectiva:true,max_variaciones_por_patron:12,activar_emociones_contextuales:true,prioridad_tags:[]}
     },
     entrenamiento
   };
 }
 
 const TAGS_PERSONALIDAD=[
-  {
-    tag:'presentacion',
-    patterns:['hola','holis','hey','hi','buenas','saludo','saludos','buenos dias','buenas tardes','buenas noches','quien eres','quién eres','que eres','qué eres','como te llamas','cómo te llamas'],
-    responses:['¡Hola! Soy Ania. 🧠 Pregúntame el significado de cualquier palabra en español. ¿Qué palabra quieres que busque?'],
-    meta:{tipo:'personalidad',prioridad:'alta'}
-  },
-  {
-    tag:'despedida',
-    patterns:['adios','adiós','chao','bye','hasta luego','nos vemos','me voy'],
-    responses:['¡Hasta luego! 👋'],
-    meta:{tipo:'personalidad',prioridad:'media'}
-  },
-  {
-    tag:'agradecimiento',
-    patterns:['gracias','grax','mil gracias','muchas gracias','te lo agradezco'],
-    responses:['¡De nada! 😊'],
-    meta:{tipo:'personalidad',prioridad:'media'}
-  }
+  {tag:'presentacion',
+   patterns:['hola','holis','hey','hi','buenas','saludo','saludos','buenos dias','buenas tardes','buenas noches','quien eres','quién eres','que eres','qué eres','como te llamas','cómo te llamas'],
+   responses:['¡Hola! Soy Ania. 🧠 Pregúntame el significado de cualquier palabra en español. ¿Qué palabra quieres que busque?'],
+   meta:{tipo:'personalidad',prioridad:'alta'}},
+  {tag:'despedida',
+   patterns:['adios','adiós','chao','bye','hasta luego','nos vemos','me voy'],
+   responses:['¡Hasta luego! 👋'],meta:{tipo:'personalidad',prioridad:'media'}},
+  {tag:'agradecimiento',
+   patterns:['gracias','grax','mil gracias','muchas gracias','te lo agradezco'],
+   responses:['¡De nada! 😊'],meta:{tipo:'personalidad',prioridad:'media'}}
 ];
 
 // ============================================================
-// H5 · CARGAR h5wasm ✅ FIX: unpkg primero (evita ORB de jsDelivr)
+// H5
 // ============================================================
 function cargarH5wasm(){
   if(h5wasmLoadPromise)return h5wasmLoadPromise;
@@ -1009,26 +944,17 @@ function cargarH5wasm(){
     if(window.h5wasm)return resolve(window.h5wasm);
     const urls=[
       'https://unpkg.com/h5wasm@0.7.5/dist/iife/h5wasm.js',
-      'https://cdn.jsdelivr.net/npm/h5wasm@0.7.5/dist/iife/h5wasm.js',
-      'https://cdn.jsdelivr.net/npm/h5wasm/dist/iife/h5wasm.js'
+      'https://cdn.jsdelivr.net/npm/h5wasm@0.7.5/dist/iife/h5wasm.js'
     ];
     let i=0;
     const next=()=>{
-      if(i>=urls.length)return reject(new Error('No se pudo cargar h5wasm desde ningún CDN'));
+      if(i>=urls.length)return reject(new Error('No se pudo cargar h5wasm'));
       const url=urls[i++];
-      console.log('⏳ Cargando h5wasm desde:',url);
+      console.log('⏳ h5wasm desde:',url);
       const s=document.createElement('script');
       s.src=url;
-      s.onload=()=>{
-        if(window.h5wasm){
-          console.log('✅ h5wasm cargado desde:',url);
-          resolve(window.h5wasm);
-        }else next();
-      };
-      s.onerror=()=>{
-        console.warn('⚠️ Falló:',url);
-        next();
-      };
+      s.onload=()=>{if(window.h5wasm){console.log('✅ h5wasm listo:',url);resolve(window.h5wasm);}else next();};
+      s.onerror=()=>{console.warn('⚠️ Falló:',url);next();};
       document.head.appendChild(s);
     };
     next();
@@ -1036,73 +962,45 @@ function cargarH5wasm(){
   return h5wasmLoadPromise;
 }
 
-function sanitizeH5(name){
-  return String(name).replace(/[\/\\:*?"<>|\s]+/g,'_').replace(/^_+|_+$/g,'').slice(0,100)||'item';
-}
+function sanitizeH5(name){return String(name).replace(/[\/\\:*?"<>|\s]+/g,'_').replace(/^_+|_+$/g,'').slice(0,100)||'item';}
 function bytesLen(s){return new TextEncoder().encode(s).length;}
 function nombreUnicoH5(parent,name,used){
-  const base=sanitizeH5(name);
-  let c=base,i=1;
+  const base=sanitizeH5(name);let c=base,i=1;
   while(used.has(c)){c=base+'_'+i;i++;}
-  used.add(c);
-  return c;
+  used.add(c);return c;
 }
 function writeStringH5(parent,name,text,used){
   if(!text||!String(text).trim())return false;
   const s=String(text);const size=bytesLen(s);
   if(size===0)return false;
   const unique=nombreUnicoH5(parent,name,used);
-  try{
-    parent.create_dataset({name:unique,data:s,dtype:'S'+size,compression:'gzip',compression_opts:6});
-    return true;
-  }catch(e1){
-    try{parent.create_dataset({name:unique,data:s,dtype:'S'+size});return true;}
-    catch(e2){return false;}
-  }
+  try{parent.create_dataset({name:unique,data:s,dtype:'S'+size,compression:'gzip',compression_opts:6});return true;}
+  catch(e1){try{parent.create_dataset({name:unique,data:s,dtype:'S'+size});return true;}catch(e2){return false;}}
 }
 function escribirObjetoH5(grupo,obj,used){
   for(const k of Object.keys(obj)){
-    const v=obj[k];
-    if(v===null||v===undefined)continue;
+    const v=obj[k];if(v===null||v===undefined)continue;
     if(typeof v==='object'&&!Array.isArray(v)){
-      try{
-        const sub=grupo.create_group(nombreUnicoH5(grupo,k,used));
-        escribirObjetoH5(sub,v,new Set());
-      }catch(e){}
-    }else if(Array.isArray(v)){
-      writeStringH5(grupo,k,v.join('\n'),used);
-    }else{
-      writeStringH5(grupo,k,String(v),used);
-    }
+      try{const sub=grupo.create_group(nombreUnicoH5(grupo,k,used));escribirObjetoH5(sub,v,new Set());}catch(e){}
+    }else if(Array.isArray(v)){writeStringH5(grupo,k,v.join('\n'),used);}
+    else{writeStringH5(grupo,k,String(v),used);}
   }
 }
-
 async function crearH5(cerebro){
   if(!window.h5wasm){toast('Cargando h5wasm...','warn');await cargarH5wasm();}
-  const h5wasm=window.h5wasm;
-  await h5wasm.ready;
-  const FS=h5wasm.FS;
-  const File=h5wasm.File;
-
+  const h5wasm=window.h5wasm;await h5wasm.ready;
+  const FS=h5wasm.FS;const File=h5wasm.File;
   const f=new File('cerebro.h5','w');
   const gMeta=f.create_group('metadata');
   const gConfig=f.create_group('configuracion');
   const gEntr=f.create_group('entrenamiento');
-
   escribirObjetoH5(gMeta,cerebro.metadata,new Set());
   escribirObjetoH5(gConfig,cerebro.configuracion,new Set());
-
   let escritos=0;
   for(const item of cerebro.entrenamiento){
     const tagName=sanitizeH5(item.tag||('tag_'+escritos));
-    let gTag;
-    try{gTag=gEntr.create_group(tagName);}catch(e){continue;}
-    try{
-      gTag.create_attribute('tag_original',String(item.tag||''));
-      gTag.create_attribute('num_patterns',(item.patterns||[]).length);
-      gTag.create_attribute('num_responses',(item.responses||[]).length);
-      gTag.create_attribute('indice',escritos);
-    }catch(e){}
+    let gTag;try{gTag=gEntr.create_group(tagName);}catch(e){continue;}
+    try{gTag.create_attribute('tag_original',String(item.tag||''));gTag.create_attribute('num_patterns',(item.patterns||[]).length);gTag.create_attribute('num_responses',(item.responses||[]).length);gTag.create_attribute('indice',escritos);}catch(e){}
     const used=new Set();
     if(Array.isArray(item.patterns))writeStringH5(gTag,'patterns',item.patterns.join('\n'),used);
     if(Array.isArray(item.responses)){
@@ -1112,25 +1010,16 @@ async function crearH5(cerebro){
     if(item.meta)writeStringH5(gTag,'meta_json',JSON.stringify(item.meta,null,2),used);
     escritos++;
   }
-  try{
-    f.create_attribute('fecha_creacion',new Date().toISOString());
-    f.create_attribute('version_formato','ania-h5-v1');
-    f.create_attribute('num_tags',escritos);
-  }catch(e){}
+  try{f.create_attribute('fecha_creacion',new Date().toISOString());f.create_attribute('version_formato','ania-h5-v1');f.create_attribute('num_tags',escritos);}catch(e){}
   f.close();
   const data=FS.readFile('cerebro.h5');
   try{FS.unlink('cerebro.h5');}catch(e){}
   return new Blob([data],{type:'application/x-hdf5'});
 }
 
-// ============================================================
-// H5 · LEER
-// ============================================================
 function h5Keys(obj){
   if(!obj)return[];
-  if(typeof obj.keys==='function'){
-    try{const k=obj.keys();if(Array.isArray(k))return k;if(k&&typeof k[Symbol.iterator]==='function')return Array.from(k);}catch(e){}
-  }
+  if(typeof obj.keys==='function'){try{const k=obj.keys();if(Array.isArray(k))return k;if(k&&typeof k[Symbol.iterator]==='function')return Array.from(k);}catch(e){}}
   try{return Object.keys(obj).filter(x=>typeof obj[x]!=='function'&&!x.startsWith('_'));}catch(e){}
   return[];
 }
@@ -1149,9 +1038,7 @@ function esGrupoH5(obj){
 }
 function leerTextoH5(ds){
   if(!ds)return'';
-  try{
-    const v=ds.value;
-    if(v===null||v===undefined)return'';
+  try{const v=ds.value;if(v===null||v===undefined)return'';
     if(typeof v==='string')return v;
     if(v instanceof Uint8Array)return new TextDecoder('utf-8').decode(v);
     if(Array.isArray(v)){if(v.length&&typeof v[0]==='number')return new TextDecoder('utf-8').decode(new Uint8Array(v));return v.join('\n');}
@@ -1160,46 +1047,33 @@ function leerTextoH5(ds){
 }
 async function leerH5(blob){
   if(!window.h5wasm){toast('Cargando h5wasm...','warn');await cargarH5wasm();}
-  const h5wasm=window.h5wasm;
-  await h5wasm.ready;
+  const h5wasm=window.h5wasm;await h5wasm.ready;
   const buf=new Uint8Array(await blob.arrayBuffer());
   const FS=h5wasm.FS;
   try{FS.unlink('/_read.h5');}catch(e){}
   FS.writeFile('/_read.h5',buf);
   const file=new h5wasm.File('/_read.h5','r');
-
   const meta={},config={},entrenamiento=[];
   const gMeta=h5Get(file,'metadata');
-  if(gMeta){
-    for(const k of h5Keys(gMeta)){
-      const child=h5Get(gMeta,k);if(!child)continue;
-      if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child))sub[k2]=leerTextoH5(h5Get(child,k2));meta[k]=sub;}
-      else meta[k]=leerTextoH5(child);
-    }
-  }
+  if(gMeta){for(const k of h5Keys(gMeta)){const child=h5Get(gMeta,k);if(!child)continue;
+    if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child))sub[k2]=leerTextoH5(h5Get(child,k2));meta[k]=sub;}
+    else meta[k]=leerTextoH5(child);}}
   const gCfg=h5Get(file,'configuracion');
-  if(gCfg){
-    for(const k of h5Keys(gCfg)){
-      const child=h5Get(gCfg,k);if(!child)continue;
-      if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child)){const c2=h5Get(child,k2);if(c2)sub[k2]=leerTextoH5(c2);}config[k]=sub;}
-      else config[k]=leerTextoH5(child);
-    }
-  }
+  if(gCfg){for(const k of h5Keys(gCfg)){const child=h5Get(gCfg,k);if(!child)continue;
+    if(esGrupoH5(child)){const sub={};for(const k2 of h5Keys(child)){const c2=h5Get(child,k2);if(c2)sub[k2]=leerTextoH5(c2);}config[k]=sub;}
+    else config[k]=leerTextoH5(child);}}
   const gEntr=h5Get(file,'entrenamiento');
-  if(gEntr){
-    for(const tagName of h5Keys(gEntr)){
-      const gTag=h5Get(gEntr,tagName);
-      if(!gTag||!esGrupoH5(gTag))continue;
-      const patternsTxt=leerTextoH5(h5Get(gTag,'patterns'));
-      const patterns=patternsTxt?patternsTxt.split('\n').filter(p=>p.trim()):[];
-      let responses=[];
-      const respTxt=leerTextoH5(h5Get(gTag,'responses'));
-      if(respTxt)responses=respTxt.split('\n---\n').filter(r=>r.trim());
-      let metaItem={};
-      try{const mj=leerTextoH5(h5Get(gTag,'meta_json'));if(mj)metaItem=JSON.parse(mj);}catch(e){}
-      if(patterns.length&&responses.length)entrenamiento.push({tag:tagName,patterns,responses,meta:metaItem});
-    }
-  }
+  if(gEntr){for(const tagName of h5Keys(gEntr)){
+    const gTag=h5Get(gEntr,tagName);if(!gTag||!esGrupoH5(gTag))continue;
+    const patternsTxt=leerTextoH5(h5Get(gTag,'patterns'));
+    const patterns=patternsTxt?patternsTxt.split('\n').filter(p=>p.trim()):[];
+    let responses=[];
+    const respTxt=leerTextoH5(h5Get(gTag,'responses'));
+    if(respTxt)responses=respTxt.split('\n---\n').filter(r=>r.trim());
+    let metaItem={};
+    try{const mj=leerTextoH5(h5Get(gTag,'meta_json'));if(mj)metaItem=JSON.parse(mj);}catch(e){}
+    if(patterns.length&&responses.length)entrenamiento.push({tag:tagName,patterns,responses,meta:metaItem});
+  }}
   try{file.close();}catch(e){}
   try{FS.unlink('/_read.h5');}catch(e){}
   return {metadata:meta,configuracion:config,entrenamiento};
@@ -1226,39 +1100,30 @@ function irPaso(n){
 $('btnLoadDict').addEventListener('click',cargarDiccionarioCompleto);
 $('btnQuick').addEventListener('click',cargarSoloComunes);
 $('btnResetDict').addEventListener('click',async()=>{
-  if(!confirm('¿Borrar TODO el diccionario procesado? (No se puede deshacer)'))return;
+  if(!confirm('¿Borrar TODO el diccionario procesado?'))return;
   diccionario={};progreso={idx:0,total:0};
   await idbDel(KEY_DICT);await idbDel(KEY_PROG);
   $('sOk').textContent='0';$('sErr').textContent='0';$('sSkip').textContent='0';$('sPct').textContent='0%';
-  logMsg('🗑 Diccionario vaciado','warn');
-  toast('Diccionario vaciado','warn');
+  logMsg('🗑 Diccionario vaciado','warn');toast('Diccionario vaciado','warn');
+});
+
+// Mostrar/ocultar campo email MyMemory según checkbox
+$('oTrans').addEventListener('change',()=>{
+  $('myMemoryEmailRow').style.display=$('oTrans').checked?'flex':'none';
 });
 
 $('btnStart').addEventListener('click',iniciarRecoleccion);
-$('btnStop').addEventListener('click',()=>{
-  stopFlag=true;
-  logMsg('⏹ Deteniendo...','warn');
-});
+$('btnStop').addEventListener('click',()=>{stopFlag=true;logMsg('⏹ Deteniendo...','warn');});
 $('btnSaveNow').addEventListener('click',async()=>{
-  await idbSet(KEY_DICT,diccionario);
-  await idbSet(KEY_PROG,progreso);
-  toast('Guardado','ok');
+  await idbSet(KEY_DICT,diccionario);await idbSet(KEY_PROG,progreso);toast('Guardado','ok');
 });
-
 $('btnToStep2').addEventListener('click',()=>irPaso(2));
 
 function refrescarPaso2(){
   const n=Object.keys(diccionario).length;
-  if(n===0){
-    $('brainEmpty').style.display='block';
-    $('brainInfo').style.display='none';
-    $('btnCreateBrain').disabled=true;
-    return;
-  }
-  $('brainEmpty').style.display='none';
-  $('brainInfo').style.display='block';
-  $('bWords').textContent=n.toLocaleString();
-  $('btnCreateBrain').disabled=false;
+  if(n===0){$('brainEmpty').style.display='block';$('brainInfo').style.display='none';$('btnCreateBrain').disabled=true;return;}
+  $('brainEmpty').style.display='none';$('brainInfo').style.display='block';
+  $('bWords').textContent=n.toLocaleString();$('btnCreateBrain').disabled=false;
 }
 
 $('btnCreateBrain').addEventListener('click',()=>{
@@ -1275,88 +1140,51 @@ $('btnCreateBrain').addEventListener('click',()=>{
     const jsonStr=JSON.stringify(cerebroAnia);
     jsonBlob=new Blob([jsonStr],{type:'application/json'});
     $('bSize').textContent=fmtBytes(jsonBlob.size);
-    $('btnDownloadJSON').disabled=false;
-    $('btnCreateH5').disabled=false;
-    $('btnPreview').disabled=false;
-    $('btnLoadIntoChat').disabled=false;
-    $('brainResult').innerHTML=`<div class="good">
-      <h3>✅ Cerebro en formato Ania listo</h3>
-      <div class="big-num">${total.toLocaleString()} tags</div>
-      <div>${pats.toLocaleString()} patrones · ${resps.toLocaleString()} respuestas · ${fmtBytes(jsonBlob.size)}</div>
-    </div>`;
-    toast('Formato Ania generado: '+total.toLocaleString()+' tags','ok');
+    $('btnDownloadJSON').disabled=false;$('btnCreateH5').disabled=false;$('btnPreview').disabled=false;$('btnLoadIntoChat').disabled=false;
+    $('brainResult').innerHTML=`<div class="good"><h3>✅ Cerebro en formato Ania listo</h3><div class="big-num">${total.toLocaleString()} tags</div><div>${pats.toLocaleString()} patrones · ${resps.toLocaleString()} respuestas · ${fmtBytes(jsonBlob.size)}</div></div>`;
+    toast('Formato Ania: '+total.toLocaleString()+' tags','ok');
     idbSet(KEY_BRAIN,cerebroAnia).catch(()=>{});
   },50);
 });
 
-$('btnDownloadJSON').addEventListener('click',()=>{
-  if(!jsonBlob)return;
-  descargar(jsonBlob,'cerebro.json');
-  toast('Descargado cerebro.json ('+fmtBytes(jsonBlob.size)+')','ok');
-});
-
+$('btnDownloadJSON').addEventListener('click',()=>{if(!jsonBlob)return;descargar(jsonBlob,'cerebro.json');toast('Descargado','ok');});
 $('btnCreateH5').addEventListener('click',async()=>{
   if(!cerebroAnia){toast('Primero convierte a formato Ania','warn');return;}
   const btn=$('btnCreateH5');btn.disabled=true;btn.textContent='⏳ Creando .h5...';
   try{
     if(!window.h5wasm)await cargarH5wasm();
     h5Blob=await crearH5(cerebroAnia);
-    $('btnDownloadH5').disabled=false;
-    toast('cerebro.h5 creado ('+fmtBytes(h5Blob.size)+')','ok');
+    $('btnDownloadH5').disabled=false;toast('cerebro.h5 creado ('+fmtBytes(h5Blob.size)+')','ok');
     btn.textContent='📦 Crear cerebro.h5';
-  }catch(e){
-    console.error(e);
-    toast('Error: '+e.message,'err',5000);
-    btn.textContent='📦 Crear cerebro.h5';
-  }
+  }catch(e){console.error(e);toast('Error: '+e.message,'err',5000);btn.textContent='📦 Crear cerebro.h5';}
   btn.disabled=false;
 });
-
-$('btnDownloadH5').addEventListener('click',()=>{
-  if(!h5Blob)return;
-  descargar(h5Blob,'cerebro.h5');
-  toast('Descargado cerebro.h5','ok');
-});
-
+$('btnDownloadH5').addEventListener('click',()=>{if(!h5Blob)return;descargar(h5Blob,'cerebro.h5');toast('Descargado','ok');});
 $('btnLoadIntoChat').addEventListener('click',()=>{
   if(!cerebroAnia)cerebroAnia=convertirAFormatoAnia();
-  cargarCerebroEnChat(cerebroAnia,'cerebro.json');
-  irPaso(3);
-  toast('Cerebro cargado en el chat','ok');
+  cargarCerebroEnChat(cerebroAnia,'cerebro.json');irPaso(3);toast('Cerebro cargado','ok');
 });
-
 $('btnPreview').addEventListener('click',()=>{
   if(!cerebroAnia)return;
-  const which=$('previewWhich').value;
-  let obj;
+  const which=$('previewWhich').value;let obj;
   if(which==='primer')obj=cerebroAnia.entrenamiento[0];
   else if(which==='ultimo')obj=cerebroAnia.entrenamiento[cerebroAnia.entrenamiento.length-1];
   else if(which==='config')obj=cerebroAnia.configuracion;
   else obj=cerebroAnia.metadata;
   $('previewBox').textContent=JSON.stringify(obj,null,2).slice(0,8000);
 });
-
 $('btnMerge').addEventListener('click',()=>$('mergeFiles').click());
 $('mergeFiles').addEventListener('change',async e=>{
   const files=Array.from(e.target.files||[]);e.target.value='';
   if(!files.length)return;
   const logEl=$('mergeLog');logEl.style.display='block';logEl.innerHTML='';
-  if(!cerebroAnia){
-    cerebroAnia={
-      metadata:{version:'1.0 MERGED',descripcion:'Cerebro fusionado',creado_por:'Ania',
-        fecha_actualizacion:new Date().toISOString().slice(0,10),
-        contadores:{total_respuestas:0,patrones_totales:0,intentos_totales:0,archivos_cargados:0}},
-      configuracion:{},entrenamiento:[]
-    };
-  }
+  if(!cerebroAnia){cerebroAnia={metadata:{version:'1.0 MERGED',descripcion:'Cerebro fusionado',creado_por:'Ania',fecha_actualizacion:new Date().toISOString().slice(0,10),contadores:{total_respuestas:0,patrones_totales:0,intentos_totales:0,archivos_cargados:0}},configuracion:{},entrenamiento:[]};}
   const existentes=new Set(cerebroAnia.entrenamiento.map(t=>t.tag));
   let total=0;
   for(const f of files){
     try{
-      const txt=await f.text();
-      const j=JSON.parse(txt);
-      const items=j.entrenamiento||[];
-      let added=0;
+      const txt=await f.text();const j=JSON.parse(txt);
+      const items=j.entrenamiento||[];let added=0;
       for(const it of items){
         if(!it.tag||!it.patterns)continue;
         let tagName=it.tag,n=1;
@@ -1366,17 +1194,11 @@ $('mergeFiles').addEventListener('change',async e=>{
         added++;total++;
       }
       logEl.innerHTML+=`<div class="l-ok">📎 ${esc(f.name)}: +${added} tags</div>`;
-    }catch(err){
-      logEl.innerHTML+=`<div class="l-err">✗ ${esc(f.name)}: ${esc(err.message)}</div>`;
-    }
+    }catch(err){logEl.innerHTML+=`<div class="l-err">✗ ${esc(f.name)}: ${esc(err.message)}</div>`;}
   }
   const pats=cerebroAnia.entrenamiento.reduce((s,t)=>s+(t.patterns||[]).length,0);
   const resps=cerebroAnia.entrenamiento.reduce((s,t)=>s+(t.responses||[]).length,0);
-  cerebroAnia.metadata.contadores={
-    total_respuestas:resps,patrones_totales:pats,
-    intentos_totales:cerebroAnia.entrenamiento.length,
-    archivos_cargados:(cerebroAnia.metadata.contadores?.archivos_cargados||0)+files.length
-  };
+  cerebroAnia.metadata.contadores={total_respuestas:resps,patrones_totales:pats,intentos_totales:cerebroAnia.entrenamiento.length,archivos_cargados:(cerebroAnia.metadata.contadores?.archivos_cargados||0)+files.length};
   jsonBlob=new Blob([JSON.stringify(cerebroAnia)],{type:'application/json'});
   $('bSize').textContent=fmtBytes(jsonBlob.size);
   $('bTags').textContent=cerebroAnia.entrenamiento.length.toLocaleString();
@@ -1390,8 +1212,7 @@ $('mergeFiles').addEventListener('change',async e=>{
 
 function descargar(blob,name){
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=name;
+  const a=document.createElement('a');a.href=url;a.download=name;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
@@ -1399,24 +1220,17 @@ function descargar(blob,name){
 // ============================================================
 // CHAT
 // ============================================================
-const chatState={
-  cargado:false,nombreArchivo:'',tags:[],substitutions:{},
-  userName:null,ultimaRespIndex:{},totalPatterns:0,exactIndex:new Map()
-};
+const chatState={cargado:false,nombreArchivo:'',tags:[],substitutions:{},userName:null,ultimaRespIndex:{},totalPatterns:0,exactIndex:new Map()};
 
 function prepararIndices(){
-  chatState.exactIndex.clear();
-  chatState.totalPatterns=0;
+  chatState.exactIndex.clear();chatState.totalPatterns=0;
   for(let i=0;i<chatState.tags.length;i++){
     const t=chatState.tags[i];
     t.patternsNorm=t.patterns.map(p=>normalizar(p));
-    for(const pn of t.patternsNorm){
-      if(pn&&!chatState.exactIndex.has(pn))chatState.exactIndex.set(pn,i);
-    }
+    for(const pn of t.patternsNorm){if(pn&&!chatState.exactIndex.has(pn))chatState.exactIndex.set(pn,i);}
     chatState.totalPatterns+=t.patterns.length;
   }
 }
-
 function puntuar(inputNorm,patronNorm){
   if(!patronNorm||!inputNorm)return 0;
   if(inputNorm===patronNorm)return 100;
@@ -1429,7 +1243,6 @@ function puntuar(inputNorm,patronNorm){
   if(!ov)return 0;
   return (ov/pw.length)*60;
 }
-
 const PREFIJOS=[
   /^(que|qué|k|q|ke)\s+(es|son|significa|quiere decir|era)\s+(el|la|los|las|un|una)?\s*/i,
   /^(dime|decime)\s+(que es|qué es|sobre|de)\s+(el|la|los|las|un|una)?\s*/i,
@@ -1449,60 +1262,38 @@ const PREFIJOS=[
 function limpiarConsulta(input){
   let s=String(input).trim().replace(/[¿¡]/g,'');
   let changed=true;
-  while(changed){
-    changed=false;
-    for(const p of PREFIJOS){
-      const nuevo=s.replace(p,'');
-      if(nuevo!==s){s=nuevo;changed=true;}
-    }
-  }
+  while(changed){changed=false;for(const p of PREFIJOS){const nuevo=s.replace(p,'');if(nuevo!==s){s=nuevo;changed=true;}}}
   s=s.replace(/\s+(por favor|please)$/i,'');
   s=s.replace(/\s+(en ingles|en inglés|en español|al ingles|al inglés|al español|to english|to spanish)$/i,'');
   s=s.replace(/[?\.]+$/,'');
   s=s.replace(/^(el|la|los|las|un|una|a|an|the)\s+/i,'');
   return s.trim();
 }
-
 function encontrarMejorTag(input){
   const inputNorm=normalizar(input);
   if(!inputNorm)return null;
-  if(chatState.exactIndex.has(inputNorm)){
-    return {tag:chatState.tags[chatState.exactIndex.get(inputNorm)],score:100};
-  }
-  const limpio=limpiarConsulta(input);
-  const limpioNorm=normalizar(limpio);
-  if(limpioNorm&&chatState.exactIndex.has(limpioNorm)){
-    return {tag:chatState.tags[chatState.exactIndex.get(limpioNorm)],score:100};
-  }
+  if(chatState.exactIndex.has(inputNorm))return {tag:chatState.tags[chatState.exactIndex.get(inputNorm)],score:100};
+  const limpio=limpiarConsulta(input);const limpioNorm=normalizar(limpio);
+  if(limpioNorm&&chatState.exactIndex.has(limpioNorm))return {tag:chatState.tags[chatState.exactIndex.get(limpioNorm)],score:100};
   let mejor=null,mejorScore=0;
   for(const t of chatState.tags){
     let maxScore=0;
-    for(const pn of t.patternsNorm){
-      const s=puntuar(inputNorm,pn);
-      if(s>maxScore)maxScore=s;
-      if(maxScore>=100)break;
-    }
+    for(const pn of t.patternsNorm){const s=puntuar(inputNorm,pn);if(s>maxScore)maxScore=s;if(maxScore>=100)break;}
     if(t.meta&&t.meta.prioridad==='alta')maxScore*=1.15;
     if(maxScore>mejorScore){mejorScore=maxScore;mejor=t;}
   }
   if(mejorScore<40&&limpioNorm&&limpioNorm!==inputNorm){
     for(const t of chatState.tags){
       let maxScore=0;
-      for(const pn of t.patternsNorm){
-        const s=puntuar(limpioNorm,pn);
-        if(s>maxScore)maxScore=s;
-        if(maxScore>=100)break;
-      }
+      for(const pn of t.patternsNorm){const s=puntuar(limpioNorm,pn);if(s>maxScore)maxScore=s;if(maxScore>=100)break;}
       if(maxScore>mejorScore){mejorScore=maxScore;mejor=t;}
     }
   }
   if(mejorScore<25)return null;
   return {tag:mejor,score:mejorScore};
 }
-
 function elegirRespuesta(tagObj){
-  const t=tagObj.tag||tagObj;
-  const resps=t.responses;
+  const t=tagObj.tag||tagObj;const resps=t.responses;
   if(!resps||!resps.length)return'';
   if(resps.length===1)return resps[0];
   let idx,intentos=0;
@@ -1511,23 +1302,16 @@ function elegirRespuesta(tagObj){
   chatState.ultimaRespIndex[t.tag]=idx;
   return resps[idx];
 }
-
 function generarRespuesta(input){
   const r=encontrarMejorTag(input);
-  if(!r){
-    return {texto:'No encontré esa palabra en mi cerebro. Prueba a procesarla primero en el Paso 1. 🤔',tag:null,score:0};
-  }
+  if(!r)return {texto:'No encontré esa palabra en mi cerebro. Procesa el diccionario primero. 🤔',tag:null,score:0};
   let texto=elegirRespuesta(r.tag);
   texto=texto.replace(/\[nombre\]/g,chatState.userName||'amigo');
   return {texto,tag:r.tag.tag,score:r.score};
 }
-
 async function cargarCerebroEnChat(cerebro,nombre){
   if(!cerebro||!cerebro.entrenamiento){toast('Cerebro inválido','err');return;}
-  chatState.tags=[];
-  chatState.ultimaRespIndex={};
-  chatState.userName=null;
-  chatState.cargado=false;
+  chatState.tags=[];chatState.ultimaRespIndex={};chatState.userName=null;chatState.cargado=false;
   if(cerebro.configuracion?.mini_lenguaje_natural_humano?.normalizacion_emocional){
     chatState.substitutions={...cerebro.configuracion.mini_lenguaje_natural_humano.normalizacion_emocional};
   }
@@ -1536,57 +1320,38 @@ async function cargarCerebroEnChat(cerebro,nombre){
     chatState.tags.push({tag:item.tag,patterns:item.patterns,responses:item.responses,meta:item.meta||{}});
   }
   prepararIndices();
-  chatState.cargado=true;
-  chatState.nombreArchivo=nombre;
-  const info=$('chatBrainInfo');
-  info.className='good';
-  info.innerHTML=`<b>✅ Cerebro cargado:</b> ${esc(nombre)} · ${chatState.tags.length.toLocaleString()} tags · ${chatState.totalPatterns.toLocaleString()} patrones`;
-  $('chatInput').disabled=false;
-  $('sendBtn').disabled=false;
+  chatState.cargado=true;chatState.nombreArchivo=nombre;
+  const info=$('chatBrainInfo');info.className='good';
+  info.innerHTML=`<b>✅ Cerebro:</b> ${esc(nombre)} · ${chatState.tags.length.toLocaleString()} tags · ${chatState.totalPatterns.toLocaleString()} patrones`;
+  $('chatInput').disabled=false;$('sendBtn').disabled=false;
   addMsg('sys','🧠 Cerebro cargado con '+chatState.tags.length.toLocaleString()+' tags');
-  addMsg('bot','¡Hola! Pregúntame el significado de cualquier palabra. 💫');
+  addMsg('bot','¡Hola! Pregúntame cualquier palabra. 💫');
 }
-
 function addMsg(tipo,texto,tag){
-  const win=$('chatWin');
-  const div=document.createElement('div');
+  const win=$('chatWin');const div=document.createElement('div');
   div.className='msg msg-'+(tipo==='user'?'user':tipo==='bot'?'bot':'sys');
   const t=document.createElement('div');t.textContent=texto;div.appendChild(t);
   if(tag){const tg=document.createElement('div');tg.className='msg-tag';tg.textContent='['+tag+']';div.appendChild(tg);}
   win.appendChild(div);win.scrollTop=win.scrollHeight;
 }
 function addTyping(){
-  const win=$('chatWin');
-  const d=document.createElement('div');
+  const win=$('chatWin');const d=document.createElement('div');
   d.className='msg msg-bot msg-typing';d.id='typing';
   d.innerHTML='<span>●</span><span>●</span><span>●</span>';
   win.appendChild(d);win.scrollTop=win.scrollHeight;
 }
 function removeTyping(){const e=$('typing');if(e)e.remove();}
 function enviarChat(){
-  const inp=$('chatInput');
-  const txt=inp.value.trim();
+  const inp=$('chatInput');const txt=inp.value.trim();
   if(!txt||!chatState.cargado)return;
-  addMsg('user',txt);
-  inp.value='';
-  addTyping();
-  setTimeout(()=>{
-    removeTyping();
-    const r=generarRespuesta(txt);
-    addMsg('bot',r.texto,r.tag);
-  },250+Math.random()*400);
+  addMsg('user',txt);inp.value='';addTyping();
+  setTimeout(()=>{removeTyping();const r=generarRespuesta(txt);addMsg('bot',r.texto,r.tag);},250+Math.random()*400);
 }
 
 $('sendBtn').addEventListener('click',enviarChat);
-$('chatInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarChat();}
-});
-$('btnClearChat').addEventListener('click',()=>{
-  $('chatWin').innerHTML='<div class="msg msg-sys">Chat limpiado. 💫</div>';
-});
-document.querySelectorAll('.sugg').forEach(b=>{
-  b.addEventListener('click',()=>{$('chatInput').value=b.dataset.q;enviarChat();});
-});
+$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarChat();}});
+$('btnClearChat').addEventListener('click',()=>{$('chatWin').innerHTML='<div class="msg msg-sys">Chat limpiado. 💫</div>';});
+document.querySelectorAll('.sugg').forEach(b=>{b.addEventListener('click',()=>{$('chatInput').value=b.dataset.q;enviarChat();});});
 $('btnLoadBrainFile').addEventListener('click',()=>$('brainFile').click());
 $('brainFile').addEventListener('change',async e=>{
   const f=e.target.files[0];e.target.value='';
@@ -1598,8 +1363,7 @@ $('brainFile').addEventListener('change',async e=>{
       cerebro=await leerH5(f);
       if(!cerebro.entrenamiento||!cerebro.entrenamiento.length){toast('El H5 no contiene entrenamiento','err');return;}
     }else{
-      const txt=await f.text();
-      const j=JSON.parse(txt);
+      const txt=await f.text();const j=JSON.parse(txt);
       if(j.entrenamiento)cerebro=j;
       else if(j.datos){
         const entrenamiento=[];
@@ -1607,22 +1371,14 @@ $('brainFile').addEventListener('change',async e=>{
           const item=j.datos[key];
           const contenido=typeof item==='string'?item:(item.contenido||'');
           const palabra=item.palabra||key.replace(/^(dict_|doc_|con_)/i,'').replace(/_/g,' ');
-          entrenamiento.push({
-            tag:'auto_'+key.replace(/[^a-z0-9]/gi,'_'),
-            patterns:generarPatronesParaPalabra(palabra),
-            responses:[contenido],
-            meta:{tipo:'auto',palabra}
-          });
+          entrenamiento.push({tag:'auto_'+key.replace(/[^a-z0-9]/gi,'_'),patterns:generarPatronesParaPalabra(palabra),responses:[contenido],meta:{tipo:'auto',palabra}});
         }
         cerebro={metadata:{},configuracion:{},entrenamiento};
       }else{toast('Formato no reconocido','err');return;}
     }
     await cargarCerebroEnChat(cerebro,f.name);
     toast('Cargado: '+chatState.tags.length+' tags','ok');
-  }catch(e){
-    console.error(e);
-    toast('Error: '+e.message,'err',5000);
-  }
+  }catch(e){console.error(e);toast('Error: '+e.message,'err',5000);}
 });
 
 // ============================================================
@@ -1637,12 +1393,12 @@ window.addEventListener('load',async()=>{
       $('dictHero').classList.add('loaded');
       $('btnLoadDict').textContent='✅ Diccionario cargado ('+palabras.length.toLocaleString()+')';
       $('btnStart').disabled=false;
-      logDict('📂 Diccionario recuperado del navegador: '+palabras.length.toLocaleString()+' palabras','ok');
+      logDict('📂 Diccionario recuperado: '+palabras.length.toLocaleString()+' palabras','ok');
     }
     const d=await idbGet(KEY_DICT);
     if(d&&typeof d==='object'){
       diccionario=d;
-      logMsg('📂 Diccionario procesado recuperado: '+Object.keys(diccionario).length.toLocaleString()+' palabras','ok');
+      logMsg('📂 Diccionario procesado: '+Object.keys(diccionario).length.toLocaleString()+' palabras','ok');
       $('sOk').textContent=Object.keys(diccionario).length.toLocaleString();
       $('btnToStep2').disabled=false;
     }
@@ -1650,13 +1406,12 @@ window.addEventListener('load',async()=>{
     if(p&&typeof p.idx==='number')progreso=p;
   }catch(e){console.warn(e);}
 
-  // Precargar h5wasm en background
   cargarH5wasm()
     .then(()=>console.log('✅ h5wasm listo'))
-    .catch(e=>console.warn('⚠️ h5wasm no disponible:',e.message));
+    .catch(e=>console.warn('⚠️ h5wasm:',e.message));
 
   logMsg('👋 Carga el diccionario y pulsa "Iniciar"','info');
-  logDict('👉 Pulsa "Cargar diccionario completo" o "Solo las 5000 más comunes"','info');
+  logDict('👉 "Cargar diccionario completo" o "Solo las 5000 más comunes"','info');
 });
 </script>
 </body>
