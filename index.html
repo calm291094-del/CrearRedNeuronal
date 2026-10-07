@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🧠 Ania — Diccionario Completo → Cerebro → Chat</title>
+<title>🧠 Ania — Diccionario Español Completo → Cerebro → Chat</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -111,9 +111,7 @@
   .dict-hero h3{color:var(--accent);font-size:1.2rem;margin-bottom:8px}
   .dict-hero .big{font-size:2.4rem;font-weight:800;color:var(--text);margin:8px 0}
   .dict-hero .sub{color:var(--muted);font-size:.85rem;margin-bottom:14px}
-  .dict-hero .loaded{border-color:var(--ok);background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(56,189,248,.08))}
-
-  .kbd{background:var(--panel2);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-family:ui-monospace,monospace;font-size:.8rem;color:#cbd5e1}
+  .dict-hero.loaded{border-color:var(--ok);background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(56,189,248,.08))}
 
   @media(max-width:640px){
     .wrap{padding:16px}
@@ -128,8 +126,8 @@
   <header>
     <div class="logo">🧠</div>
     <div>
-      <h1>Ania · Diccionario Español Completo → Cerebro → Chat</h1>
-      <p>Carga las ~636.000 palabras del español · Procesa por lotes · Reanuda cuando quieras</p>
+      <h1>Ania · Diccionario Español → Cerebro → Chat</h1>
+      <p>Carga el diccionario completo · Procesa por lotes · Reanuda cuando quieras</p>
     </div>
   </header>
 
@@ -156,10 +154,10 @@
       <div class="dict-hero" id="dictHero">
         <h3>🇪🇸 Diccionario completo del español</h3>
         <div class="big" id="dictCount">—</div>
-        <div class="sub">palabras totales (fuente: <code>an-array-of-spanish-words</code>)</div>
+        <div class="sub">palabras totales</div>
         <button id="btnLoadDict" class="big">📥 Cargar diccionario completo</button>
         <button id="btnQuick" class="sec">⚡ Solo las 5000 más comunes</button>
-        <button id="btnResetDict" class="danger small">🗑 Vaciar diccionario</button>
+        <button id="btnResetDict" class="danger small">🗑 Vaciar diccionario procesado</button>
       </div>
       <div id="dictProgress" class="progress"><div class="progress-bar" id="dictProgressBar">0%</div></div>
       <div id="dictLog" class="log" style="display:none"></div>
@@ -167,12 +165,15 @@
 
     <div class="panel">
       <h2>⚙️ Fuentes y rendimiento</h2>
-      <p class="hint">Para 636k palabras, activa solo lo esencial. Wiktionary ES y MyMemory son los más fiables.</p>
+      <p class="hint">Recomendado para español: <b>Wiktionary ES</b> + <b>MyMemory</b>. Los demás son lentos o no cubren bien español.</p>
       <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px 16px">
         <label class="opt"><input type="checkbox" id="oWikt" checked> 📜 Wiktionary ES (definiciones en español)</label>
         <label class="opt"><input type="checkbox" id="oTrans" checked> 🌐 MyMemory (traducción ES ↔ EN)</label>
-        <label class="opt"><input type="checkbox" id="oDef"> 📖 Free Dictionary (definiciones ES/EN)</label>
-        <label class="opt"><input type="checkbox" id="oWiki"> 📚 Wikipedia (resumen, lento)</label>
+        <label class="opt"><input type="checkbox" id="oDef"> 📖 Free Dictionary (poco útil en español)</label>
+        <label class="opt"><input type="checkbox" id="oWiki"> 📚 Wikipedia (muy lento)</label>
+      </div>
+      <div class="row">
+        <label class="opt"><input type="checkbox" id="optFilterConj" checked> 🧹 Filtrar conjugaciones raras (reduce de 636k a ~250k)</label>
       </div>
 
       <div class="row">
@@ -191,7 +192,7 @@
       </div>
 
       <div class="row">
-        <label class="opt"><input type="checkbox" id="optSkipProcessed" checked> Saltar palabras ya procesadas (no reintentar)</label>
+        <label class="opt"><input type="checkbox" id="optSkipProcessed" checked> Saltar palabras ya procesadas</label>
       </div>
     </div>
 
@@ -331,23 +332,21 @@
 // ============================================================
 // CONSTANTES
 // ============================================================
-const IDB_NAME='ania_dict_full_v1';
+const IDB_NAME='ania_dict_full_v2';
 const IDB_STORE='kv';
 const KEY_DICT='diccionario';
 const KEY_PROG='progreso';
-const KEY_WORDS='palabras_lista';   // array de las 636k palabras
+const KEY_WORDS='palabras_lista';
 const KEY_BRAIN='cerebro_ania';
-const SAVE_EVERY=25;                 // Guardar diccionario cada N palabras
+const SAVE_EVERY=25;
 
-// URLs del diccionario completo español (~636k palabras)
+// URLs del diccionario completo español
 const DICT_URLS=[
   'https://cdn.jsdelivr.net/npm/an-array-of-spanish-words/index.json',
   'https://unpkg.com/an-array-of-spanish-words/index.json',
-  'https://cdn.jsdelivr.net/gh/words/an-array-of-spanish-words@latest/index.json',
   'https://raw.githubusercontent.com/words/an-array-of-spanish-words/main/index.json'
 ];
 
-// Lista de las 5000 palabras más comunes (rápido)
 const QUICK_URLS=[
   'https://raw.githubusercontent.com/first20hours/google-10000-spanish/master/google-10000-spanish.txt',
   'https://cdn.jsdelivr.net/gh/first20hours/google-10000-spanish@master/google-10000-spanish.txt'
@@ -356,15 +355,16 @@ const QUICK_URLS=[
 // ============================================================
 // ESTADO
 // ============================================================
-let palabras=[];                  // array completo del diccionario (636k)
-let diccionario={};               // { "arbol": {palabra, idioma, traduccion, definiciones[], ...} }
+let palabras=[];
+let diccionario={};
 let progreso={idx:0, total:0};
 let cerebroAnia=null;
 let jsonBlob=null, h5Blob=null;
 let procesando=false, stopFlag=false;
 let db=null;
 let lastSaveTime=0;
-let startTime=0, doneCount=0, lastRate=0;
+let startTime=0, doneCount=0;
+let h5wasmLoadPromise=null;
 
 const $ = id => document.getElementById(id);
 
@@ -436,7 +436,19 @@ async function idbGet(k){await openDB();return new Promise((res,rej)=>{const t=d
 async function idbDel(k){await openDB();return new Promise((res,rej)=>{const t=db.transaction(IDB_STORE,'readwrite');t.objectStore(IDB_STORE).delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
 
 // ============================================================
-// CARGA DEL DICCIONARIO COMPLETO
+// FILTRO DE CONJUGACIONES RARAS
+// ============================================================
+function esConjugacionRara(w){
+  if(w.length>16)return true;
+  // Formas verbales raras (imperfecto/subjuntivo poco usadas)
+  if(/(?:iésemos|iéramos|ásemos|áramos|iéremos|áremos|asteis|isteis)$/.test(w))return true;
+  // Gerundios dobles raros
+  if(/ándose|iéndose|iéndole|iéndoles|ándole|ándoles$/.test(w))return true;
+  return false;
+}
+
+// ============================================================
+// CARGA DEL DICCIONARIO
 // ============================================================
 async function cargarDiccionarioCompleto(){
   const btn=$('btnLoadDict');
@@ -447,10 +459,9 @@ async function cargarDiccionarioCompleto(){
   $('dictProgressBar').textContent='Descargando...';
   logDict('📥 Descargando diccionario completo desde CDN...','info');
 
-  // Verificar si ya estaba cargado
   try{
     const cached=await idbGet(KEY_WORDS);
-    if(cached&&Array.isArray(cached)&&cached.length>100000){
+    if(cached&&Array.isArray(cached)&&cached.length>1000){
       palabras=cached;
       logDict('✅ Cargado desde caché local: '+palabras.length.toLocaleString()+' palabras','ok');
       $('dictCount').textContent=palabras.length.toLocaleString();
@@ -464,7 +475,6 @@ async function cargarDiccionarioCompleto(){
     }
   }catch(e){}
 
-  // Descargar desde CDN
   let data=null;
   for(const url of DICT_URLS){
     try{
@@ -493,27 +503,33 @@ async function cargarDiccionarioCompleto(){
     return;
   }
 
-  // Limpiar y normalizar
+  // Limpieza
   $('dictProgressBar').style.width='60%';
   $('dictProgressBar').textContent='Limpiando...';
-  const limpio=Array.from(new Set(
+  const filtrar=$('optFilterConj').checked;
+  let limpio=Array.from(new Set(
     data
       .map(w=>String(w).trim().toLowerCase())
-      .filter(w=>w&&w.length>=2&&w.length<=40)
+      .filter(w=>w&&w.length>=2&&w.length<=25)
       .filter(w=>/^[a-záéíóúñü]+$/.test(w))
-  )).sort();
+  ));
+  if(filtrar){
+    const antes=limpio.length;
+    limpio=limpio.filter(w=>!esConjugacionRara(w));
+    logDict('🧹 Filtro de conjugaciones: '+antes.toLocaleString()+' → '+limpio.length.toLocaleString(),'info');
+  }
+  limpio.sort();
 
   palabras=limpio;
   logDict('📊 Diccionario final: '+palabras.length.toLocaleString()+' palabras únicas','ok');
 
-  // Guardar en IndexedDB
   $('dictProgressBar').style.width='80%';
   $('dictProgressBar').textContent='Guardando...';
   try{
     await idbSet(KEY_WORDS,palabras);
     logDict('💾 Guardado en navegador','ok');
   }catch(e){
-    logDict('⚠️ No se pudo guardar en caché (puede que sea muy grande): '+e.message,'warn');
+    logDict('⚠️ No se pudo guardar en caché: '+e.message,'warn');
   }
 
   $('dictProgressBar').style.width='100%';
@@ -583,9 +599,10 @@ function detectLang(text){
   return /[áéíóúñ¿¡]/.test(text)?'es':'en';
 }
 
+// ✅ FIX CORS: añadido &origin=*
 async function wiktionaryExtract(word,lang){
   try{
-    const url=`https://${lang}.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&format=json&explaintext=1&redirects=1`;
+    const url=`https://${lang}.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&format=json&explaintext=1&redirects=1&origin=*`;
     const data=await fetchJSON(url,7000,0);
     const pages=data.query?.pages;if(!pages)return null;
     const page=Object.values(pages)[0];
@@ -628,16 +645,13 @@ async function construirFicha(palabra,opts){
   const other=lang==='es'?'en':'es';
   const ficha={palabra:word,idioma:lang,traduccion:null,traduccion_inversa:null,definiciones:[],wikipedia:null,wiktionary:null};
 
-  // Wiktionary (principal para español)
   if(opts.useWikt){
     const w=await wiktionaryExtract(word,lang);
     if(w){
       ficha.wiktionary=w.slice(0,3000);
-      // Extraer definiciones numeradas del extracto de Wiktionary
       const lines=w.split('\n').map(l=>l.trim()).filter(Boolean);
       const defs=[];
       for(const line of lines){
-        // Buscar líneas tipo "1. definición" o "1 definición"
         const m=line.match(/^(\d+)[\.\)]\s+(.+)/);
         if(m&&m[2].length>5&&m[2].length<400){
           defs.push(m[2]);
@@ -648,7 +662,6 @@ async function construirFicha(palabra,opts){
     }
   }
 
-  // Free Dictionary
   if(opts.useDef){
     const d=await freeDict(word,lang);
     if(d){
@@ -664,7 +677,6 @@ async function construirFicha(palabra,opts){
     }
   }
 
-  // Traducción
   if(opts.useTrans){
     const fwd=await translateMyMemory(word,lang,other);
     if(fwd)ficha.traduccion=fwd;
@@ -672,7 +684,6 @@ async function construirFicha(palabra,opts){
     if(back&&normalizar(back)!==normalizar(word))ficha.traduccion_inversa=back;
   }
 
-  // Wikipedia
   if(opts.useWiki){
     const w=await wikiSummary(word,lang);
     if(w)ficha.wikipedia=w.slice(0,1500);
@@ -690,7 +701,7 @@ async function conLimite(tareas,limite){
 }
 
 // ============================================================
-// PROCESO PRINCIPAL
+// PROCESO PRINCIPAL ✅ FIX guardarProgreso (i fuera de scope)
 // ============================================================
 async function iniciarRecoleccion(){
   if(procesando)return;
@@ -716,8 +727,7 @@ async function iniciarRecoleccion(){
     maxDefs
   };
 
-  // Determinar índice de inicio
-  let startIdx=startFrom>0?startFrom:progreso.idx||0;
+  let startIdx=startFrom>0?startFrom:(progreso.idx||0);
   if(startIdx>=palabras.length){
     toast('Ya está todo procesado','ok');
     procesando=false;$('btnStart').disabled=false;$('btnStop').disabled=true;
@@ -725,7 +735,6 @@ async function iniciarRecoleccion(){
     return;
   }
 
-  // Determinar cuántas procesar
   let endIdx=maxProcess>0?Math.min(startIdx+maxProcess,palabras.length):palabras.length;
   const lote=palabras.slice(startIdx,endIdx);
 
@@ -738,26 +747,27 @@ async function iniciarRecoleccion(){
   doneCount=0;
 
   let ok=0,err=0,skip=0;
-  let lastSaveIdx=0;
 
-  async function guardarProgreso(force){
+  // ✅ FIX: guardarProgreso ahora recibe el índice actual como parámetro
+  async function guardarProgreso(currentDone, force){
     const ahora=Date.now();
-    if(!force&&ahora-lastSaveTime<3000)return; // no más de 1 vez cada 3s
+    if(!force && ahora-lastSaveTime<3000) return;
     lastSaveTime=ahora;
     try{
-      await idbSet(KEY_DICT,diccionario);
-      await idbSet(KEY_PROG,{idx:startIdx+i,total:palabras.length});
-    }catch(e){console.warn('save fail',e);}
+      await idbSet(KEY_DICT, diccionario);
+      await idbSet(KEY_PROG, {idx: startIdx + currentDone, total: palabras.length});
+    }catch(e){
+      console.warn('save fail:', e.message);
+    }
   }
 
-  for(let i=0;i<lote.length&&!stopFlag;i+=concurrent){
+  for(let i=0;i<lote.length && !stopFlag;i+=concurrent){
     const chunk=lote.slice(i,i+concurrent);
     const tareas=chunk.map(palabra=>async()=>{
       if(stopFlag)return;
       const key=normalizar(palabra)||palabra.toLowerCase();
       try{
-        // Saltar si ya existe
-        if(skipProcessed&&diccionario[key]){
+        if(skipProcessed && diccionario[key]){
           skip++;
           return;
         }
@@ -776,12 +786,13 @@ async function iniciarRecoleccion(){
     });
     await Promise.all(tareas.map(t=>t()));
     if(delay>0)await sleep(delay);
-    await guardarProgreso(false);
 
-    // Actualizar UI cada 10 chunks
+    // ✅ FIX: pasar el índice actual
+    await guardarProgreso(i + chunk.length, false);
+
     if(i%10===0){
       const done=i+chunk.length;
-      const pct=Math.round(((done)/lote.length)*100);
+      const pct=Math.round((done/lote.length)*100);
       $('progBar').style.width=pct+'%';
       $('progBar').textContent=pct+'%';
       $('sOk').textContent=ok.toLocaleString();
@@ -789,16 +800,16 @@ async function iniciarRecoleccion(){
       $('sSkip').textContent=skip.toLocaleString();
       $('sPct').textContent=Math.round(((startIdx+done)/palabras.length)*100)+'%';
       const elapsed=(Date.now()-startTime)/1000;
-      const rate=doneCount/elapsed*60;
+      const rate=doneCount/Math.max(elapsed,0.001)*60;
       $('sRate').textContent=rate.toFixed(0);
       const remaining=(lote.length-done)/Math.max(rate/60,0.001);
       $('sEta').textContent=fmtTime(remaining);
-      await new Promise(r=>setTimeout(r,0)); // ceder al browser
+      await new Promise(r=>setTimeout(r,0));
     }
   }
 
-  // Guardar al terminar
-  await guardarProgreso(true);
+  // ✅ FIX: guardar al terminar con el índice del lote completo
+  await guardarProgreso(lote.length, true);
 
   procesando=false;
   $('btnStart').disabled=false;$('btnStop').disabled=true;
@@ -833,7 +844,6 @@ function generarPatronesParaPalabra(word,traduccion){
   for(const f of formas){
     if(!f||f.length<2)continue;
     patrones.add(f);
-    // que es
     for(const pre of ['que es','qué es','q es','k es','ke es']){
       patrones.add(pre+' '+f);
       patrones.add(pre+' un '+f);
@@ -841,27 +851,21 @@ function generarPatronesParaPalabra(word,traduccion){
       patrones.add(pre+' el '+f);
       patrones.add(pre+' la '+f);
     }
-    // que significa
     for(const pre of ['que significa','qué significa','q significa','k significa','ke significa','que quiere decir','q quiere decir']){
       patrones.add(pre+' '+f);
     }
-    // definición
     for(const pre of ['definicion de','definición de','definicion','definición','defineme','defíneme']){
       patrones.add(pre+' '+f);
     }
-    // dime / explica
     for(const pre of ['dime que es','dime qué es','dime sobre','explicame','explícame','hablame de','háblame de','cuentame de','cuéntame de']){
       patrones.add(pre+' '+f);
     }
-    // sabes
     for(const pre of ['que sabes de','qué sabes de','sabes algo de','sabes algo sobre']){
       patrones.add(pre+' '+f);
     }
-    // info
     for(const pre of ['info sobre','informacion sobre','información sobre','concepto de','busca','buscar']){
       patrones.add(pre+' '+f);
     }
-    // traducción
     patrones.add('como se dice '+f+' en ingles');
     patrones.add('como se dice '+f+' en inglés');
     patrones.add('como se dice '+f+' en español');
@@ -871,10 +875,8 @@ function generarPatronesParaPalabra(word,traduccion){
     patrones.add('traduce '+f+' al español');
     patrones.add('traduccion de '+f);
     patrones.add('traducción de '+f);
-    // quien es
     patrones.add('quien es '+f);
     patrones.add('quién es '+f);
-    // interrogación
     patrones.add(f+'?');
     patrones.add('¿'+f+'?');
   }
@@ -932,7 +934,6 @@ function convertirAFormatoAnia(){
     totalResponses+=1;
   }
 
-  // Tags de personalidad base
   entrenamiento.push(...TAGS_PERSONALIDAD);
   const personalityPatterns=TAGS_PERSONALIDAD.reduce((s,t)=>s+t.patterns.length,0);
   totalPatterns+=personalityPatterns;
@@ -1000,26 +1001,39 @@ const TAGS_PERSONALIDAD=[
 ];
 
 // ============================================================
-// H5 · CARGAR h5wasm
+// H5 · CARGAR h5wasm ✅ FIX: unpkg primero (evita ORB de jsDelivr)
 // ============================================================
 function cargarH5wasm(){
-  return new Promise((resolve,reject)=>{
+  if(h5wasmLoadPromise)return h5wasmLoadPromise;
+  h5wasmLoadPromise=new Promise((resolve,reject)=>{
     if(window.h5wasm)return resolve(window.h5wasm);
     const urls=[
+      'https://unpkg.com/h5wasm@0.7.5/dist/iife/h5wasm.js',
       'https://cdn.jsdelivr.net/npm/h5wasm@0.7.5/dist/iife/h5wasm.js',
-      'https://unpkg.com/h5wasm@0.7.5/dist/iife/h5wasm.js'
+      'https://cdn.jsdelivr.net/npm/h5wasm/dist/iife/h5wasm.js'
     ];
     let i=0;
     const next=()=>{
-      if(i>=urls.length)return reject(new Error('No se pudo cargar h5wasm'));
+      if(i>=urls.length)return reject(new Error('No se pudo cargar h5wasm desde ningún CDN'));
+      const url=urls[i++];
+      console.log('⏳ Cargando h5wasm desde:',url);
       const s=document.createElement('script');
-      s.src=urls[i++];
-      s.onload=()=>window.h5wasm?resolve(window.h5wasm):next();
-      s.onerror=()=>next();
+      s.src=url;
+      s.onload=()=>{
+        if(window.h5wasm){
+          console.log('✅ h5wasm cargado desde:',url);
+          resolve(window.h5wasm);
+        }else next();
+      };
+      s.onerror=()=>{
+        console.warn('⚠️ Falló:',url);
+        next();
+      };
       document.head.appendChild(s);
     };
     next();
   });
+  return h5wasmLoadPromise;
 }
 
 function sanitizeH5(name){
@@ -1064,10 +1078,7 @@ function escribirObjetoH5(grupo,obj,used){
 }
 
 async function crearH5(cerebro){
-  if(!window.h5wasm){
-    toast('Cargando h5wasm...','warn');
-    await cargarH5wasm();
-  }
+  if(!window.h5wasm){toast('Cargando h5wasm...','warn');await cargarH5wasm();}
   const h5wasm=window.h5wasm;
   await h5wasm.ready;
   const FS=h5wasm.FS;
@@ -1639,10 +1650,13 @@ window.addEventListener('load',async()=>{
     if(p&&typeof p.idx==='number')progreso=p;
   }catch(e){console.warn(e);}
 
-  cargarH5wasm().then(()=>console.log('h5wasm listo')).catch(e=>console.warn('h5wasm:',e.message));
+  // Precargar h5wasm en background
+  cargarH5wasm()
+    .then(()=>console.log('✅ h5wasm listo'))
+    .catch(e=>console.warn('⚠️ h5wasm no disponible:',e.message));
 
-  logMsg('👋 Carga el diccionario completo y pulsa "Iniciar"','info');
-  logDict('👉 Pulsa "Cargar diccionario completo" para descargar las ~636k palabras','info');
+  logMsg('👋 Carga el diccionario y pulsa "Iniciar"','info');
+  logDict('👉 Pulsa "Cargar diccionario completo" o "Solo las 5000 más comunes"','info');
 });
 </script>
 </body>
